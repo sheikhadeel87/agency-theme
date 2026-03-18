@@ -68,9 +68,14 @@ export function ServicesSection({ services }: ServicesSectionProps) {
                   <h2 className="mt-5 text-lg font-semibold text-[#0f172a] sm:text-xl">
                     {title}
                   </h2>
-                  <p className="mt-2 text-gray-600 sm:mt-3">
-                    {description}
-                  </p>
+                  {description && (/<[^>]+>/.test(description) ? (
+                    <div
+                      className="prose prose-sm prose-gray mt-2 max-w-none sm:mt-3 [&_p]:my-0 [&_p]:text-gray-600"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
+                  ) : (
+                    <p className="mt-2 text-gray-600 sm:mt-3">{description}</p>
+                  ))}
                 </article>
               </li>
             );

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { SiteSettings } from "@/models/SiteSettings";
 
@@ -49,6 +50,46 @@ export async function saveSiteSettings(
     console.error("saveSiteSettings error:", e);
     return {
       error: e instanceof Error ? e.message : "Failed to save site settings.",
+    };
+  }
+}
+
+export type SaveContactSettingsState = {
+  success?: boolean;
+  error?: string;
+};
+
+/** Update only contact & map fields (for Contact admin page) */
+export async function saveContactSettings(
+  formData: FormData
+): Promise<SaveContactSettingsState> {
+  try {
+    await dbConnect();
+
+    const payload = {
+      contactEmail: str(formData, "contactEmail"),
+      phone: str(formData, "phone"),
+      address: str(formData, "address"),
+      mapEmbedUrl: str(formData, "mapEmbedUrl"),
+    };
+
+    await SiteSettings.findOneAndUpdate(
+      {},
+      { $set: payload },
+      { upsert: true, new: true }
+    );
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/contact");
+    } catch (revalErr) {
+      console.warn("revalidatePath after saveContactSettings:", revalErr);
+    }
+    return { success: true };
+  } catch (e) {
+    console.error("saveContactSettings error:", e);
+    return {
+      error: e instanceof Error ? e.message : "Failed to save contact settings.",
     };
   }
 }

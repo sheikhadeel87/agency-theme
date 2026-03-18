@@ -7,6 +7,8 @@ import {
   FileText,
   FileStack,
   Scale,
+  MapPin,
+  DollarSign,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -22,6 +24,8 @@ const iconMap: Record<string, LucideIcon> = {
   FileText,
   FileStack,
   Scale,
+  MapPin,
+  DollarSign,
 };
 
 export default async function AdminDashboardPage() {

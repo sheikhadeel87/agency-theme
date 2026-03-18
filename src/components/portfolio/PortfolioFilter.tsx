@@ -3,12 +3,62 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
 import type { PortfolioProject } from "@/lib/admin-data";
 
 type Props = {
   projects: PortfolioProject[];
   categories: string[];
 };
+
+function ProjectCard({ project }: { project: PortfolioProject }) {
+  const href = project.slug ? `/portfolio/${encodeURIComponent(project.slug)}` : "#";
+  const imageUrl = project.imageUrl || "/images/hero.png";
+
+  return (
+    <Link
+      href={href}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-gray-200 hover:shadow-xl md:rounded-3xl"
+    >
+      {/* Image - blog-style: wide, more width than text block */}
+      <div className="relative aspect-[2/1] w-full shrink-0 bg-gray-100">
+        <Image
+          src={imageUrl}
+          alt={project.title || "Project"}
+          fill
+          className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        />
+      </div>
+
+      {/* Text block - compact below image, link pinned to bottom */}
+      <div className="flex min-h-0 flex-1 flex-col px-5 py-4 sm:px-6 sm:py-5">
+        {project.categories?.length > 0 && (
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-600 sm:mb-1.5">
+            {project.categories.join(" · ")}
+          </p>
+        )}
+        <h4 className="text-base font-semibold leading-tight text-[#0f172a] transition-colors group-hover:text-blue-600 sm:text-lg lg:text-xl">
+          {project.title || "Untitled"}
+        </h4>
+        {project.client && (
+          <p className="mt-1 text-sm text-gray-500">
+            {project.client}
+          </p>
+        )}
+        {project.shortDescription && (
+          <p className="mt-2 min-h-0 flex-1 line-clamp-3 text-sm leading-relaxed text-gray-600">
+            {project.shortDescription}
+          </p>
+        )}
+        <span className="mt-auto pt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition-all group-hover:gap-3 sm:pt-5">
+          View project
+          <ArrowUpRight className="size-4 shrink-0" aria-hidden />
+        </span>
+      </div>
+    </Link>
+  );
+}
 
 export function PortfolioFilter({ projects, categories }: Props) {
   const [activeFilter, setActiveFilter] = useState<string>("All");
@@ -48,36 +98,10 @@ export function PortfolioFilter({ projects, categories }: Props) {
         ))}
       </div>
 
-      <div className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 sm:mt-16 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+      {/* Blog-style: wider container, image-led cards */}
+      <div className="mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-8 sm:mt-16 sm:gap-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
         {filtered.map((project) => (
-          <Link
-            key={project._id}
-            href={project.slug ? `/portfolio/${encodeURIComponent(project.slug)}` : "#"}
-            className="group relative overflow-hidden rounded-2xl bg-gray-50 shadow-sm transition-shadow hover:shadow-md sm:rounded-3xl"
-          >
-            <div className="aspect-[4/3] relative">
-              <Image
-                src={project.imageUrl || "/images/hero.png"}
-                alt={project.title || "Project"}
-                fill
-                className="object-cover transition-transform group-hover:scale-[1.02]"
-                sizes="(max-width: 1024px) 100vw, 33vw"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-[#0f172a] group-hover:text-blue-600">
-                {project.title || "Untitled"}
-              </h3>
-              {project.client && (
-                <p className="mt-0.5 text-sm text-gray-500">{project.client}</p>
-              )}
-              {project.shortDescription && (
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-                  {project.shortDescription}
-                </p>
-              )}
-            </div>
-          </Link>
+          <ProjectCard key={project._id} project={project} />
         ))}
       </div>
 

@@ -15,6 +15,9 @@ export interface IPortfolio {
   galleryImages: string[];
   projectUrl: string;
   status: PortfolioStatus;
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +39,9 @@ const portfolioSchema = new mongoose.Schema<IPortfolio>(
       enum: portfolioStatuses,
       default: "Draft",
     },
+    metaTitle: { type: String, default: "" },
+    metaDescription: { type: String, default: "" },
+    metaKeywords: { type: String, default: "" },
   },
   { timestamps: true }
 );

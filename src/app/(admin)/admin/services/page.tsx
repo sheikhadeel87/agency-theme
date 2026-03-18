@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
@@ -12,6 +11,11 @@ import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { getServices } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
+
+function stripHtml(html: string, maxLen = 60): string {
+  const text = html.replace(/<[^>]*>/g, "").trim();
+  return text.length > maxLen ? `${text.slice(0, maxLen)}…` : text;
+}
 
 export default async function ServicesPage() {
   const services = await getServices();
@@ -53,7 +57,7 @@ export default async function ServicesPage() {
                   {s.title}
                 </AdminTableCell>
                 <AdminTableCell className="text-muted-foreground">
-                  {s.description}
+                  {stripHtml(s.description) || "—"}
                 </AdminTableCell>
                 <AdminTableCell>
                   <Badge variant={s.status === "Published" ? "default" : "secondary"}>
@@ -61,9 +65,12 @@ export default async function ServicesPage() {
                   </Badge>
                 </AdminTableCell>
                 <AdminTableCell className="text-right">
-                  <Button variant="link" size="sm" className="text-primary">
+                  <Link
+                    href={`/admin/services/edit/${s._id}`}
+                    className="inline-flex h-7 items-center text-[0.8rem] font-medium text-primary underline-offset-4 hover:underline"
+                  >
                     Edit
-                  </Button>
+                  </Link>
                 </AdminTableCell>
               </AdminTableRow>
             ))}

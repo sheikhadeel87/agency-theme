@@ -17,20 +17,47 @@ import {
   getPortfolioProjects,
   getPortfolioCategories,
   getBlogPosts,
+  getTeamSettings,
+  getTeamMembers,
+  getWhyChooseUsSettings,
+  getTestimonialsSettings,
+  getTestimonials,
+  getPricingSettings,
+  getPricingPlans,
 } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [services, siteSettings, hero, portfolio, portfolioCategories, blogPosts] =
-    await Promise.all([
-      getServices(),
-      getSiteSettings(),
-      getHeroData(),
-      getPortfolioProjects(),
-      getPortfolioCategories(),
-      getBlogPosts(),
-    ]);
+  const [
+    services,
+    siteSettings,
+    hero,
+    portfolio,
+    portfolioCategories,
+    blogPosts,
+    teamSettings,
+    teamMembers,
+    whyChooseUsSettings,
+    testimonialsSettings,
+    testimonials,
+    pricingSettings,
+    pricingPlans,
+  ] = await Promise.all([
+    getServices(),
+    getSiteSettings(),
+    getHeroData(),
+    getPortfolioProjects(),
+    getPortfolioCategories(),
+    getBlogPosts(),
+    getTeamSettings(),
+    getTeamMembers(),
+    getWhyChooseUsSettings(),
+    getTestimonialsSettings(),
+    getTestimonials(),
+    getPricingSettings(),
+    getPricingPlans(),
+  ]);
 
   return (
     <>
@@ -38,15 +65,15 @@ export default async function Home() {
       <main>
         <Hero heroData={hero} />
         <FeaturesHighlights />
-        <WhyChooseUs />
-        <TeamSection />
+        <WhyChooseUs settings={whyChooseUsSettings} />
+        <TeamSection settings={teamSettings} members={teamMembers} />
         <ServicesSection services={services} />
-        <PricingSection />
+        <PricingSection settings={pricingSettings} plans={pricingPlans} />
         <PortfolioSection
           projects={portfolio}
           categories={portfolioCategories}
         />
-        <TestimonialsSection />
+        <TestimonialsSection settings={testimonialsSettings} testimonials={testimonials} />
         <BlogSection posts={blogPosts} />
         <ContactSection siteSettings={siteSettings} />
       </main>

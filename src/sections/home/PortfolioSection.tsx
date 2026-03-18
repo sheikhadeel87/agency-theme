@@ -1,5 +1,5 @@
 import { Container } from "@/components/ui/Container";
-import { PortfolioFilter } from "@/components/portfolio/PortfolioFilter";
+import { PortfolioFilter } from "../../components/portfolio/PortfolioFilter";
 import type { PortfolioProject } from "@/lib/admin-data";
 
 export type PortfolioSectionProps = {
@@ -17,7 +17,7 @@ export function PortfolioSection({ projects, categories }: PortfolioSectionProps
       aria-labelledby="portfolio-heading"
     >
       <Container as="div">
-        <header className="mx-auto max-w-2xl text-center">
+        <header className="mx-auto max-w-5xl text-center">
           <h2
             id="portfolio-heading"
             className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"

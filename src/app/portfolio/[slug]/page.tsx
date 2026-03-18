@@ -1,12 +1,42 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { getPortfolioProjectBySlug, getSiteSettings } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
+
+function looksLikeHtml(text: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(text.trim());
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getPortfolioProjectBySlug(slug);
+  if (!project || project.status !== "Published") return {};
+  const title = project.metaTitle || project.title || "Portfolio Project";
+  const description = project.metaDescription || project.shortDescription || "";
+  const keywords = project.metaKeywords
+    ? project.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
+    : undefined;
+  return {
+    title,
+    description: description || undefined,
+    keywords: keywords?.length ? keywords : undefined,
+    openGraph: {
+      title,
+      description: description || undefined,
+      images: project.imageUrl ? [project.imageUrl] : undefined,
+    },
+  };
+}
 
 export default async function PortfolioProjectPage({
   params,
@@ -76,9 +106,16 @@ export default async function PortfolioProjectPage({
 
             {project.fullDescription && (
               <div className="prose prose-gray mb-10 max-w-none">
-                <div className="whitespace-pre-wrap text-gray-700">
-                  {project.fullDescription}
-                </div>
+                {looksLikeHtml(project.fullDescription) ? (
+                  <div
+                    className="text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: project.fullDescription }}
+                  />
+                ) : (
+                  <div className="whitespace-pre-wrap text-gray-700">
+                    {project.fullDescription}
+                  </div>
+                )}
               </div>
             )}
 

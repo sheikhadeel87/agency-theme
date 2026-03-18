@@ -4,31 +4,74 @@ import { dbConnect } from "@/lib/db";
 import { Service } from "@/models/Service";
 import type { ServiceStatus } from "@/models/Service";
 
-export type CreateServiceState = {
+export type SaveServiceState = {
   success?: boolean;
   error?: string;
 };
 
-export async function createService(formData: FormData): Promise<CreateServiceState> {
-  const title = formData.get("title")?.toString().trim();
-  const description = formData.get("description")?.toString().trim() ?? "";
-  const status = (formData.get("status")?.toString() ?? "Draft") as ServiceStatus;
+function str(formData: FormData, key: string): string {
+  return formData.get(key)?.toString()?.trim() ?? "";
+}
 
-  if (!title) {
-    return { error: "Title is required." };
-  }
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-")
+    .replace(/^-+|-+$/g, "") || "service";
+}
 
-  const validStatuses: ServiceStatus[] = ["Draft", "Published"];
-  if (!validStatuses.includes(status)) {
-    return { error: "Invalid status." };
-  }
-
+export async function saveService(formData: FormData): Promise<SaveServiceState> {
   try {
     await dbConnect();
-    await Service.create({ title, description, status });
+
+    const id = str(formData, "_id");
+    let title = str(formData, "title");
+    let slug = str(formData, "slug");
+    if (!slug && title) slug = slugify(title);
+    if (!slug) slug = `service-${Date.now()}`;
+
+    const status = (formData.get("status")?.toString()?.trim() === "Published"
+      ? "Published"
+      : "Draft") as ServiceStatus;
+
+    const payload = {
+      title,
+      slug,
+      description: str(formData, "description"),
+      imageUrl: "",
+      status,
+      metaTitle: str(formData, "metaTitle") || title,
+      metaDescription: str(formData, "metaDescription") || str(formData, "description"),
+      metaKeywords: str(formData, "metaKeywords"),
+    };
+
+    if (id) {
+      await Service.findByIdAndUpdate(id, { $set: payload }, { new: true });
+    } else {
+      await Service.create(payload);
+    }
+
     return { success: true };
   } catch (e) {
-    console.error("createService error:", e);
-    return { error: e instanceof Error ? e.message : "Failed to create service." };
+    console.error("saveService error:", e);
+    return {
+      error: e instanceof Error ? e.message : "Failed to save service.",
+    };
+  }
+}
+
+export async function deleteService(id: string): Promise<{ success?: boolean; error?: string }> {
+  try {
+    await dbConnect();
+    const { isValidObjectId } = await import("mongoose");
+    if (!id || !isValidObjectId(id)) return { error: "Invalid service id." };
+    await Service.findByIdAndDelete(id);
+    return { success: true };
+  } catch (e) {
+    console.error("deleteService error:", e);
+    return { error: e instanceof Error ? e.message : "Failed to delete service." };
   }
 }

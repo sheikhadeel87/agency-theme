@@ -12,6 +12,10 @@ import {
   FileText,
   FileStack,
   Scale,
+  ThumbsUp,
+  MessageSquareQuote,
+  MapPin,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +23,13 @@ export const adminNavItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Site Settings", href: "/admin/site-settings", icon: Settings },
   { label: "Homepage", href: "/admin/homepage", icon: Home },
+  { label: "Why Choose Us", href: "/admin/why-choose-us", icon: ThumbsUp },
   { label: "Services", href: "/admin/services", icon: Briefcase },
   { label: "Portfolio", href: "/admin/portfolio", icon: ImageIcon },
   { label: "Team", href: "/admin/team", icon: Users },
+  { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
+  { label: "Contact & Map", href: "/admin/contact", icon: MapPin },
+  { label: "Pricing", href: "/admin/pricing", icon: DollarSign },
   { label: "Blog", href: "/admin/blog", icon: FileText },
   { label: "Pages", href: "/admin/pages", icon: FileStack },
   { label: "Legal", href: "/admin/legal", icon: Scale },

@@ -13,6 +13,7 @@ const titleByPath: Record<string, string> = {
   "/admin/homepage/hero": "Edit Hero",
   "/admin/services": "Services",
   "/admin/services/new": "New Service",
+  "/admin/services/edit": "Edit Service",
   "/admin/portfolio": "Portfolio",
   "/admin/portfolio/new": "New Project",
   "/admin/portfolio/edit": "Edit Project",
@@ -27,6 +28,7 @@ const titleByPath: Record<string, string> = {
 function getTitle(pathname: string): string {
   if (pathname?.startsWith("/admin/portfolio/edit/")) return "Edit Project";
   if (pathname?.startsWith("/admin/blog/edit/")) return "Edit Post";
+  if (pathname?.startsWith("/admin/services/edit/")) return "Edit Service";
   return titleByPath[pathname] ?? "Admin";
 }
 
