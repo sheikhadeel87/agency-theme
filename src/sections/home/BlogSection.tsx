@@ -2,29 +2,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { User, Calendar } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import type { BlogPost } from "@/lib/admin-data";
 
-const posts = [
-  {
-    title: "Free advertising for your online business",
-    author: "Musharof Chy",
-    date: "25 Dec, 2025",
-    image: "/images/blog-1.png",
-  },
-  {
-    title: "9 simple ways to improve your design skills",
-    author: "Musharof Chy",
-    date: "25 Dec, 2025",
-    image: "/images/blog-2.png",
-  },
-  {
-    title: "Tips to quickly improve your coding speed.",
-    author: "Musharof Chy",
-    date: "25 Dec, 2025",
-    image: "/images/blog-3.png",
-  },
-] as const;
+export type BlogSectionProps = {
+  posts: BlogPost[];
+};
 
-export function BlogSection() {
+function formatDate(iso: string | null): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+export function BlogSection({ posts }: BlogSectionProps) {
+  const published = posts.filter((p) => p.is_published).slice(0, 6);
+
   return (
     <section
       id="blog"
@@ -47,14 +46,17 @@ export function BlogSection() {
         </header>
 
         <ul className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-8 sm:mt-16 sm:gap-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-          {posts.map((post) => (
-            <li key={post.title}>
+          {published.map((post) => (
+            <li key={post._id}>
               <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md">
-                <Link href="/blog" className="block flex-1">
+                <Link
+                  href={post.slug ? `/blog/${encodeURIComponent(post.slug)}` : "/blog"}
+                  className="block flex-1"
+                >
                   <div className="relative aspect-[16/10] overflow-hidden rounded-t-2xl">
                     <Image
-                      src={post.image}
-                      alt=""
+                      src={post.imageUrl || "/images/blog-1.png"}
+                      alt={post.title || ""}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -64,15 +66,15 @@ export function BlogSection() {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       <span className="flex items-center gap-1.5">
                         <User className="size-4 shrink-0" aria-hidden />
-                        {post.author}
+                        {post.author || "—"}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Calendar className="size-4 shrink-0" aria-hidden />
-                        {post.date}
+                        {formatDate(post.publishedAt ?? post.createdAt)}
                       </span>
                     </div>
                     <h3 className="text-lg font-semibold leading-snug text-[#0f172a] sm:text-xl">
-                      {post.title}
+                      {post.title || "Untitled"}
                     </h3>
                   </div>
                 </Link>

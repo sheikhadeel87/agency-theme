@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Zap, Facebook, Twitter, Linkedin, SendHorizontal } from "lucide-react";
+import { Zap, Facebook, Twitter, Linkedin, Instagram, SendHorizontal } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import type { SiteSettingsData } from "@/lib/admin-data";
 
 // Quick Links — main nav / key sections
 const quickLinks: Array<{ label: string; href: string; badge?: string }> = [
@@ -18,21 +19,40 @@ const services = [
   { label: "Ui/Ux Design", href: "/#services" },
 ] as const;
 
-// Support — scroll to relevant sections
-const support = [
-  { label: "Team", href: "/#team" },
-  { label: "Contact Us", href: "/#contact" },
-  { label: "Privacy Policy", href:"/privacy-policy" },
-  { label: "Terms & Conditions", href:"/terms-conditions" },
-] as const;
+function brandText(s: SiteSettingsData | null | undefined): string {
+  if (!s) return "Nexora";
+  return s.logoText?.trim() || s.siteName?.trim() || "Nexora";
+}
 
-const social = [
-  { icon: Facebook, href: "#", label: "Facebook" },
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-] as const;
+function footerDescription(s: SiteSettingsData | null | undefined): string {
+  if (!s?.footerText?.trim()) return "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+  return s.footerText.trim();
+}
 
-export function Footer() {
+export type FooterProps = {
+  siteSettings?: SiteSettingsData | null;
+};
+
+export function Footer({ siteSettings }: FooterProps) {
+  const brand = brandText(siteSettings);
+  const description = footerDescription(siteSettings);
+  const privacyHref = siteSettings?.privacyPolicyUrl?.trim() || "/privacy-policy";
+  const termsHref = siteSettings?.termsUrl?.trim() || "/terms-conditions";
+  const socialLinks = siteSettings?.socialLinks;
+  const social = [
+    { icon: Facebook, href: socialLinks?.facebook?.trim() || "#", label: "Facebook" },
+    { icon: Twitter, href: socialLinks?.twitter?.trim() || "#", label: "Twitter" },
+    { icon: Linkedin, href: socialLinks?.linkedin?.trim() || "#", label: "LinkedIn" },
+    { icon: Instagram, href: socialLinks?.instagram?.trim() || "#", label: "Instagram" },
+  ] as const;
+
+  const support = [
+    { label: "Team", href: "/#team" },
+    { label: "Contact Us", href: "/#contact" },
+    { label: "Privacy Policy", href: privacyHref },
+    { label: "Terms & Conditions", href: termsHref },
+  ] as const;
+
   return (
     <footer className="rounded-t-2xl bg-gray-100 sm:rounded-t-3xl">
       <Container as="div" className="pt-12 sm:pt-14 lg:pt-16">
@@ -44,10 +64,10 @@ export function Footer() {
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
                 <Zap className="size-5" />
               </span>
-              <span className="text-lg font-semibold text-[#0f172a]">Nexora</span>
+              <span className="text-lg font-semibold text-[#0f172a]">{brand}</span>
             </Link>
             <p className="mt-4 text-sm text-gray-600">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              {description}
             </p>
             <div className="mt-5 flex gap-3" aria-label="Social links">
               {social.map(({ icon: Icon, href, label }) => (
@@ -162,19 +182,19 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="transition-colors hover:text-gray-900">
+                  <Link href={privacyHref} className="transition-colors hover:text-gray-900">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/support" className="transition-colors hover:text-gray-900">
+                  <Link href="/#support" className="transition-colors hover:text-gray-900">
                     Support
                   </Link>
                 </li>
               </ul>
             </nav>
             <p className="text-sm text-gray-500">
-              © 2026 Nexora. All rights reserved
+              © {new Date().getFullYear()} {brand}. All rights reserved
             </p>
           </div>
         </div>

@@ -1,8 +1,31 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/ui/Container";
+import type { HeroData } from "@/lib/admin-data";
 
-export function Hero() {
+const DEFAULTS = {
+  heading: "We specialize in UI/UX, Web Development, Digital Marketing.",
+  description:
+    "We help brands grow with strategy, design, and technology. From concept to launch, we deliver solutions that drive results.",
+  ctaText: "Get Started Now",
+  ctaLink: "/#get-started",
+  phoneText: "Call us (0123) 456 – 789",
+  badgeText: "For any question or concern",
+};
+
+export type HeroProps = {
+  heroData?: HeroData | null;
+};
+
+export function Hero({ heroData }: HeroProps) {
+  const heading = heroData?.heading?.trim() || DEFAULTS.heading;
+  const description = heroData?.description?.trim() || DEFAULTS.description;
+  const ctaText = heroData?.ctaText?.trim() || DEFAULTS.ctaText;
+  const ctaLink = heroData?.ctaLink?.trim() || DEFAULTS.ctaLink;
+  const phoneText = heroData?.phoneText?.trim() || DEFAULTS.phoneText;
+  const badgeText = heroData?.badgeText?.trim() || DEFAULTS.badgeText;
+  const showPhoneBlock = phoneText || badgeText;
+
   return (
     <section
       className="flex flex-1 flex-col bg-[#f5f5f5] py-16 sm:py-20 lg:py-28"
@@ -16,27 +39,30 @@ export function Hero() {
               id="hero-heading"
               className="text-3xl font-semibold leading-tight tracking-tight text-[#0f172a] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.2] xl:text-5xl"
             >
-              We specialize in UI/UX, Web Development, Digital Marketing.
+              {heading}
             </h1>
             <p className="mt-6 text-lg text-gray-600 sm:mt-8">
-              We help brands grow with strategy, design, and technology. From
-              concept to launch, we deliver solutions that drive results.
+              {description}
             </p>
             <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-8">
               <Link
-                href="/#get-started"
+                href={ctaLink}
                 className="inline-flex w-fit rounded-full bg-blue-600 px-6 py-3.5 text-base font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                Get Started Now
+                {ctaText}
               </Link>
-              <div className="border-l-2 border-gray-200 pl-5 sm:pl-6">
-                <p className="text-sm font-medium text-gray-900">
-                  Call us (0123) 456 – 789
-                </p>
-                <p className="mt-0.5 text-sm text-gray-500">
-                  For any question or concern
-                </p>
-              </div>
+              {showPhoneBlock && (
+                <div className="border-l-2 border-gray-200 pl-5 sm:pl-6">
+                  {phoneText && (
+                    <p className="text-sm font-medium text-gray-900">
+                      {phoneText}
+                    </p>
+                  )}
+                  {badgeText && (
+                    <p className="mt-0.5 text-sm text-gray-500">{badgeText}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

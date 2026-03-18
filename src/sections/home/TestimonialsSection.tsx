@@ -1,8 +1,13 @@
-import Image from "next/image";
-import { Quote, ChevronLeft, ChevronRight, Droplet } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { TestimonialsCarousel } from "@/sections/home/TestimonialsCarousel";
+import type { TestimonialsSettingsData, TestimonialItem } from "@/lib/admin-data";
 
-export function TestimonialsSection() {
+type Props = {
+  settings: TestimonialsSettingsData;
+  testimonials: TestimonialItem[];
+};
+
+export function TestimonialsSection({ settings, testimonials }: Props) {
   return (
     <section
       id="testimonials"
@@ -15,84 +20,16 @@ export function TestimonialsSection() {
             id="testimonials-heading"
             className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
           >
-            Client&apos;s Testimonials
+            {settings.sectionTitle || "Client's Testimonials"}
           </h2>
-          <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
-            It is a long established fact that a reader will be distracted by
-            the readable content of a page when looking at its layout. The point
-            of using.
-          </p>
+          {settings.sectionDescription ? (
+            <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+              {settings.sectionDescription}
+            </p>
+          ) : null}
         </header>
 
-        {/* Main testimonial card — 1150×372 on desktop, light grey, rounded, drop shadow */}
-        <div className="relative mx-auto mt-12 w-full max-w-[1150px] sm:mt-16">
-          <div className="relative overflow-hidden rounded-2xl bg-gray-100 shadow-md sm:rounded-3xl lg:h-[372px]">
-            <div className="grid grid-cols-1 items-stretch gap-8 p-6 sm:p-8 lg:grid-cols-[300px_1fr] lg:gap-10 lg:h-full lg:p-10">
-              {/* Left: 300×300 image, vertically centered */}
-              <div className="flex min-h-0 w-full items-center justify-center lg:min-w-[300px]">
-                <div className="relative h-0 w-full max-w-[280px] shrink-0 overflow-hidden rounded-xl pb-[100%] sm:max-w-[300px] lg:max-w-none lg:h-[300px] lg:w-[300px] lg:pb-0">
-                  <Image
-                    src="/images/client.png"
-                    alt="Devid Smith"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 300px, 300px"
-                  />
-                </div>
-              </div>
-
-              {/* Right: quote icon, italic text, name, designation, brand with icon */}
-              <div className="flex flex-col justify-center">
-                <Quote className="size-14 text-gray-300 sm:size-16" aria-hidden />
-                <blockquote className="mt-4 italic text-gray-600 sm:mt-5 sm:text-lg">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. In
-                  dolor diam, feugiat quis enim sed, ullamcorper semper ligula.
-                  Mauris consequat justo volutpat.
-                </blockquote>
-                <footer className="mt-6 flex flex-col gap-0.5 sm:mt-8">
-                  <cite className="not-italic font-bold text-[#0f172a]">
-                    Devid Smith
-                  </cite>
-                  <p className="text-sm text-gray-600">
-                    Founder @democompany
-                  </p>
-                </footer>
-                <p className="mt-auto flex items-center justify-end gap-1.5 pt-6 text-right text-sm font-medium text-gray-600 sm:pt-8">
-                  <Droplet className="size-4 shrink-0" aria-hidden />
-                  <span className="uppercase tracking-wider">dropcam</span>
-                </p>
-              </div>
-            </div>
-
-            {/* Vertical accent: blue top, pink bottom */}
-            <div
-              className="absolute right-0 top-0 h-1/2 w-1 bg-blue-500 sm:w-1.5"
-              aria-hidden
-            />
-            <div
-              className="absolute bottom-0 right-0 h-1/2 w-1 bg-pink-400 sm:w-1.5"
-              aria-hidden
-            />
-          </div>
-
-          {/* Arrow controls — light grey circles with border */}
-          <div className="mt-8 flex items-center justify-center gap-4 sm:mt-10">
-            <button
-              type="button"
-              className="flex size-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200"
-              aria-label="Previous testimonial"
-            >
-              <ChevronLeft className="size-6" />
-            </button>
-            <button
-              type="button"
-              className="flex size-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200"
-              aria-label="Next testimonial"
-            >
-              <ChevronRight className="size-6" />
-            </button>
-          </div>
-        </div>
+        <TestimonialsCarousel testimonials={testimonials} />
       </Container>
     </section>
   );

@@ -1,117 +1,171 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import type { PricingSettingsData, PricingPlanItem } from "@/lib/admin-data";
 
-const FEATURES = [
-  "400 GB Storage",
-  "Unlimited Photos & Videos",
-  "Exclusive Support",
-] as const;
+export type PricingSectionProps = {
+  settings: PricingSettingsData;
+  plans: PricingPlanItem[];
+};
 
-const plans = [
-  {
-    name: "Starter",
-    price: 29,
-    period: "per month",
-    featured: false,
-    ctaVariant: "pink" as const,
-  },
-  {
-    name: "Growth Plan",
-    price: 59,
-    period: "per month",
-    featured: true,
-    ctaVariant: "blue" as const,
-  },
-  {
-    name: "Business",
-    price: 139,
-    period: "per month",
-    featured: false,
-    ctaVariant: "pink" as const,
-  },
-];
+export function PricingSection({ settings, plans }: PricingSectionProps) {
+  const [billingAnnual, setBillingAnnual] = useState(false);
 
-export function PricingSection() {
+  const displayPlans = plans.length > 0 ? plans : [
+    {
+      _id: "fallback",
+      name: "Starter",
+      priceMonthly: 29,
+      priceAnnual: 290,
+      periodLabel: "per month",
+      subtext: "No credit card required",
+      ctaText: "Try for free",
+      ctaLink: "",
+      features: ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"],
+      footnote: "7-day free trial",
+      featured: false,
+      order: 0,
+    },
+    {
+      _id: "fallback-2",
+      name: "Growth Plan",
+      priceMonthly: 59,
+      priceAnnual: 590,
+      periodLabel: "per month",
+      subtext: "No credit card required",
+      ctaText: "Try for free",
+      ctaLink: "",
+      features: ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"],
+      footnote: "7-day free trial",
+      featured: true,
+      order: 1,
+    },
+    {
+      _id: "fallback-3",
+      name: "Business",
+      priceMonthly: 139,
+      priceAnnual: 1390,
+      periodLabel: "per month",
+      subtext: "No credit card required",
+      ctaText: "Try for free",
+      ctaLink: "",
+      features: ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"],
+      footnote: "7-day free trial",
+      featured: false,
+      order: 2,
+    },
+  ] as PricingPlanItem[];
+
   return (
     <section
       id="pricing"
       className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
       aria-labelledby="pricing-heading"
     >
-
       <Container as="div" className="relative">
-        <header className="mx-auto max-w-2xl text-center">
+        <header className="mx-auto max-w-2xl text-center [animation:pricing-fade-in-up_0.6s_ease-out_both]">
           <h2
             id="pricing-heading"
             className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
           >
-            We Offer Great Affordable Premium Prices.
+            {settings.sectionTitle || "We Offer Great Affordable Premium Prices."}
           </h2>
-          <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
-            It is a long established fact that a reader will be distracted by
-            the readable content of a page when looking at its layout. The point
-            of using.
-          </p>
+          {settings.sectionDescription ? (
+            <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+              {settings.sectionDescription}
+            </p>
+          ) : (
+            <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+              It is a long established fact that a reader will be distracted by
+              the readable content of a page when looking at its layout. The point
+              of using.
+            </p>
+          )}
 
-          {/* Billing toggle row — non-functional, styled */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
-            <span className="text-sm font-medium text-gray-700">Bill Monthly</span>
-            <div
-              className="relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-gray-200 px-1 transition-colors sm:h-9 sm:w-16"
-              role="presentation"
+            <span className={`text-sm font-medium ${!billingAnnual ? "text-gray-700" : "text-gray-500"}`}>
+              Bill Monthly
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={billingAnnual}
+              onClick={() => setBillingAnnual((v) => !v)}
+              className="relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-gray-200 px-1 transition-colors duration-300 sm:h-9 sm:w-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <span
-                className="block size-6 rounded-full bg-blue-600 shadow-sm transition-transform sm:size-7"
-                style={{ transform: "translateX(0)" }}
+                className="block size-6 rounded-full bg-blue-600 shadow-sm transition-transform duration-300 ease-out sm:size-7"
+                style={{ transform: billingAnnual ? "translateX(calc(100% + 2px))" : "translateX(0)" }}
               />
-            </div>
-            <span className="text-sm font-medium text-gray-500">Bill Annually</span>
+            </button>
+            <span className={`text-sm font-medium ${billingAnnual ? "text-gray-700" : "text-gray-500"}`}>
+              Bill Annually
+            </span>
           </div>
         </header>
 
         <ul className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 sm:mt-16 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-          {plans.map((plan) => (
-            <li
-              key={plan.name}
-              className={`flex flex-col rounded-3xl bg-white p-8 shadow-sm sm:p-10 ${
-                plan.featured
-                  ? "ring-2 ring-blue-500/20 ring-offset-4 ring-offset-[#fafafa] md:ring-2"
-                  : ""
-              }`}
-            >
-              <h3 className="text-xl font-semibold text-[#0f172a]">
-                {plan.name}
-              </h3>
-              <p className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl">
-                  ${plan.price}
-                </span>
-                <span className="text-sm text-gray-500">/{plan.period}</span>
-              </p>
-              <p className="mt-1 text-xs text-gray-500">
-                No credit card required
-              </p>
-              <button
-                type="button"
-                className={`mt-6 w-full rounded-full py-3.5 text-sm font-medium text-white transition-colors sm:mt-8 ${
-                  plan.ctaVariant === "blue"
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "bg-pink-500 hover:bg-pink-600"
+          {displayPlans.map((plan, index) => {
+            const price = billingAnnual ? plan.priceAnnual : plan.priceMonthly;
+            const periodLabel = billingAnnual ? "per year" : (plan.periodLabel || "per month");
+            const ctaClass = `mt-6 w-full rounded-full py-3.5 text-center text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] sm:mt-8 ${
+              plan.featured
+                ? "bg-blue-600 hover:bg-rose-400 focus:bg-rose-400 active:bg-rose-500"
+                : "bg-pink-500 hover:bg-rose-400 focus:bg-rose-400 active:bg-rose-500"
+            } ${!plan.ctaLink ? "cursor-default" : ""}`;
+
+            return (
+              <li
+                key={plan._id}
+                className={`flex flex-col rounded-3xl bg-white p-8 shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg sm:p-10 ${
+                  plan.featured
+                    ? "ring-2 ring-blue-500/20 ring-offset-4 ring-offset-[#fafafa] md:ring-2"
+                    : ""
                 }`}
+                style={{
+                  animation: "pricing-card-in 0.5s ease-out both",
+                  animationDelay: `${120 + index * 80}ms`,
+                }}
               >
-                Try for free
-              </button>
-              <ul className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-8 sm:mt-10">
-                {FEATURES.map((feature) => (
-                  <li key={feature} className="text-sm text-gray-600">
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-6 text-center text-xs text-gray-500 sm:mt-8">
-                7-day free trial
-              </p>
-            </li>
-          ))}
+                <h3 className="text-xl font-semibold text-[#0f172a]">
+                  {plan.name}
+                </h3>
+                <p className="mt-4 flex items-baseline gap-1">
+                  <span className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl">
+                    ${price}
+                  </span>
+                  <span className="text-sm text-gray-500">/{periodLabel}</span>
+                </p>
+                {plan.subtext ? (
+                  <p className="mt-1 text-xs text-gray-500">{plan.subtext}</p>
+                ) : null}
+                {plan.ctaLink ? (
+                  <Link href={plan.ctaLink} className={ctaClass}>
+                    {plan.ctaText}
+                  </Link>
+                ) : (
+                  <span className={ctaClass}>{plan.ctaText}</span>
+                )}
+                <ul className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-8 sm:mt-10">
+                  {(plan.features && plan.features.length > 0
+                    ? plan.features
+                    : ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"]
+                  ).map((feature) => (
+                    <li key={feature} className="text-sm text-gray-600">
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                {plan.footnote ? (
+                  <p className="mt-6 text-center text-xs text-gray-500 sm:mt-8">
+                    {plan.footnote}
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       </Container>
     </section>

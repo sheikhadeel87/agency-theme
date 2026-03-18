@@ -10,24 +10,74 @@ import { PortfolioSection } from "@/sections/home/PortfolioSection";
 import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
 import { BlogSection } from "@/sections/home/BlogSection";
 import { ContactSection } from "@/sections/home/ContactSection";
+import {
+  getServices,
+  getSiteSettings,
+  getHeroData,
+  getPortfolioProjects,
+  getPortfolioCategories,
+  getBlogPosts,
+  getTeamSettings,
+  getTeamMembers,
+  getWhyChooseUsSettings,
+  getTestimonialsSettings,
+  getTestimonials,
+  getPricingSettings,
+  getPricingPlans,
+} from "@/lib/admin-data";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [
+    services,
+    siteSettings,
+    hero,
+    portfolio,
+    portfolioCategories,
+    blogPosts,
+    teamSettings,
+    teamMembers,
+    whyChooseUsSettings,
+    testimonialsSettings,
+    testimonials,
+    pricingSettings,
+    pricingPlans,
+  ] = await Promise.all([
+    getServices(),
+    getSiteSettings(),
+    getHeroData(),
+    getPortfolioProjects(),
+    getPortfolioCategories(),
+    getBlogPosts(),
+    getTeamSettings(),
+    getTeamMembers(),
+    getWhyChooseUsSettings(),
+    getTestimonialsSettings(),
+    getTestimonials(),
+    getPricingSettings(),
+    getPricingPlans(),
+  ]);
+
   return (
     <>
-      <Header />
+      <Header siteSettings={siteSettings} />
       <main>
-        <Hero />
+        <Hero heroData={hero} />
         <FeaturesHighlights />
-        <WhyChooseUs />
-        <TeamSection />
-        <ServicesSection />
-        <PricingSection />
-        <PortfolioSection />
-        <TestimonialsSection />
-        <BlogSection />
-        <ContactSection />
+        <WhyChooseUs settings={whyChooseUsSettings} />
+        <TeamSection settings={teamSettings} members={teamMembers} />
+        <ServicesSection services={services} />
+        <PricingSection settings={pricingSettings} plans={pricingPlans} />
+        <PortfolioSection
+          projects={portfolio}
+          categories={portfolioCategories}
+        />
+        <TestimonialsSection settings={testimonialsSettings} testimonials={testimonials} />
+        <BlogSection posts={blogPosts} />
+        <ContactSection siteSettings={siteSettings} />
       </main>
-      <Footer />
+      <Footer siteSettings={siteSettings} />
     </>
   );
 }

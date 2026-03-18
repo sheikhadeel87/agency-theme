@@ -4,6 +4,17 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Zap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import type { SiteSettingsData } from "@/lib/admin-data";
+
+function brandText(siteSettings: SiteSettingsData | null | undefined): string {
+  if (!siteSettings) return "Nexora";
+  const text = siteSettings.logoText?.trim() || siteSettings.siteName?.trim();
+  return text || "Nexora";
+}
+
+export type HeaderProps = {
+  siteSettings?: SiteSettingsData | null;
+};
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -22,8 +33,9 @@ const pageLinks = [
   { href: "/#contact", label: "Contact" },
 ];
 
-export function Header() {
+export function Header({ siteSettings }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const brand = brandText(siteSettings);
   const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
   const pagesRef = useRef<HTMLLIElement>(null);
 
@@ -50,7 +62,7 @@ export function Header() {
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
               <Zap className="size-5" />
             </span>
-            Nexora
+            {brand}
           </Link>
 
           <div className="flex items-center gap-2">
