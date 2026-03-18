@@ -1,15 +1,29 @@
 "use client";
 
 import { Container } from "@/components/ui/Container";
+import type { SiteSettingsData } from "@/lib/admin-data";
 
-export function ContactSection() {
+const DEFAULT_MAP_EMBED =
+  "https://maps.google.com/maps?q=Lahore%20Pakistan&t=&z=13&ie=UTF8&iwloc=&output=embed";
+
+export type ContactSectionProps = {
+  siteSettings?: SiteSettingsData | null;
+};
+
+export function ContactSection({ siteSettings }: ContactSectionProps) {
+  const mapSrc =
+    siteSettings?.mapEmbedUrl?.trim() || DEFAULT_MAP_EMBED;
+  const hasContactInfo =
+    siteSettings?.contactEmail?.trim() ||
+    siteSettings?.phone?.trim() ||
+    siteSettings?.address?.trim();
+
   return (
     <section
       id="contact"
       className="relative overflow-hidden bg-[#f8f8fb] py-16 sm:py-20 lg:py-24"
       aria-labelledby="contact-heading"
-    > 
-
+    >
       <Container as="div" className="relative">
         <header className="mx-auto max-w-2xl text-center">
           <h2
@@ -25,12 +39,47 @@ export function ContactSection() {
           </p>
         </header>
 
+        {hasContactInfo && (
+          <div className="mx-auto mt-8 max-w-6xl rounded-2xl border border-gray-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:p-8">
+            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-gray-600">
+              {siteSettings?.contactEmail?.trim() && (
+                <li>
+                  <span className="font-medium text-gray-700">Email:</span>{" "}
+                  <a
+                    href={`mailto:${siteSettings.contactEmail.trim()}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {siteSettings.contactEmail.trim()}
+                  </a>
+                </li>
+              )}
+              {siteSettings?.phone?.trim() && (
+                <li>
+                  <span className="font-medium text-gray-700">Phone:</span>{" "}
+                  <a
+                    href={`tel:${siteSettings.phone.trim()}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {siteSettings.phone.trim()}
+                  </a>
+                </li>
+              )}
+              {siteSettings?.address?.trim() && (
+                <li className="w-full sm:w-auto">
+                  <span className="font-medium text-gray-700">Address:</span>{" "}
+                  {siteSettings.address.trim()}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
         <div className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-10">
           {/* Left: map */}
-          <div className="overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl min-h-[520px]">
+          <div className="min-h-[520px] overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl">
             <iframe
               title="Office location map"
-              src="https://maps.google.com/maps?q=Lahore%20Pakistan&t=&z=13&ie=UTF8&iwloc=&output=embed"
+              src={mapSrc}
               width="100%"
               height="100%"
               style={{ border: 0 }}

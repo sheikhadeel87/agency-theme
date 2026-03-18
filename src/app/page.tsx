@@ -10,24 +10,47 @@ import { PortfolioSection } from "@/sections/home/PortfolioSection";
 import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
 import { BlogSection } from "@/sections/home/BlogSection";
 import { ContactSection } from "@/sections/home/ContactSection";
+import {
+  getServices,
+  getSiteSettings,
+  getHeroData,
+  getPortfolioProjects,
+  getPortfolioCategories,
+  getBlogPosts,
+} from "@/lib/admin-data";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [services, siteSettings, hero, portfolio, portfolioCategories, blogPosts] =
+    await Promise.all([
+      getServices(),
+      getSiteSettings(),
+      getHeroData(),
+      getPortfolioProjects(),
+      getPortfolioCategories(),
+      getBlogPosts(),
+    ]);
+
   return (
     <>
-      <Header />
+      <Header siteSettings={siteSettings} />
       <main>
-        <Hero />
+        <Hero heroData={hero} />
         <FeaturesHighlights />
         <WhyChooseUs />
         <TeamSection />
-        <ServicesSection />
+        <ServicesSection services={services} />
         <PricingSection />
-        <PortfolioSection />
+        <PortfolioSection
+          projects={portfolio}
+          categories={portfolioCategories}
+        />
         <TestimonialsSection />
-        <BlogSection />
-        <ContactSection />
+        <BlogSection posts={blogPosts} />
+        <ContactSection siteSettings={siteSettings} />
       </main>
-      <Footer />
+      <Footer siteSettings={siteSettings} />
     </>
   );
 }

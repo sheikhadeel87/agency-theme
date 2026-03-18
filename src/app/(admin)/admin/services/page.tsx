@@ -1,0 +1,78 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import {
+  AdminTable,
+  AdminTableRow,
+  AdminTableCell,
+} from "@/components/admin/AdminTable";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
+import { getServices } from "@/lib/admin-data";
+
+export const dynamic = "force-dynamic";
+
+export default async function ServicesPage() {
+  const services = await getServices();
+
+  return (
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Services"
+        description="Manage service items including titles, descriptions, and images."
+      >
+        <Link
+          href="/admin/services/new"
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <Plus className="size-4" />
+          Add Service
+        </Link>
+      </AdminPageHeader>
+      {services.length === 0 ? (
+        <AdminEmptyState
+          title="No services yet"
+          description="Add your first service to display on the website."
+          action={
+            <Link
+              href="/admin/services/new"
+              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Plus className="size-4" />
+              Add Service
+            </Link>
+          }
+        />
+      ) : (
+        <>
+          <AdminTable headers={["Title", "Description", "Status"]}>
+            {services.map((s) => (
+              <AdminTableRow key={s._id}>
+                <AdminTableCell className="font-medium text-foreground">
+                  {s.title}
+                </AdminTableCell>
+                <AdminTableCell className="text-muted-foreground">
+                  {s.description}
+                </AdminTableCell>
+                <AdminTableCell>
+                  <Badge variant={s.status === "Published" ? "default" : "secondary"}>
+                    {s.status}
+                  </Badge>
+                </AdminTableCell>
+                <AdminTableCell className="text-right">
+                  <Button variant="link" size="sm" className="text-primary">
+                    Edit
+                  </Button>
+                </AdminTableCell>
+              </AdminTableRow>
+            ))}
+          </AdminTable>
+          <p className="text-xs text-muted-foreground">
+            Reorder via drag-and-drop when backend is connected.
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
