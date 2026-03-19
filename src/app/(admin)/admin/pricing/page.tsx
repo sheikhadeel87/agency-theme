@@ -66,9 +66,14 @@ export default async function PricingAdminPage() {
             {plans.map((plan) => (
               <Card key={plan._id} className="flex flex-col justify-between p-4 transition-all hover:shadow-md hover:border-border">
                 <div>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-foreground">{plan.name || "Unnamed plan"}</p>
-                    {plan.featured && <Badge variant="secondary">Featured</Badge>}
+                    <div className="flex flex-wrap gap-1">
+                      {plan.featured && <Badge variant="secondary">Featured</Badge>}
+                      {plan.featuredOnHomepage && (
+                        <Badge variant="outline">Homepage</Badge>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     ${plan.priceMonthly} / {plan.periodLabel}
@@ -89,6 +94,11 @@ export default async function PricingAdminPage() {
               </Card>
             ))}
           </div>
+        )}
+        {plans.length > 0 && (
+          <p className="mt-4 text-xs text-muted-foreground">
+            The homepage shows up to 3 plans: “Show on homepage” first (by order), then other plans by order.
+          </p>
         )}
       </section>
     </div>

@@ -2,6 +2,7 @@
 
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Portfolio } from "@/models/Portfolio";
 
@@ -18,6 +19,10 @@ function arr(formData: FormData, key: string): string[] {
   const raw = formData.get(key)?.toString()?.trim() ?? "";
   if (!raw) return [];
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function bool(formData: FormData, key: string): boolean {
+  return formData.get(key)?.toString() === "true" || formData.get(key)?.toString() === "on";
 }
 
 function slugify(text: string): string {
@@ -86,12 +91,20 @@ export async function savePortfolio(
       metaTitle: str(formData, "metaTitle") || title,
       metaDescription: str(formData, "metaDescription") || str(formData, "shortDescription"),
       metaKeywords: str(formData, "metaKeywords"),
+      featuredOnHomepage: bool(formData, "featuredOnHomepage"),
     };
 
     if (id) {
       await Portfolio.findByIdAndUpdate(id, { $set: payload }, { new: true });
     } else {
       await Portfolio.create(payload);
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/portfolio");
+    } catch (revalErr) {
+      console.warn("revalidatePath after savePortfolio:", revalErr);
     }
 
     return { success: true };

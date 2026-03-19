@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Service } from "@/models/Service";
 import type { ServiceStatus } from "@/models/Service";
@@ -11,6 +12,10 @@ export type SaveServiceState = {
 
 function str(formData: FormData, key: string): string {
   return formData.get(key)?.toString()?.trim() ?? "";
+}
+
+function bool(formData: FormData, key: string): boolean {
+  return formData.get(key)?.toString() === "true" || formData.get(key)?.toString() === "on";
 }
 
 function slugify(text: string): string {
@@ -43,6 +48,7 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
       description: str(formData, "description"),
       imageUrl: "",
       status,
+      featuredOnHomepage: bool(formData, "featuredOnHomepage"),
       metaTitle: str(formData, "metaTitle") || title,
       metaDescription: str(formData, "metaDescription") || str(formData, "description"),
       metaKeywords: str(formData, "metaKeywords"),
@@ -54,6 +60,12 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
       await Service.create(payload);
     }
 
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/services");
+    } catch (e) {
+      console.warn("revalidatePath after saveService:", e);
+    }
     return { success: true };
   } catch (e) {
     console.error("saveService error:", e);

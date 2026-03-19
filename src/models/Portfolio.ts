@@ -18,6 +18,7 @@ export interface IPortfolio {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  featuredOnHomepage: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +43,7 @@ const portfolioSchema = new mongoose.Schema<IPortfolio>(
     metaTitle: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
     metaKeywords: { type: String, default: "" },
+    featuredOnHomepage: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

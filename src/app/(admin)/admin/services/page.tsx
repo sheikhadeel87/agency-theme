@@ -76,7 +76,7 @@ export default async function ServicesPage() {
             ))}
           </AdminTable>
           <p className="text-xs text-muted-foreground">
-            Reorder via drag-and-drop when backend is connected.
+            The site homepage shows up to 3 published services: “Show on homepage” first (newest), then the latest published to fill.
           </p>
         </>
       )}

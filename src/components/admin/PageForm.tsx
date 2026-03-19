@@ -1,64 +1,63 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { saveService } from "@/lib/actions/service-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
-import type { ServiceItem } from "@/lib/admin-data";
+import { savePage } from "@/lib/actions/page-actions";
+import type { DynamicPage } from "@/lib/admin-data";
 import { Search, Send } from "lucide-react";
 
-const defaultValues: Omit<ServiceItem, "_id"> = {
+const defaultValues: Omit<DynamicPage, "_id"> = {
   title: "",
   slug: "",
-  description: "",
-  imageUrl: "",
-  status: "Draft",
-  featuredOnHomepage: false,
+  template: "Default",
+  content: "",
   metaTitle: "",
   metaDescription: "",
   metaKeywords: "",
+  status: "draft",
 };
 
 type Props = {
-  initialData?: ServiceItem | null;
+  initialData?: DynamicPage | null;
 };
 
-export function ServiceForm({ initialData }: Props) {
+export function PageForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [description, setDescription] = useState(initialData?.description ?? defaultValues.description);
-
-  const data = initialData ?? defaultValues;
+  const [content, setContent] = useState(initialData?.content ?? defaultValues.content);
+  const data = initialData ?? { ...defaultValues, _id: "" };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
-    formData.set("description", description);
-    const result = await saveService(formData);
+    formData.set("content", content);
+    const result = await savePage(formData);
     if (result.error) {
       setError(result.error);
       return;
     }
-    router.push("/admin/services");
+    router.push("/admin/pages");
     router.refresh();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {initialData?._id && (
-        <input type="hidden" name="_id" value={initialData._id} readOnly />
+      {data._id && (
+        <input type="hidden" name="_id" value={data._id} readOnly />
       )}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-        {/* Main content */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Service
+              Page
             </h3>
             <div className="space-y-4">
               <div>
@@ -68,63 +67,75 @@ export function ServiceForm({ initialData }: Props) {
                 <Input
                   id="title"
                   name="title"
-                  placeholder="e.g. Web Development"
+                  placeholder="e.g. About Us"
                   defaultValue={data.title}
                   className="h-11 text-base"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Slug is auto-generated from the title
+                  Slug is auto-generated from the title if left blank
                 </p>
               </div>
               <div>
+                <label htmlFor="slug" className="mb-1.5 block text-sm font-medium text-foreground">
+                  Slug
+                </label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  placeholder="about"
+                  defaultValue={data.slug}
+                  className="h-10 font-mono text-sm"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  URL path: /{data.slug || "slug"}
+                </p>
+              </div>
+              <div>
+                <label htmlFor="template" className="mb-1.5 block text-sm font-medium text-foreground">
+                  Template
+                </label>
+                <select
+                  id="template"
+                  name="template"
+                  defaultValue={data.template}
+                  className="h-10 w-full max-w-xs rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
+                >
+                  <option value="Default">Default</option>
+                  <option value="Landing">Landing</option>
+                </select>
+              </div>
+              <div>
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  Description
+                  Content
                 </label>
                 <BlogEditor
-                  defaultValue={data.description}
-                  onContentChange={setDescription}
-                  placeholder="Describe the service..."
+                  defaultValue={data.content}
+                  onContentChange={setContent}
+                  placeholder="Page body content (optional)"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Publish */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Publish
             </h3>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">
-                Status
-              </label>
-              <select
-                name="status"
-                defaultValue={data.status}
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-              >
-                <option value="Draft">Draft</option>
-                <option value="Published">Published</option>
-              </select>
-            </div>
-            <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/50">
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/50">
               <input
                 type="checkbox"
-                name="featuredOnHomepage"
-                defaultChecked={data.featuredOnHomepage}
+                name="is_published"
+                defaultChecked={data.status === "published"}
                 className="size-4 rounded border-input"
               />
-              <span className="text-sm font-medium">Show on homepage</span>
+              <span className="text-sm font-medium">Published</span>
             </label>
             <p className="mt-2 text-xs text-muted-foreground">
-              Homepage shows up to 3 published services: checked items first (newest), then the latest others.
+              Published pages appear in the site’s Pages dropdown and are visible at their URL.
             </p>
           </div>
-
-          {/* SEO */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <Search className="size-4" />
@@ -132,41 +143,32 @@ export function ServiceForm({ initialData }: Props) {
             </h3>
             <div className="space-y-4">
               <div>
-                <label
-                  htmlFor="metaTitle"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
+                <label htmlFor="metaTitle" className="mb-1 block text-xs font-medium text-foreground">
                   Meta title
                 </label>
                 <Input
                   id="metaTitle"
                   name="metaTitle"
-                  placeholder="Defaults to service title"
+                  placeholder="Defaults to page title"
                   defaultValue={data.metaTitle}
                   className="h-9 text-sm"
                 />
               </div>
               <div>
-                <label
-                  htmlFor="metaDescription"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
+                <label htmlFor="metaDescription" className="mb-1 block text-xs font-medium text-foreground">
                   Meta description
                 </label>
                 <textarea
                   id="metaDescription"
                   name="metaDescription"
-                  placeholder="Defaults to description. Keep under 160 characters for best results."
+                  placeholder="Keep under 160 characters."
                   defaultValue={data.metaDescription}
                   rows={3}
                   className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
                 />
               </div>
               <div>
-                <label
-                  htmlFor="metaKeywords"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
+                <label htmlFor="metaKeywords" className="mb-1 block text-xs font-medium text-foreground">
                   Meta keywords
                 </label>
                 <Input
@@ -193,15 +195,14 @@ export function ServiceForm({ initialData }: Props) {
       <div className="flex items-center gap-3 border-t border-border pt-6">
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
-          {initialData ? "Save service" : "Create service"}
+          Save page
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/admin/services")}
+        <Link
+          href="/admin/pages"
+          className={cn(buttonVariants({ variant: "outline" }))}
         >
           Cancel
-        </Button>
+        </Link>
       </div>
     </form>
   );

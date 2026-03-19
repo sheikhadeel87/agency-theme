@@ -83,6 +83,7 @@ export async function savePricingPlan(formData: FormData): Promise<SavePricingPl
       features,
       footnote: str(formData, "footnote") || "7-day free trial",
       featured: bool(formData, "featured"),
+      featuredOnHomepage: bool(formData, "featuredOnHomepage"),
       order: num(formData, "order"),
     };
 

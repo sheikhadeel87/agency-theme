@@ -40,42 +40,54 @@ export default async function PortfolioPage() {
           </Link>
         </div>
       ) : (
-        <AdminTable headers={["Title", "Client", "Categories", "Status"]}>
-          {projects.map((p) => (
-            <AdminTableRow key={p._id}>
-              <AdminTableCell className="font-medium text-foreground">
-                {p.title || "Untitled"}
-              </AdminTableCell>
-              <AdminTableCell className="text-muted-foreground">
-                {p.client || "—"}
-              </AdminTableCell>
-              <AdminTableCell>
-                <div className="flex flex-wrap gap-1">
-                  {p.categories.length > 0
-                    ? p.categories.map((c) => (
-                        <Badge key={c} variant="secondary">
-                          {c}
-                        </Badge>
-                      ))
-                    : "—"}
-                </div>
-              </AdminTableCell>
-              <AdminTableCell>
-                <Badge variant={p.status === "Published" ? "default" : "secondary"}>
-                  {p.status}
-                </Badge>
-              </AdminTableCell>
-              <AdminTableCell className="text-right">
-                <Link
-                  href={`/admin/portfolio/edit/${p._id}`}
-                  className={linkButtonClass}
-                >
-                  Edit
-                </Link>
-              </AdminTableCell>
-            </AdminTableRow>
-          ))}
-        </AdminTable>
+        <>
+          <AdminTable headers={["Title", "Client", "Categories", "Status", "Homepage"]}>
+            {projects.map((p) => (
+              <AdminTableRow key={p._id}>
+                <AdminTableCell className="font-medium text-foreground">
+                  {p.title || "Untitled"}
+                </AdminTableCell>
+                <AdminTableCell className="text-muted-foreground">
+                  {p.client || "—"}
+                </AdminTableCell>
+                <AdminTableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {p.categories.length > 0
+                      ? p.categories.map((c) => (
+                          <Badge key={c} variant="secondary">
+                            {c}
+                          </Badge>
+                        ))
+                      : "—"}
+                  </div>
+                </AdminTableCell>
+                <AdminTableCell>
+                  <Badge variant={p.status === "Published" ? "default" : "secondary"}>
+                    {p.status}
+                  </Badge>
+                </AdminTableCell>
+                <AdminTableCell>
+                  {p.featuredOnHomepage ? (
+                    <Badge variant="secondary">Yes</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </AdminTableCell>
+                <AdminTableCell className="text-right">
+                  <Link
+                    href={`/admin/portfolio/edit/${p._id}`}
+                    className={linkButtonClass}
+                  >
+                    Edit
+                  </Link>
+                </AdminTableCell>
+              </AdminTableRow>
+            ))}
+          </AdminTable>
+          <p className="text-xs text-muted-foreground">
+            The homepage shows up to 3 published projects: &quot;Show on homepage&quot; first (newest), then the latest published to fill.
+          </p>
+        </>
       )}
     </div>
   );

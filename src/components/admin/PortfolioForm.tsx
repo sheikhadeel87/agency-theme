@@ -25,6 +25,7 @@ const defaultValues: Omit<PortfolioProject, "_id"> = {
   metaTitle: "",
   metaDescription: "",
   metaKeywords: "",
+  featuredOnHomepage: false,
 };
 
 type Props = {
@@ -298,6 +299,18 @@ export function PortfolioForm({ initialData }: Props) {
                 <option value="Published">Published</option>
               </select>
             </div>
+            <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/50">
+              <input
+                type="checkbox"
+                name="featuredOnHomepage"
+                defaultChecked={data.featuredOnHomepage}
+                className="size-4 rounded border-input"
+              />
+              <span className="text-sm font-medium">Show on homepage</span>
+            </label>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Homepage shows up to 3 published projects: checked first (newest), then the latest others.
+            </p>
           </div>
 
           {/* SEO */}

@@ -227,8 +227,11 @@ export function BlogForm({ initialData }: Props) {
                   defaultChecked={data.is_featured}
                   className="size-4 rounded border-input"
                 />
-                <span className="text-sm font-medium">Featured post</span>
+                <span className="text-sm font-medium">Show on homepage (featured)</span>
               </label>
+              <p className="text-xs text-muted-foreground">
+                Homepage shows up to 3 published posts: featured first (newest), then the latest published.
+              </p>
             </div>
           </div>
 

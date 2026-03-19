@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveSiteSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
+import { ImageUp, X } from "lucide-react";
 
 const emptySocial = {
   facebook: "",
@@ -83,8 +85,29 @@ function Field({
 export function SiteSettingsForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.logoUrl ?? null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(initialData?.faviconUrl ?? null);
+  const logoRef = useRef<HTMLInputElement>(null);
+  const faviconRef = useRef<HTMLInputElement>(null);
 
   const data = initialData ?? defaultValues;
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    setLogoPreview(file ? URL.createObjectURL(file) : (data.logoUrl || null));
+  }
+  function handleFaviconChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    setFaviconPreview(file ? URL.createObjectURL(file) : (data.faviconUrl || null));
+  }
+  function clearLogo() {
+    setLogoPreview(null);
+    if (logoRef.current) logoRef.current.value = "";
+  }
+  function clearFavicon() {
+    setFaviconPreview(null);
+    if (faviconRef.current) faviconRef.current.value = "";
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -119,20 +142,90 @@ export function SiteSettingsForm({ initialData }: Props) {
             placeholder="Nexora"
             defaultValue={data.logoText}
           />
-          <Field
-            label="Logo URL"
-            id="logoUrl"
-            name="logoUrl"
-            placeholder="https://..."
-            defaultValue={data.logoUrl}
-          />
-          <Field
-            label="Favicon URL"
-            id="faviconUrl"
-            name="faviconUrl"
-            placeholder="https://..."
-            defaultValue={data.faviconUrl}
-          />
+          <div>
+            <label className="mb-1 block text-sm font-medium text-foreground">Logo image</label>
+            <input
+              ref={logoRef}
+              type="file"
+              name="logo"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="hidden"
+            />
+            {logoPreview ? (
+              <div className="flex items-center gap-3">
+                <div className="relative h-16 w-32 overflow-hidden rounded-lg border bg-muted">
+                  <Image
+                    src={logoPreview}
+                    alt="Logo preview"
+                    fill
+                    className="object-contain p-1"
+                    sizes="128px"
+                    unoptimized={logoPreview.startsWith("blob:")}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => logoRef.current?.click()}>
+                    Change
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={clearLogo}>
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => logoRef.current?.click()}
+                className="flex items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+              >
+                <ImageUp className="size-4" />
+                Upload logo
+              </button>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-foreground">Favicon image</label>
+            <input
+              ref={faviconRef}
+              type="file"
+              name="favicon"
+              accept="image/*,.ico"
+              onChange={handleFaviconChange}
+              className="hidden"
+            />
+            {faviconPreview ? (
+              <div className="flex items-center gap-3">
+                <div className="relative size-12 overflow-hidden rounded border bg-muted">
+                  <Image
+                    src={faviconPreview}
+                    alt="Favicon preview"
+                    fill
+                    className="object-contain p-1"
+                    sizes="48px"
+                    unoptimized={faviconPreview.startsWith("blob:")}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => faviconRef.current?.click()}>
+                    Change
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={clearFavicon}>
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => faviconRef.current?.click()}
+                className="flex items-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/50"
+              >
+                <ImageUp className="size-4" />
+                Upload favicon
+              </button>
+            )}
+          </div>
         </div>
       </section>
 

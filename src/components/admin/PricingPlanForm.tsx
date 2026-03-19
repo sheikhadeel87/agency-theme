@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { savePricingPlan } from "@/lib/actions/pricing-actions";
 import type { PricingPlanItem } from "@/lib/admin-data";
@@ -24,6 +25,7 @@ const defaultPlan: Omit<PricingPlanItem, "_id"> = {
   features: [],
   footnote: "7-day free trial",
   featured: false,
+  featuredOnHomepage: false,
   order: 0,
 };
 
@@ -200,6 +202,18 @@ export function PricingPlanForm({ initialData }: Props) {
                 />
                 <span className="text-sm font-medium">Featured plan (blue border & button)</span>
               </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/50">
+                <input
+                  type="checkbox"
+                  name="featuredOnHomepage"
+                  defaultChecked={data.featuredOnHomepage}
+                  className="size-4 rounded border-input"
+                />
+                <span className="text-sm font-medium">Show on homepage</span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Homepage shows up to 3 plans: checked first (by order), then others by order.
+              </p>
               <div>
                 <label htmlFor="order" className="mb-1 block text-xs font-medium text-foreground">
                   Order
@@ -229,12 +243,13 @@ export function PricingPlanForm({ initialData }: Props) {
           <Send className="size-4" />
           Save plan
         </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/admin/pricing" className="gap-2">
-            <ArrowLeft className="size-4" />
-            Back to Pricing
-          </Link>
-        </Button>
+        <Link
+          href="/admin/pricing"
+          className={cn(buttonVariants({ variant: "outline" }), "inline-flex gap-2")}
+        >
+          <ArrowLeft className="size-4" />
+          Back to Pricing
+        </Link>
       </div>
     </form>
   );

@@ -84,9 +84,10 @@ export function WhyChooseUs({ settings }: Props) {
               {settings.sectionTitle || "We Make Our customers happy by giving Best services."}
             </h2>
             {settings.sectionDescription ? (
-              <p className="mt-6 text-gray-600 sm:mt-8 sm:text-lg">
-                {settings.sectionDescription}
-              </p>
+              <div
+                className="mt-6 prose prose-gray max-w-none sm:mt-8 prose-p:text-gray-600 prose-p:sm:text-lg prose-headings:text-[#0f172a] prose-a:text-blue-600"
+                dangerouslySetInnerHTML={{ __html: settings.sectionDescription }}
+              />
             ) : null}
             {(settings.ctaText || settings.ctaLink) && (
               <div className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10">

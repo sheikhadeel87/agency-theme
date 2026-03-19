@@ -11,19 +11,20 @@ import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
 import { BlogSection } from "@/sections/home/BlogSection";
 import { ContactSection } from "@/sections/home/ContactSection";
 import {
-  getServices,
+  getHomepageServices,
   getSiteSettings,
   getHeroData,
-  getPortfolioProjects,
-  getPortfolioCategories,
-  getBlogPosts,
+  getHomepagePortfolioProjects,
+  portfolioCategoriesFromProjects,
+  getHomepageBlogPosts,
   getTeamSettings,
-  getTeamMembers,
+  getHomepageTeamMembers,
   getWhyChooseUsSettings,
   getTestimonialsSettings,
   getTestimonials,
   getPricingSettings,
-  getPricingPlans,
+  getHomepagePricingPlans,
+  getPublishedPages,
 } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,6 @@ export default async function Home() {
     siteSettings,
     hero,
     portfolio,
-    portfolioCategories,
     blogPosts,
     teamSettings,
     teamMembers,
@@ -43,25 +43,28 @@ export default async function Home() {
     testimonials,
     pricingSettings,
     pricingPlans,
+    dynamicPages,
   ] = await Promise.all([
-    getServices(),
+    getHomepageServices(),
     getSiteSettings(),
     getHeroData(),
-    getPortfolioProjects(),
-    getPortfolioCategories(),
-    getBlogPosts(),
+    getHomepagePortfolioProjects(),
+    getHomepageBlogPosts(),
     getTeamSettings(),
-    getTeamMembers(),
+    getHomepageTeamMembers(),
     getWhyChooseUsSettings(),
     getTestimonialsSettings(),
     getTestimonials(),
     getPricingSettings(),
-    getPricingPlans(),
+    getHomepagePricingPlans(),
+    getPublishedPages(),
   ]);
+
+  const portfolioCategories = portfolioCategoriesFromProjects(portfolio);
 
   return (
     <>
-      <Header siteSettings={siteSettings} />
+      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
       <main>
         <Hero heroData={hero} />
         <FeaturesHighlights />

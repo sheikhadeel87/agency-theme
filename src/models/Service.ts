@@ -9,6 +9,8 @@ export interface IService {
   description: string;
   imageUrl: string;
   status: ServiceStatus;
+  /** Shown on homepage (max 3; newest first; others fill from latest published) */
+  featuredOnHomepage: boolean;
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
@@ -27,6 +29,7 @@ const serviceSchema = new mongoose.Schema<IService>(
       enum: serviceStatuses,
       default: "Draft",
     },
+    featuredOnHomepage: { type: Boolean, default: false },
     metaTitle: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
     metaKeywords: { type: String, default: "" },

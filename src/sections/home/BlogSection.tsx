@@ -22,7 +22,7 @@ function formatDate(iso: string | null): string {
 }
 
 export function BlogSection({ posts }: BlogSectionProps) {
-  const published = posts.filter((p) => p.is_published).slice(0, 6);
+  const published = posts.filter((p) => p.is_published);
 
   return (
     <section

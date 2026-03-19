@@ -1,11 +1,18 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { getSiteSettings, getPublishedPages } from "@/lib/admin-data";
 
-export default function TermsConditionsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TermsConditionsPage() {
+  const [siteSettings, dynamicPages] = await Promise.all([
+    getSiteSettings(),
+    getPublishedPages(),
+  ]);
   return (
     <>
-      <Header />
+      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
       <main className="bg-white py-16 sm:py-20 lg:py-24">
       <Container>
         <div className="mx-auto max-w-3xl">
@@ -123,7 +130,7 @@ export default function TermsConditionsPage() {
         </div>
       </Container>
       </main>
-      <Footer />
+      <Footer siteSettings={siteSettings} />
     </>
   );
 }

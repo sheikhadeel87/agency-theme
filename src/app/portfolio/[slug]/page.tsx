@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getPortfolioProjectBySlug, getSiteSettings } from "@/lib/admin-data";
+import { getPortfolioProjectBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +44,10 @@ export default async function PortfolioProjectPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [project, siteSettings] = await Promise.all([
+  const [project, siteSettings, dynamicPages] = await Promise.all([
     getPortfolioProjectBySlug(slug),
     getSiteSettings(),
+    getPublishedPages(),
   ]);
 
   if (!project || project.status !== "Published") notFound();
@@ -57,7 +58,7 @@ export default async function PortfolioProjectPage({
 
   return (
     <>
-      <Header siteSettings={siteSettings} />
+      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
       <main className="min-h-screen bg-white">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
