@@ -1,13 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveService } from "@/lib/actions/service-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import type { ServiceItem } from "@/lib/admin-data";
-import { Search, Send } from "lucide-react";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
+import { ImageUp, Search, Send, X } from "lucide-react";
 
 const defaultValues: Omit<ServiceItem, "_id"> = {
   title: "",
@@ -27,10 +29,23 @@ type Props = {
 
 export function ServiceForm({ initialData }: Props) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [description, setDescription] = useState(initialData?.description ?? defaultValues.description);
+  const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
 
   const data = initialData ?? defaultValues;
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) setImagePreview(URL.createObjectURL(file));
+    else setImagePreview(data.imageUrl || null);
+  }
+
+  function clearImage() {
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,6 +107,84 @@ export function ServiceForm({ initialData }: Props) {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Image */}
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <ImageUp className="size-4" />
+              Image
+            </h3>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+            {imagePreview ? (
+              <div className="space-y-3">
+                <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
+                  <Image
+                    src={imagePreview}
+                    alt="Preview"
+                    fill
+                    className="object-cover"
+                    unoptimized={imagePreview.startsWith("blob:")}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Change
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={clearImage}>
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 py-8 transition-colors hover:border-primary/50 hover:bg-muted/50"
+              >
+                <ImageUp className="size-8 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Upload image
+                </span>
+              </button>
+            )}
+            {data.imageUrl && !imagePreview && (
+              <div className="mt-2 flex gap-2">
+                <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded border">
+                  <Image
+                    src={data.imageUrl}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    unoptimized={shouldUseUnoptimizedImage(data.imageUrl)}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Replace
+                </Button>
+              </div>
+            )}
+            {data.imageUrl && (
+              <input type="hidden" name="imageUrl" value={data.imageUrl} readOnly />
+            )}
+          </div>
+
           {/* Publish */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">

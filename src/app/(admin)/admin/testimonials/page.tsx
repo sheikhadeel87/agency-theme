@@ -8,6 +8,7 @@ import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { TestimonialsSectionForm } from "@/components/admin/TestimonialsSectionForm";
 import { DeleteTestimonialButton } from "@/components/admin/DeleteTestimonialButton";
 import { getTestimonialsSettings, getTestimonials } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ export default async function TestimonialsPage() {
                       fill
                       className="object-cover"
                       sizes="56px"
-                      unoptimized={t.imageUrl.startsWith("/uploads/")}
+                      unoptimized={shouldUseUnoptimizedImage(t.imageUrl)}
                     />
                   ) : (
                     <span className="flex size-full items-center justify-center text-lg font-semibold text-muted-foreground">

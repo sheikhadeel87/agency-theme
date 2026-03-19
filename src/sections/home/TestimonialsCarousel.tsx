@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Quote, ChevronLeft, ChevronRight, Droplet } from "lucide-react";
 import type { TestimonialItem } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const PLACEHOLDER_IMAGE = "/images/client.png";
 
@@ -34,7 +35,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 300px, 300px"
-                unoptimized={imgSrc.startsWith("/uploads/")}
+                unoptimized={shouldUseUnoptimizedImage(imgSrc)}
               />
             </div>
           </div>

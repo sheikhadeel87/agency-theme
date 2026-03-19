@@ -1,10 +1,9 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Portfolio } from "@/models/Portfolio";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SavePortfolioState = {
   success?: boolean;
@@ -35,18 +34,6 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "") || "project";
 }
 
-async function saveUploadedImage(file: File, slugBase: string): Promise<string> {
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext) ? ext : "jpg";
-  const name = `${slugBase}-${Date.now()}.${safeExt}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "portfolio");
-  await mkdir(dir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  const filePath = path.join(dir, name);
-  await writeFile(filePath, Buffer.from(bytes));
-  return `/uploads/portfolio/${name}`;
-}
-
 export async function savePortfolio(
   formData: FormData
 ): Promise<SavePortfolioState> {
@@ -63,7 +50,10 @@ export async function savePortfolio(
     const file = formData.get("image");
     if (file instanceof File && file.size > 0) {
       try {
-        imageUrl = await saveUploadedImage(file, slug);
+        imageUrl = await saveUploadedAdminImage(file, {
+          storageFolder: "portfolio",
+          idPrefix: slug,
+        });
       } catch (err) {
         console.error("Portfolio image upload error:", err);
       }

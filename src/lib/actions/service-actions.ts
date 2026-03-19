@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Service } from "@/models/Service";
 import type { ServiceStatus } from "@/models/Service";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveServiceState = {
   success?: boolean;
@@ -42,11 +43,29 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
       ? "Published"
       : "Draft") as ServiceStatus;
 
+    let imageUrl = str(formData, "imageUrl");
+    const file = formData.get("image");
+    if (file instanceof File && file.size > 0) {
+      try {
+        imageUrl = await saveUploadedAdminImage(file, {
+          storageFolder: "services",
+          idPrefix: slug,
+        });
+      } catch (err) {
+        console.error("Service image upload error:", err);
+      }
+    } else if (id) {
+      const existing = await Service.findById(id).lean();
+      if (existing && (existing as { imageUrl?: string }).imageUrl) {
+        imageUrl = (existing as { imageUrl: string }).imageUrl;
+      }
+    }
+
     const payload = {
       title,
       slug,
       description: str(formData, "description"),
-      imageUrl: "",
+      imageUrl,
       status,
       featuredOnHomepage: bool(formData, "featuredOnHomepage"),
       metaTitle: str(formData, "metaTitle") || title,

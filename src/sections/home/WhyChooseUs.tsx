@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { WhyChooseUsSettingsData } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const PLACEHOLDERS = [
   "/images/why-choose-1.png",
@@ -42,7 +43,7 @@ export function WhyChooseUs({ settings }: Props) {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 38vw, 200px"
-                unoptimized={img1.startsWith("/uploads/")}
+                unoptimized={shouldUseUnoptimizedImage(img1)}
               />
             </div>
             <div
@@ -55,7 +56,7 @@ export function WhyChooseUs({ settings }: Props) {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 38vw, 200px"
-                unoptimized={img2.startsWith("/uploads/")}
+                unoptimized={shouldUseUnoptimizedImage(img2)}
               />
             </div>
             <div className="absolute right-0 top-0 z-10 h-full w-[52%] overflow-hidden rounded-2xl bg-gray-200 sm:rounded-3xl">
@@ -65,7 +66,7 @@ export function WhyChooseUs({ settings }: Props) {
                 fill
                 className="object-cover object-top"
                 sizes="(max-width: 1024px) 52vw, 300px"
-                unoptimized={img3.startsWith("/uploads/")}
+                unoptimized={shouldUseUnoptimizedImage(img3)}
               />
             </div>
           </div>
@@ -96,7 +97,14 @@ export function WhyChooseUs({ settings }: Props) {
                   className="flex size-14 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:size-16"
                   aria-label={settings.ctaText ? `Play: ${settings.ctaText}` : "See how we work"}
                 >
-                  <Play className="ml-1 size-6 fill-current sm:size-7" />
+                  {/* Inline SVG avoids Lucide hydration mismatches (server/client SVG attrs). */}
+                  <svg
+                    className="ml-1 size-6 fill-current sm:size-7"
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
                 </Link>
                 <span className="text-sm font-semibold uppercase tracking-wider text-gray-900 sm:text-base">
                   {settings.ctaText || "See How We Work"}

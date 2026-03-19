@@ -1,10 +1,9 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Blog } from "@/models/Blog";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveBlogState = {
   success?: boolean;
@@ -34,18 +33,6 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "") || "post";
 }
 
-async function saveUploadedImage(file: File, slugBase: string): Promise<string> {
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext) ? ext : "jpg";
-  const name = `${slugBase}-${Date.now()}.${safeExt}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "blog");
-  await mkdir(dir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  const filePath = path.join(dir, name);
-  await writeFile(filePath, Buffer.from(bytes));
-  return `/uploads/blog/${name}`;
-}
-
 export async function saveBlog(formData: FormData): Promise<SaveBlogState> {
   try {
     await dbConnect();
@@ -62,9 +49,18 @@ export async function saveBlog(formData: FormData): Promise<SaveBlogState> {
     const file = formData.get("image");
     if (file instanceof File && file.size > 0) {
       try {
-        imageUrl = await saveUploadedImage(file, slug);
+        imageUrl = await saveUploadedAdminImage(file, {
+          storageFolder: "blog",
+          idPrefix: slug,
+        });
       } catch (err) {
         console.error("Image upload error:", err);
+        return {
+          error:
+            err instanceof Error
+              ? `Image upload failed: ${err.message}`
+              : "Image upload failed. Check Cloudinary env vars or try a smaller image.",
+        };
       }
     } else if (id) {
       const existing = await Blog.findById(id).lean();
@@ -100,6 +96,13 @@ export async function saveBlog(formData: FormData): Promise<SaveBlogState> {
         ...base,
         publishedAt: is_published ? new Date() : null,
       });
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/blog");
+    } catch (revalErr) {
+      console.warn("revalidatePath after saveBlog:", revalErr);
     }
 
     return { success: true };

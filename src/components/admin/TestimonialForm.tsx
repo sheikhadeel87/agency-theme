@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveTestimonial } from "@/lib/actions/testimonials-actions";
 import type { TestimonialItem } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { ImageUp, Send, X } from "lucide-react";
 
 const defaultValues: Omit<TestimonialItem, "_id"> = {
@@ -175,7 +176,7 @@ export function TestimonialForm({ initialData }: Props) {
             {data.imageUrl && !imagePreview && (
               <div className="mt-2 flex gap-2">
                 <div className="relative size-16 flex-shrink-0 overflow-hidden rounded border">
-                  <Image src={data.imageUrl} alt="" fill className="object-cover" sizes="64px" unoptimized={data.imageUrl.startsWith("/uploads/")} />
+                  <Image src={data.imageUrl} alt="" fill className="object-cover" sizes="64px" unoptimized={shouldUseUnoptimizedImage(data.imageUrl)} />
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                   Replace

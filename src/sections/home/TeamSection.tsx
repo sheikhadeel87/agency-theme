@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import type { TeamSettingsData, TeamMember } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 type Props = {
   settings: TeamSettingsData;
@@ -58,7 +59,7 @@ export function TeamSection({ settings, members }: Props) {
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          unoptimized={member.imageUrl.startsWith("/uploads/")}
+                          unoptimized={shouldUseUnoptimizedImage(member.imageUrl)}
                         />
                       ) : (
                         <div className="flex size-full items-center justify-center text-4xl font-semibold text-gray-400 transition group-hover:bg-gray-300/30">

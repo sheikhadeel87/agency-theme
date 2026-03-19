@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { savePortfolio } from "@/lib/actions/portfolio-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import type { PortfolioProject } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { ImageUp, Search, Send, X } from "lucide-react";
 
 const defaultValues: Omit<PortfolioProject, "_id"> = {
@@ -263,7 +264,7 @@ export function PortfolioForm({ initialData }: Props) {
             {data.imageUrl && !imagePreview && (
               <div className="mt-2 flex gap-2">
                 <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded border">
-                  <Image src={data.imageUrl} alt="" fill className="object-cover" unoptimized />
+                  <Image src={data.imageUrl} alt="" fill className="object-cover" unoptimized={shouldUseUnoptimizedImage(data.imageUrl)} />
                 </div>
                 <Button
                   type="button"
