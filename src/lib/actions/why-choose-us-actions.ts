@@ -1,25 +1,13 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { dbConnect } from "@/lib/db";
 import { WhyChooseUsSettings } from "@/models/WhyChooseUsSettings";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveWhyChooseUsState = { success?: boolean; error?: string };
 
 function str(formData: FormData, key: string): string {
   return formData.get(key)?.toString()?.trim() ?? "";
-}
-
-async function saveUploadedImage(file: File, name: string): Promise<string> {
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext) ? ext : "jpg";
-  const filename = `${name}-${Date.now()}.${safeExt}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "why-choose-us");
-  await mkdir(dir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  await writeFile(path.join(dir, filename), Buffer.from(bytes));
-  return `/uploads/why-choose-us/${filename}`;
 }
 
 export async function saveWhyChooseUsSettings(
@@ -44,7 +32,10 @@ export async function saveWhyChooseUsSettings(
 
     if (f1 instanceof File && f1.size > 0) {
       try {
-        image1Url = await saveUploadedImage(f1, "top-left");
+        image1Url = await saveUploadedAdminImage(f1, {
+          storageFolder: "why-choose-us",
+          idPrefix: "top-left",
+        });
       } catch (err) {
         console.error("WhyChooseUs image1 upload error:", err);
       }
@@ -52,7 +43,10 @@ export async function saveWhyChooseUsSettings(
 
     if (f2 instanceof File && f2.size > 0) {
       try {
-        image2Url = await saveUploadedImage(f2, "bottom-left");
+        image2Url = await saveUploadedAdminImage(f2, {
+          storageFolder: "why-choose-us",
+          idPrefix: "bottom-left",
+        });
       } catch (err) {
         console.error("WhyChooseUs image2 upload error:", err);
       }
@@ -60,7 +54,10 @@ export async function saveWhyChooseUsSettings(
 
     if (f3 instanceof File && f3.size > 0) {
       try {
-        image3Url = await saveUploadedImage(f3, "right");
+        image3Url = await saveUploadedAdminImage(f3, {
+          storageFolder: "why-choose-us",
+          idPrefix: "right",
+        });
       } catch (err) {
         console.error("WhyChooseUs image3 upload error:", err);
       }

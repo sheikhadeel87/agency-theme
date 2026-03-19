@@ -6,6 +6,9 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { getBlogPostBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
+
+const BLOG_FALLBACK_IMAGE = "/images/blog-1.png";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +55,8 @@ export default async function BlogPostPage({
 
   if (!post || !post.is_published) notFound();
 
+  const heroImageSrc = post.imageUrl?.trim() || BLOG_FALLBACK_IMAGE;
+
   return (
     <>
       <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
@@ -59,49 +64,52 @@ export default async function BlogPostPage({
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
-              href="/#blog"
+              href="/blog"
               className="mb-8 inline-block text-sm font-medium text-blue-600 hover:underline"
             >
               ← Back to Blog
             </Link>
 
-            <header className="mb-10">
-              {post.is_featured && (
-                <span className="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  Featured
-                </span>
-              )}
-              <h1 className="text-3xl font-semibold leading-tight text-[#0f172a] sm:text-4xl lg:text-5xl">
-                {post.title || "Untitled"}
-              </h1>
-              <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                {post.author && <span>By {post.author}</span>}
-                {(post.publishedAt || post.createdAt) && (
-                  <span>{formatDate(post.publishedAt ?? post.createdAt)}</span>
+            {/* Match reading column: hero + title aren’t full-bleed edge-to-edge */}
+            <div className="mx-auto w-full max-w-3xl">
+              <header className="mb-6">
+                {post.is_featured && (
+                  <span className="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    Featured
+                  </span>
                 )}
-              </div>
-            </header>
+                <h1 className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl">
+                  {post.title || "Untitled"}
+                </h1>
+                <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+                  {post.author && <span>By {post.author}</span>}
+                  {(post.publishedAt || post.createdAt) && (
+                    <span>{formatDate(post.publishedAt ?? post.createdAt)}</span>
+                  )}
+                </div>
+              </header>
 
-            {post.imageUrl && (
-              <div className="relative mb-10 aspect-[16/9] overflow-hidden rounded-2xl bg-gray-100 sm:rounded-3xl">
+              <div className="relative mb-8 h-[min(22vh,140px)] w-full overflow-hidden rounded-xl bg-gray-100 sm:h-[min(24vh,160px)] sm:rounded-2xl md:h-[min(26vh,180px)]">
                 <Image
-                  src={post.imageUrl}
+                  src={heroImageSrc}
                   alt={post.title || "Post"}
                   fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 1024px"
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 768px"
                   priority
+                  loading="eager"
+                  unoptimized={shouldUseUnoptimizedImage(heroImageSrc)}
                 />
               </div>
-            )}
 
-            {post.description && (
-              <p className="mb-8 text-lg text-gray-600">{post.description}</p>
-            )}
+              {post.description && (
+                <p className="mb-6 text-base text-gray-600 sm:text-lg">{post.description}</p>
+              )}
+            </div>
 
             {post.content && (
               <div
-                className="prose prose-gray max-w-none"
+                className="prose prose-gray mx-auto max-w-3xl"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             )}

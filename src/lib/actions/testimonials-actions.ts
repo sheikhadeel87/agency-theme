@@ -1,11 +1,10 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { TestimonialsSettings } from "@/models/TestimonialsSettings";
 import { Testimonial } from "@/models/Testimonial";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveTestimonialsSettingsState = { success?: boolean; error?: string };
 export type SaveTestimonialState = { success?: boolean; error?: string };
@@ -16,20 +15,6 @@ function str(formData: FormData, key: string): string {
 }
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
-
-async function saveUploadedImage(file: File, prefix: string): Promise<string> {
-  if (file.size > MAX_IMAGE_BYTES) {
-    throw new Error("Image must be under 5MB");
-  }
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext) ? ext : "jpg";
-  const name = `${prefix}-${Date.now()}.${safeExt}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "testimonials");
-  await mkdir(dir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  await writeFile(path.join(dir, name), Buffer.from(bytes));
-  return `/uploads/testimonials/${name}`;
-}
 
 /** Save testimonials section settings + SEO (single doc, upsert) */
 export async function saveTestimonialsSettings(
@@ -72,7 +57,11 @@ export async function saveTestimonial(formData: FormData): Promise<SaveTestimoni
       try {
         const name = str(formData, "authorName") || "testimonial";
         const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "") || "testimonial";
-        imageUrl = await saveUploadedImage(file, slug);
+        imageUrl = await saveUploadedAdminImage(file, {
+          storageFolder: "testimonials",
+          idPrefix: slug,
+          maxBytes: MAX_IMAGE_BYTES,
+        });
       } catch (err) {
         console.error("Testimonial image upload error:", err);
       }

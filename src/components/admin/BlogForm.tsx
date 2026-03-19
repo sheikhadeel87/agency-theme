@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { saveBlog } from "@/lib/actions/blog-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import type { BlogPost } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { ImageUp, Search, Send, X } from "lucide-react";
 
 const defaultValues: Omit<BlogPost, "_id" | "createdAt" | "updatedAt" | "publishedAt"> = {
@@ -191,7 +192,7 @@ export function BlogForm({ initialData }: Props) {
             {data.imageUrl && !imagePreview && (
               <div className="mt-2 flex gap-2">
                 <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded border">
-                  <Image src={data.imageUrl} alt="" fill className="object-cover" unoptimized />
+                  <Image src={data.imageUrl} alt="" fill className="object-cover" unoptimized={shouldUseUnoptimizedImage(data.imageUrl)} />
                 </div>
                 <Button
                   type="button"

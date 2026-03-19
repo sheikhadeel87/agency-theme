@@ -11,6 +11,7 @@ import {
   getPublishedPages,
 } from "@/lib/admin-data";
 import { hasMeaningfulHtmlContent } from "@/lib/html-utils";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const bioHtmlClassName =
   "team-member-bio mt-6 max-w-none text-base leading-relaxed text-gray-700 [&_p]:mt-3 [&_p]:first:mt-0 [&_p]:text-gray-700 [&_li]:text-gray-700 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:my-3 [&_ul]:list-inside [&_ul]:list-disc [&_ol]:my-3 [&_ol]:list-inside [&_ol]:list-decimal [&_a]:text-blue-600 [&_a]:underline";
@@ -79,7 +80,7 @@ export default async function TeamMemberProfilePage({
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, 280px"
                       priority
-                      unoptimized={member.imageUrl.startsWith("/uploads/")}
+                      unoptimized={shouldUseUnoptimizedImage(member.imageUrl)}
                     />
                   ) : (
                     <div className="flex size-full items-center justify-center text-6xl font-semibold text-gray-300">

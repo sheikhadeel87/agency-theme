@@ -1,10 +1,9 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { SiteSettings } from "@/models/SiteSettings";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveSiteSettingsState = {
   success?: boolean;
@@ -16,20 +15,6 @@ function str(formData: FormData, key: string): string {
 }
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB for logo/favicon
-
-async function saveUploadedImage(file: File, prefix: string): Promise<string> {
-  if (file.size > MAX_IMAGE_BYTES) {
-    throw new Error("Image must be under 2MB");
-  }
-  const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-  const safeExt = ["jpg", "jpeg", "png", "gif", "webp", "ico", "svg"].includes(ext) ? ext : "png";
-  const name = `${prefix}-${Date.now()}.${safeExt}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "site");
-  await mkdir(dir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  await writeFile(path.join(dir, name), Buffer.from(bytes));
-  return `/uploads/site/${name}`;
-}
 
 export async function saveSiteSettings(
   formData: FormData
@@ -44,7 +29,12 @@ export async function saveSiteSettings(
     const logoFile = formData.get("logo");
     if (logoFile instanceof File && logoFile.size > 0) {
       try {
-        logoUrl = await saveUploadedImage(logoFile, "logo");
+        logoUrl = await saveUploadedAdminImage(logoFile, {
+          storageFolder: "site",
+          idPrefix: "logo",
+          maxBytes: MAX_IMAGE_BYTES,
+          allowSvgAndIco: true,
+        });
       } catch (err) {
         console.error("Logo upload error:", err);
       }
@@ -55,7 +45,12 @@ export async function saveSiteSettings(
     const faviconFile = formData.get("favicon");
     if (faviconFile instanceof File && faviconFile.size > 0) {
       try {
-        faviconUrl = await saveUploadedImage(faviconFile, "favicon");
+        faviconUrl = await saveUploadedAdminImage(faviconFile, {
+          storageFolder: "site",
+          idPrefix: "favicon",
+          maxBytes: MAX_IMAGE_BYTES,
+          allowSvgAndIco: true,
+        });
       } catch (err) {
         console.error("Favicon upload error:", err);
       }

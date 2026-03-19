@@ -1,11 +1,10 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { TeamSettings } from "@/models/TeamSettings";
 import { TeamMember } from "@/models/TeamMember";
+import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveTeamSettingsState = { success?: boolean; error?: string };
 export type SaveTeamMemberState = { success?: boolean; error?: string };
@@ -51,17 +50,6 @@ async function uniqueTeamSlug(base: string, excludeId?: string): Promise<string>
     candidate = `${slug}-${n + 2}`;
   }
   return `${slug}-${Date.now()}`;
-}
-
-async function saveUploadedImage(file: File, prefix: string): Promise<string> {
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExt = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext) ? ext : "jpg";
-  const name = `${prefix}-${Date.now()}.${safeExt}`;
-  const dir = path.join(process.cwd(), "public", "uploads", "team");
-  await mkdir(dir, { recursive: true });
-  const bytes = await file.arrayBuffer();
-  await writeFile(path.join(dir, name), Buffer.from(bytes));
-  return `/uploads/team/${name}`;
 }
 
 /** Save team section settings + SEO (single doc, upsert) */
@@ -116,7 +104,10 @@ export async function saveTeamMember(
       try {
         const filePrefix = name || "member";
         const safePrefix = filePrefix.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "") || "member";
-        imageUrl = await saveUploadedImage(file, safePrefix);
+        imageUrl = await saveUploadedAdminImage(file, {
+          storageFolder: "team",
+          idPrefix: safePrefix,
+        });
       } catch (err) {
         console.error("Team member image upload error:", err);
       }

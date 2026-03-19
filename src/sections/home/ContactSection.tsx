@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { SiteSettingsData } from "@/lib/admin-data";
 import { sendContactMessage } from "@/lib/actions/contact-form-actions";
@@ -19,10 +20,17 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
 
   const mapSrc =
     siteSettings?.mapEmbedUrl?.trim() || DEFAULT_MAP_EMBED;
-  const hasContactInfo =
-    siteSettings?.contactEmail?.trim() ||
-    siteSettings?.phone?.trim() ||
-    siteSettings?.address?.trim();
+  const email = siteSettings?.contactEmail?.trim() ?? "";
+  const phone = siteSettings?.phone?.trim() ?? "";
+  const address = siteSettings?.address?.trim() ?? "";
+  const hasContactInfo = Boolean(email || phone || address);
+  const contactColumnCount = [email, phone, address].filter(Boolean).length;
+  const contactGridClass =
+    contactColumnCount === 1
+      ? "grid-cols-1 max-w-sm mx-auto"
+      : contactColumnCount === 2
+        ? "grid-cols-1 sm:grid-cols-2 sm:max-w-3xl sm:mx-auto"
+        : "grid-cols-1 sm:grid-cols-3";
 
   function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -64,34 +72,62 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
         </header>
 
         {hasContactInfo && (
-          <div className="mx-auto mt-8 max-w-6xl rounded-2xl border border-gray-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:p-8">
-            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-gray-600">
-              {siteSettings?.contactEmail?.trim() && (
-                <li>
-                  <span className="font-medium text-gray-700">Email:</span>{" "}
-                  <a
-                    href={`mailto:${siteSettings.contactEmail.trim()}`}
-                    className="text-blue-600 hover:underline"
+          <div className="mx-auto mt-8 max-w-6xl rounded-2xl border border-slate-200/90 bg-white px-4 py-8 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:px-8 sm:py-10">
+            <ul
+              className={`grid gap-8 sm:gap-0 sm:divide-x sm:divide-slate-200/80 ${contactGridClass}`}
+            >
+              {email && (
+                <li className="flex flex-col items-center text-center sm:px-6 lg:px-8">
+                  <span
+                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50 text-slate-600"
+                    aria-hidden
                   >
-                    {siteSettings.contactEmail.trim()}
+                    <Mail className="size-5" strokeWidth={1.75} />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Email
+                  </span>
+                  <a
+                    href={`mailto:${email}`}
+                    className="mt-1.5 break-all text-sm font-medium text-[#0f172a] underline-offset-4 transition hover:text-slate-700 hover:underline hover:decoration-slate-400"
+                  >
+                    {email}
                   </a>
                 </li>
               )}
-              {siteSettings?.phone?.trim() && (
-                <li>
-                  <span className="font-medium text-gray-700">Phone:</span>{" "}
-                  <a
-                    href={`tel:${siteSettings.phone.trim()}`}
-                    className="text-blue-600 hover:underline"
+              {phone && (
+                <li className="flex flex-col items-center text-center sm:px-6 lg:px-8">
+                  <span
+                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50 text-slate-600"
+                    aria-hidden
                   >
-                    {siteSettings.phone.trim()}
+                    <Phone className="size-5" strokeWidth={1.75} />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Phone
+                  </span>
+                  <a
+                    href={`tel:${phone.replace(/\s/g, "")}`}
+                    className="mt-1.5 text-sm font-medium text-[#0f172a] underline-offset-4 transition hover:text-slate-700 hover:underline hover:decoration-slate-400"
+                  >
+                    {phone}
                   </a>
                 </li>
               )}
-              {siteSettings?.address?.trim() && (
-                <li className="w-full sm:w-auto">
-                  <span className="font-medium text-gray-700">Address:</span>{" "}
-                  {siteSettings.address.trim()}
+              {address && (
+                <li className="flex flex-col items-center text-center sm:px-6 lg:px-8">
+                  <span
+                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50 text-slate-600"
+                    aria-hidden
+                  >
+                    <MapPin className="size-5" strokeWidth={1.75} />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Address
+                  </span>
+                  <p className="mt-1.5 max-w-xs text-pretty text-sm font-medium leading-relaxed text-[#0f172a] sm:max-w-none">
+                    {address}
+                  </p>
                 </li>
               )}
             </ul>

@@ -917,6 +917,18 @@ export async function getHomepageBlogPosts(): Promise<BlogPost[]> {
   return picked;
 }
 
+/** All published posts for /blog archive (newest first). */
+export async function getPublishedBlogPosts(): Promise<BlogPost[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Blog } = await import("@/models/Blog");
+  await dbConnect();
+
+  const docs = await Blog.find({ is_published: true })
+    .sort({ publishedAt: -1, updatedAt: -1 })
+    .lean();
+  return docs.map((doc) => mapBlogDoc(doc));
+}
+
 /** Single blog post by id */
 export async function getBlogPostById(id: string): Promise<BlogPost | null> {
   const { dbConnect } = await import("@/lib/db");

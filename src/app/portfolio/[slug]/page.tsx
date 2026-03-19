@@ -6,6 +6,9 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { getPortfolioProjectBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import { shouldUseUnoptimizedImage } from "@/lib/image-display";
+
+const PORTFOLIO_FALLBACK_IMAGE = "/images/hero.png";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +55,8 @@ export default async function PortfolioProjectPage({
 
   if (!project || project.status !== "Published") notFound();
 
+  const heroImageSrc = project.imageUrl?.trim() || PORTFOLIO_FALLBACK_IMAGE;
+
   const gallery = Array.isArray(project.galleryImages)
     ? project.galleryImages.filter((u): u is string => typeof u === "string" && u.trim() !== "")
     : [];
@@ -69,44 +74,49 @@ export default async function PortfolioProjectPage({
               ← Back to Portfolio
             </Link>
 
-            <header className="mb-10">
-              <h1 className="text-3xl font-semibold leading-tight text-[#0f172a] sm:text-4xl lg:text-5xl">
-                {project.title || "Untitled Project"}
-              </h1>
-              {project.client && (
-                <p className="mt-2 text-lg text-gray-600">Client: {project.client}</p>
-              )}
-              {project.categories.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {project.categories.map((c) => (
-                    <span
-                      key={c}
-                      className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
-                    >
-                      {c}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </header>
+            {/* Same reading column + hero treatment as blog post pages */}
+            <div className="mx-auto w-full max-w-3xl">
+              <header className="mb-8">
+                <h1 className="text-3xl font-semibold leading-tight text-[#0f172a] sm:text-4xl lg:text-5xl">
+                  {project.title || "Untitled Project"}
+                </h1>
+                {project.client && (
+                  <p className="mt-2 text-lg text-gray-600">Client: {project.client}</p>
+                )}
+                {project.categories.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {project.categories.map((c) => (
+                      <span
+                        key={c}
+                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </header>
 
-            <div className="relative mb-10 aspect-[16/9] overflow-hidden rounded-2xl bg-gray-100 sm:rounded-3xl">
-              <Image
-                src={project.imageUrl || "/images/hero.png"}
-                alt={project.title || "Project"}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 1024px"
-                priority
-              />
+              <div className="relative mb-10 h-[min(32vh,260px)] w-full overflow-hidden rounded-2xl bg-gray-100 sm:h-[min(36vh,300px)] sm:rounded-3xl md:h-[min(38vh,340px)]">
+                <Image
+                  src={heroImageSrc}
+                  alt={project.title || "Project"}
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 768px"
+                  priority
+                  loading="eager"
+                  unoptimized={shouldUseUnoptimizedImage(heroImageSrc)}
+                />
+              </div>
+
+              {project.shortDescription && (
+                <p className="mb-8 text-lg text-gray-600">{project.shortDescription}</p>
+              )}
             </div>
 
-            {project.shortDescription && (
-              <p className="mb-8 text-lg text-gray-600">{project.shortDescription}</p>
-            )}
-
             {project.fullDescription && (
-              <div className="prose prose-gray mb-10 max-w-none">
+              <div className="prose prose-gray mx-auto mb-10 max-w-3xl">
                 {looksLikeHtml(project.fullDescription) ? (
                   <div
                     className="text-gray-700"
@@ -120,57 +130,61 @@ export default async function PortfolioProjectPage({
               </div>
             )}
 
-            {project.technologyStack.length > 0 && (
-              <div className="mb-10">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Technology
-                </h2>
-                <ul className="mt-2 flex flex-wrap gap-2">
-                  {project.technologyStack.map((t) => (
-                    <li
-                      key={t}
-                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm"
-                    >
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <div className="mx-auto max-w-3xl">
+              {project.technologyStack.length > 0 && (
+                <div className="mb-10">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                    Technology
+                  </h2>
+                  <ul className="mt-2 flex flex-wrap gap-2">
+                    {project.technologyStack.map((t) => (
+                      <li
+                        key={t}
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm"
+                      >
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {project.projectUrl && (
-              <p className="mb-10">
-                <a
-                  href={project.projectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 font-medium text-blue-600 hover:underline"
-                >
-                  View project →
-                </a>
-              </p>
-            )}
+              {project.projectUrl && (
+                <p className="mb-10">
+                  <a
+                    href={project.projectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 font-medium text-blue-600 hover:underline"
+                  >
+                    View project →
+                  </a>
+                </p>
+              )}
 
-            {gallery.length > 0 && (
-              <section>
-                <h2 className="mb-6 text-xl font-semibold text-[#0f172a]">
-                  Gallery
-                </h2>
-                <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {gallery.map((url, i) => (
-                    <li key={i} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
-                      <Image
-                        src={url}
-                        alt={`${project.title} gallery ${i + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 1024px) 100vw, 33vw"
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+              {gallery.length > 0 && (
+                <section className="pb-4">
+                  <h2 className="mb-6 text-xl font-semibold text-[#0f172a]">Gallery</h2>
+                  <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {gallery.map((url, i) => (
+                      <li
+                        key={i}
+                        className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100"
+                      >
+                        <Image
+                          src={url}
+                          alt={`${project.title} gallery ${i + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 384px"
+                          unoptimized={shouldUseUnoptimizedImage(url)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
           </Container>
         </article>
       </main>
