@@ -2,6 +2,7 @@
 
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Blog } from "@/models/Blog";
 
@@ -118,6 +119,13 @@ export async function deleteBlog(id: string): Promise<DeleteBlogState> {
       return { error: "Invalid post id." };
     }
     await Blog.findByIdAndDelete(id);
+    try {
+      revalidatePath("/");
+      revalidatePath("/blog");
+      revalidatePath("/admin/blog");
+    } catch (revalErr) {
+      console.warn("revalidatePath after deleteBlog:", revalErr);
+    }
     return { success: true };
   } catch (e) {
     console.error("deleteBlog error:", e);

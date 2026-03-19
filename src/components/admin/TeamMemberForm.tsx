@@ -1,19 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BlogEditor } from "@/components/admin/BlogEditor";
 import { saveTeamMember } from "@/lib/actions/team-actions";
 import type { TeamMember } from "@/lib/admin-data";
 import { ImageUp, Send, X } from "lucide-react";
 
 const defaultValues: Omit<TeamMember, "_id"> = {
   name: "",
+  slug: "",
   role: "",
+  bio: "",
   imageUrl: "",
   order: 0,
+  featuredOnHomepage: false,
 };
 
 type Props = {
@@ -23,10 +27,25 @@ type Props = {
 export function TeamMemberForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [bio, setBio] = useState(initialData?.bio ?? defaultValues.bio);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /** Latest TipTap HTML — avoids stale React state on submit. */
+  const bioHtmlGetterRef = useRef<(() => string) | null>(null);
+  /** Synced on every editor change (setState can lag behind on submit). */
+  const bioLatestRef = useRef(initialData?.bio ?? "");
+  const setBioFromEditor = useCallback((html: string) => {
+    bioLatestRef.current = html;
+    setBio(html);
+  }, []);
 
   const data = initialData ?? defaultValues;
+
+  useEffect(() => {
+    const b = initialData?.bio ?? "";
+    setBio(b);
+    bioLatestRef.current = b;
+  }, [initialData?._id, initialData?.bio]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -47,7 +66,10 @@ export function TeamMemberForm({ initialData }: Props) {
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const result = await saveTeamMember(formData);
+    const bioHtml =
+      bioHtmlGetterRef.current?.() ?? bioLatestRef.current ?? bio;
+    // Pass bio as 2nd arg — large HTML in FormData can fail to round-trip on server actions.
+    const result = await saveTeamMember(formData, bioHtml);
     if (result.error) {
       setError(result.error);
       return;
@@ -61,6 +83,9 @@ export function TeamMemberForm({ initialData }: Props) {
       {initialData?._id && (
         <input type="hidden" name="_id" value={initialData._id} readOnly />
       )}
+      {data.imageUrl ? (
+        <input type="hidden" name="imageUrl" value={data.imageUrl} readOnly />
+      ) : null}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* Main content */}
@@ -83,6 +108,21 @@ export function TeamMemberForm({ initialData }: Props) {
                 />
               </div>
               <div>
+                <label htmlFor="slug" className="mb-1.5 block text-sm font-medium text-foreground">
+                  URL slug
+                </label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  placeholder="e.g. jane-doe (auto from name if empty)"
+                  defaultValue={data.slug}
+                  className="h-10 font-mono text-sm"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Public profile: /team/your-slug — leave blank to generate from name.
+                </p>
+              </div>
+              <div>
                 <label htmlFor="role" className="mb-1.5 block text-sm font-medium text-foreground">
                   Role
                 </label>
@@ -92,6 +132,22 @@ export function TeamMemberForm({ initialData }: Props) {
                   placeholder="e.g. Product Manager"
                   defaultValue={data.role}
                   className="h-10"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Bio
+                </label>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Rich text shown only on the member&apos;s profile page (/team/your-slug), not on the homepage grid.
+                </p>
+                <BlogEditor
+                  key={initialData?._id ?? "new-member"}
+                  defaultValue={data.bio}
+                  onContentChange={setBioFromEditor}
+                  htmlGetterRef={bioHtmlGetterRef}
+                  immediatelyRender
+                  placeholder="Write a short bio for this team member..."
                 />
               </div>
             </div>
@@ -172,7 +228,7 @@ export function TeamMemberForm({ initialData }: Props) {
           {/* Order */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Order
+              Order & homepage
             </h3>
             <div>
               <label htmlFor="order" className="mb-1 block text-xs font-medium text-foreground">
@@ -186,6 +242,18 @@ export function TeamMemberForm({ initialData }: Props) {
                 className="h-9 text-sm"
               />
             </div>
+            <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/50">
+              <input
+                type="checkbox"
+                name="featuredOnHomepage"
+                defaultChecked={data.featuredOnHomepage}
+                className="size-4 rounded border-input"
+              />
+              <span className="text-sm font-medium">Show on homepage</span>
+            </label>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Homepage shows up to 3 members: checked first (newest), then others by display order.
+            </p>
           </div>
         </div>
       </div>

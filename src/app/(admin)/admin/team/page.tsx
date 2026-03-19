@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { TeamSectionForm } from "@/components/admin/TeamSectionForm";
@@ -89,6 +90,11 @@ export default async function TeamPage() {
               </Card>
             ))}
           </div>
+        )}
+        {members.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            The homepage shows up to 3 members: “Show on homepage” first (newest), then others by display order.
+          </p>
         )}
       </section>
     </div>

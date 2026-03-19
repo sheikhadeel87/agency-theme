@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { Container } from "@/components/ui/Container";
 import type { SiteSettingsData } from "@/lib/admin-data";
+import { sendContactMessage } from "@/lib/actions/contact-form-actions";
 
 const DEFAULT_MAP_EMBED =
   "https://maps.google.com/maps?q=Lahore%20Pakistan&t=&z=13&ie=UTF8&iwloc=&output=embed";
@@ -11,12 +13,34 @@ export type ContactSectionProps = {
 };
 
 export function ContactSection({ siteSettings }: ContactSectionProps) {
+  const [pending, startTransition] = useTransition();
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState(false);
+
   const mapSrc =
     siteSettings?.mapEmbedUrl?.trim() || DEFAULT_MAP_EMBED;
   const hasContactInfo =
     siteSettings?.contactEmail?.trim() ||
     siteSettings?.phone?.trim() ||
     siteSettings?.address?.trim();
+
+  function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setFormError(null);
+    setFormSuccess(false);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    startTransition(async () => {
+      const result = await sendContactMessage(formData);
+      if (result.error) {
+        setFormError(result.error);
+        return;
+      }
+      setFormSuccess(true);
+      form.reset();
+    });
+  }
 
   return (
     <section
@@ -94,7 +118,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
           <div className="rounded-2xl border border-gray-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:p-8 min-h-[520px]">
             <form
               className="flex h-full flex-col gap-5 sm:gap-6"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleContactSubmit}
               noValidate
             >
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
@@ -103,8 +127,11 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                   <input
                     type="text"
                     name="name"
-                    placeholder="Devid Wonder"
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    required
+                    autoComplete="name"
+                    placeholder="M.Adeel"
+                    disabled={pending}
+                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
 
@@ -113,8 +140,11 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                   <input
                     type="email"
                     name="email"
-                    placeholder="example@gmail.com"
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    required
+                    autoComplete="email"
+                    placeholder="adeel@cybernest.com"
+                    disabled={pending}
+                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
               </div>
@@ -125,8 +155,10 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="+009 3342 3432"
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    autoComplete="tel"
+                    placeholder="+923004199389"
+                    disabled={pending}
+                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
 
@@ -135,8 +167,9 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                   <input
                     type="text"
                     name="subject"
-                    placeholder="Type your subject"
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="Confirmation"
+                    disabled={pending}
+                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
               </div>
@@ -146,17 +179,31 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                 <textarea
                   name="message"
                   rows={6}
-                  placeholder="Message"
-                  className="min-h-[180px] resize-none rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  required
+                  placeholder="Please confirm my order and dispatch date"
+                  disabled={pending}
+                  className="min-h-[180px] resize-none rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                 />
               </label>
+
+              {formError && (
+                <p className="text-sm text-red-600" role="alert">
+                  {formError}
+                </p>
+              )}
+              {formSuccess && (
+                <p className="text-sm text-green-700" role="status">
+                  Thanks — your message was sent. We&apos;ll get back to you soon.
+                </p>
+              )}
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="inline-flex rounded-full bg-blue-600 px-8 py-3.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  disabled={pending}
+                  className="inline-flex rounded-full bg-blue-600 px-8 py-3.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60"
                 >
-                  Send Message
+                  {pending ? "Sending…" : "Send Message"}
                 </button>
               </div>
             </form>

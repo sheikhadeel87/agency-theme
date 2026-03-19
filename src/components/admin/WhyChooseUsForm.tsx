@@ -5,6 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BlogEditor } from "@/components/admin/BlogEditor";
 import { saveWhyChooseUsSettings } from "@/lib/actions/why-choose-us-actions";
 import type { WhyChooseUsSettingsData } from "@/lib/admin-data";
 import { ImageUp, Search, Send, X } from "lucide-react";
@@ -109,6 +110,9 @@ export function WhyChooseUsForm({ initialData }: Props) {
   const [cleared1, setCleared1] = useState(false);
   const [cleared2, setCleared2] = useState(false);
   const [cleared3, setCleared3] = useState(false);
+  const [sectionDescription, setSectionDescription] = useState(
+    initialData.sectionDescription ?? ""
+  );
   const ref1 = useRef<HTMLInputElement>(null);
   const ref2 = useRef<HTMLInputElement>(null);
   const ref3 = useRef<HTMLInputElement>(null);
@@ -141,6 +145,7 @@ export function WhyChooseUsForm({ initialData }: Props) {
     setSaving(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set("sectionDescription", sectionDescription);
     const result = await saveWhyChooseUsSettings(formData);
     setSaving(false);
     if (result.error) {
@@ -191,19 +196,13 @@ export function WhyChooseUsForm({ initialData }: Props) {
                 />
               </div>
               <div>
-                <label
-                  htmlFor="sectionDescription"
-                  className="mb-1.5 block text-sm font-medium text-foreground"
-                >
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
                   Description
                 </label>
-                <textarea
-                  id="sectionDescription"
-                  name="sectionDescription"
+                <BlogEditor
+                  defaultValue={initialData.sectionDescription ?? ""}
+                  onContentChange={setSectionDescription}
                   placeholder="Intro paragraph"
-                  defaultValue={initialData.sectionDescription}
-                  rows={4}
-                  className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">

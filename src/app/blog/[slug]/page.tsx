@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getBlogPostBySlug, getSiteSettings } from "@/lib/admin-data";
+import { getBlogPostBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
@@ -44,16 +44,17 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [post, siteSettings] = await Promise.all([
+  const [post, siteSettings, dynamicPages] = await Promise.all([
     getBlogPostBySlug(slug),
     getSiteSettings(),
+    getPublishedPages(),
   ]);
 
   if (!post || !post.is_published) notFound();
 
   return (
     <>
-      <Header siteSettings={siteSettings} />
+      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
       <main className="min-h-screen bg-white">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">

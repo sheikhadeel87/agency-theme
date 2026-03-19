@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import type { TeamSettingsData, TeamMember } from "@/lib/admin-data";
 
@@ -40,32 +41,39 @@ export function TeamSection({ settings, members }: Props) {
 
         {members.length > 0 ? (
           <ul className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-8 sm:mt-16 sm:gap-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
-            {members.map((member) => (
-              <li key={member._id}>
-                <article className="flex flex-col items-center text-center">
-                  <div className="relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl bg-gray-200 sm:rounded-3xl">
-                    {member.imageUrl ? (
-                      <Image
-                        src={member.imageUrl}
-                        alt={member.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        unoptimized={member.imageUrl.startsWith("/uploads/")}
-                      />
-                    ) : (
-                      <div className="flex size-full items-center justify-center text-4xl font-semibold text-gray-400">
-                        {member.name.charAt(0) || "?"}
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="mt-6 text-lg font-semibold text-[#0f172a] sm:text-xl">
-                    {member.name}
-                  </h3>
-                  <p className="mt-1 text-gray-600">{member.role}</p>
-                </article>
-              </li>
-            ))}
+            {members.map((member) => {
+              const profileHref = `/team/${encodeURIComponent(member.slug?.trim() || member._id)}`;
+              return (
+                <li key={member._id}>
+                  <article className="flex flex-col items-center text-center">
+                    <Link
+                      href={profileHref}
+                      className="group relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl bg-gray-200 outline-none ring-blue-500/0 transition hover:opacity-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:rounded-3xl"
+                      aria-label={`View profile of ${member.name}`}
+                    >
+                      {member.imageUrl ? (
+                        <Image
+                          src={member.imageUrl}
+                          alt={member.name}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          unoptimized={member.imageUrl.startsWith("/uploads/")}
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center text-4xl font-semibold text-gray-400 transition group-hover:bg-gray-300/30">
+                          {member.name.charAt(0) || "?"}
+                        </div>
+                      )}
+                    </Link>
+                    <h3 className="mt-6 text-lg font-semibold text-[#0f172a] sm:text-xl">
+                      {member.name}
+                    </h3>
+                    <p className="mt-1 text-gray-600">{member.role}</p>
+                  </article>
+                </li>
+              );
+            })}
           </ul>
         ) : null}
       </Container>

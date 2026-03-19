@@ -11,6 +11,7 @@ export interface IPricingPlan {
   features: string[];
   footnote: string;
   featured: boolean;
+  featuredOnHomepage: boolean;
   order: number;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +29,7 @@ const schema = new mongoose.Schema<IPricingPlan>(
     features: [{ type: String }],
     footnote: { type: String, default: "7-day free trial" },
     featured: { type: Boolean, default: false },
+    featuredOnHomepage: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
   },
   { timestamps: true }

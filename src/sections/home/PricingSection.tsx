@@ -26,6 +26,7 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
       features: ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"],
       footnote: "7-day free trial",
       featured: false,
+      featuredOnHomepage: false,
       order: 0,
     },
     {
@@ -54,6 +55,7 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
       features: ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"],
       footnote: "7-day free trial",
       featured: false,
+      featuredOnHomepage: false,
       order: 2,
     },
   ] as PricingPlanItem[];

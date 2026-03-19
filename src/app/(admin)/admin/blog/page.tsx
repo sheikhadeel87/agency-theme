@@ -54,44 +54,49 @@ export default async function BlogPage() {
           </Link>
         </div>
       ) : (
-        <AdminTable headers={["Title", "Author", "Featured", "Status", "Date"]}>
-          {posts.map((p) => (
-            <AdminTableRow key={p._id}>
-              <AdminTableCell className="font-medium text-foreground">
-                {p.title || "Untitled"}
-              </AdminTableCell>
-              <AdminTableCell className="text-muted-foreground">
-                {p.author || "—"}
-              </AdminTableCell>
-              <AdminTableCell>
-                {p.is_featured ? (
-                  <Badge variant="secondary">Featured</Badge>
-                ) : (
-                  "—"
-                )}
-              </AdminTableCell>
-              <AdminTableCell>
-                <Badge variant={p.is_published ? "default" : "secondary"}>
-                  {p.is_published ? "Published" : "Draft"}
-                </Badge>
-              </AdminTableCell>
-              <AdminTableCell className="text-muted-foreground">
-                {formatDate(p.publishedAt ?? p.createdAt)}
-              </AdminTableCell>
-              <AdminTableCell className="text-right">
-                <span className="flex items-center justify-end gap-2">
-                  <Link
-                    href={`/admin/blog/edit/${p._id}`}
-                    className={linkButtonClass}
-                  >
-                    Edit
-                  </Link>
-                  <DeleteBlogButton postId={p._id} postTitle={p.title || "this post"} />
-                </span>
-              </AdminTableCell>
-            </AdminTableRow>
-          ))}
-        </AdminTable>
+        <>
+          <AdminTable headers={["Title", "Author", "Homepage", "Status", "Date"]}>
+            {posts.map((p) => (
+              <AdminTableRow key={p._id}>
+                <AdminTableCell className="font-medium text-foreground">
+                  {p.title || "Untitled"}
+                </AdminTableCell>
+                <AdminTableCell className="text-muted-foreground">
+                  {p.author || "—"}
+                </AdminTableCell>
+                <AdminTableCell>
+                  {p.is_featured ? (
+                    <Badge variant="secondary">Yes</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </AdminTableCell>
+                <AdminTableCell>
+                  <Badge variant={p.is_published ? "default" : "secondary"}>
+                    {p.is_published ? "Published" : "Draft"}
+                  </Badge>
+                </AdminTableCell>
+                <AdminTableCell className="text-muted-foreground">
+                  {formatDate(p.publishedAt ?? p.createdAt)}
+                </AdminTableCell>
+                <AdminTableCell className="text-right">
+                  <span className="flex items-center justify-end gap-2">
+                    <Link
+                      href={`/admin/blog/edit/${p._id}`}
+                      className={linkButtonClass}
+                    >
+                      Edit
+                    </Link>
+                    <DeleteBlogButton postId={p._id} postTitle={p.title || "this post"} />
+                  </span>
+                </AdminTableCell>
+              </AdminTableRow>
+            ))}
+          </AdminTable>
+          <p className="text-xs text-muted-foreground">
+            The homepage shows up to 3 published posts: &quot;Show on homepage (featured)&quot; first (newest), then the latest published to fill.
+          </p>
+        </>
       )}
     </div>
   );

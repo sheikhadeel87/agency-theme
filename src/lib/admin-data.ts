@@ -16,6 +16,7 @@ export type ServiceItem = {
   description: string;
   imageUrl: string;
   status: "Published" | "Draft";
+  featuredOnHomepage: boolean;
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
@@ -37,14 +38,18 @@ export type PortfolioProject = {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  featuredOnHomepage: boolean;
 };
 
 export type TeamMember = {
   _id: string;
   name: string;
+  slug: string;
   role: string;
+  bio: string;
   imageUrl: string;
   order: number;
+  featuredOnHomepage: boolean;
 };
 
 export type TeamSettingsData = {
@@ -110,6 +115,7 @@ export type PricingPlanItem = {
   features: string[];
   footnote: string;
   featured: boolean;
+  featuredOnHomepage: boolean;
   order: number;
 };
 
@@ -133,9 +139,15 @@ export type BlogPost = {
 };
 
 export type DynamicPage = {
+  _id: string;
   title: string;
   slug: string;
   template: string;
+  content: string;
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  status: "draft" | "published";
 };
 
 export type SettingsSection = {
@@ -209,6 +221,7 @@ function mapServiceDoc(doc: {
   description?: string;
   imageUrl?: string;
   status?: string;
+  featuredOnHomepage?: boolean;
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string;
@@ -220,6 +233,7 @@ function mapServiceDoc(doc: {
     description: doc.description ?? "",
     imageUrl: doc.imageUrl ?? "",
     status: (doc.status === "Published" ? "Published" : "Draft") as "Published" | "Draft",
+    featuredOnHomepage: Boolean(doc.featuredOnHomepage),
     metaTitle: doc.metaTitle ?? "",
     metaDescription: doc.metaDescription ?? "",
     metaKeywords: doc.metaKeywords ?? "",
@@ -251,6 +265,37 @@ export async function getServiceById(id: string): Promise<ServiceItem | null> {
   return mapServiceDoc(doc);
 }
 
+/**
+ * Services for the homepage section: max 3 published.
+ * Prefers items with featuredOnHomepage (newest first), then fills with latest published.
+ */
+export async function getHomepageServices(): Promise<ServiceItem[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Service } = await import("@/models/Service");
+  await dbConnect();
+
+  const featured = await Service.find({ status: "Published", featuredOnHomepage: true })
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+  const picked = featured.map((d) => mapServiceDoc(d));
+  const excludeIds = featured.map((d) => d._id);
+
+  if (picked.length < 3) {
+    const rest = await Service.find({
+      status: "Published",
+      ...(excludeIds.length > 0 ? { _id: { $nin: excludeIds } } : {}),
+    })
+      .sort({ updatedAt: -1 })
+      .limit(3 - picked.length)
+      .lean();
+    picked.push(...rest.map((d) => mapServiceDoc(d)));
+  }
+
+  return picked;
+}
+
 function mapPortfolioDoc(doc: {
   _id: unknown;
   title?: string;
@@ -267,6 +312,7 @@ function mapPortfolioDoc(doc: {
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string;
+  featuredOnHomepage?: boolean;
 }) {
   return {
     _id: String(doc._id),
@@ -284,6 +330,7 @@ function mapPortfolioDoc(doc: {
     metaTitle: doc.metaTitle ?? "",
     metaDescription: doc.metaDescription ?? "",
     metaKeywords: doc.metaKeywords ?? "",
+    featuredOnHomepage: Boolean(doc.featuredOnHomepage),
   };
 }
 
@@ -327,6 +374,48 @@ export async function getPortfolioProjectBySlug(
   const doc = await Portfolio.findOne({ slug: slug.trim() }).lean();
   if (!doc) return null;
   return mapPortfolioDoc(doc);
+}
+
+/**
+ * Up to 3 published portfolio projects for the homepage: featured first (newest), then backfill.
+ */
+export async function getHomepagePortfolioProjects(): Promise<PortfolioProject[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Portfolio } = await import("@/models/Portfolio");
+  await dbConnect();
+
+  const featured = await Portfolio.find({ status: "Published", featuredOnHomepage: true })
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+  const picked = featured.map((d) => mapPortfolioDoc(d));
+  const excludeIds = featured.map((d) => d._id);
+
+  if (picked.length < 3) {
+    const rest = await Portfolio.find({
+      status: "Published",
+      ...(excludeIds.length > 0 ? { _id: { $nin: excludeIds } } : {}),
+    })
+      .sort({ updatedAt: -1 })
+      .limit(3 - picked.length)
+      .lean();
+    picked.push(...rest.map((d) => mapPortfolioDoc(d)));
+  }
+
+  return picked;
+}
+
+/** Unique category labels derived from a project list (e.g. homepage subset). */
+export function portfolioCategoriesFromProjects(projects: PortfolioProject[]): string[] {
+  const set = new Set<string>();
+  for (const p of projects) {
+    for (const c of p.categories ?? []) {
+      const t = String(c).trim();
+      if (t) set.add(t);
+    }
+  }
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 
 /** Unique categories from all portfolio projects */
@@ -376,9 +465,12 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   return docs.map((d) => ({
     _id: String((d as { _id: unknown })._id),
     name: (d as { name?: string }).name ?? "",
+    slug: (d as { slug?: string }).slug ?? "",
     role: (d as { role?: string }).role ?? "",
+    bio: (d as { bio?: string }).bio ?? "",
     imageUrl: (d as { imageUrl?: string }).imageUrl ?? "",
     order: (d as { order?: number }).order ?? 0,
+    featuredOnHomepage: Boolean((d as { featuredOnHomepage?: boolean }).featuredOnHomepage),
   }));
 }
 
@@ -391,14 +483,115 @@ export async function getTeamMemberById(id: string): Promise<TeamMember | null> 
   await dbConnect();
   const doc = await TeamMember.findById(id).lean();
   if (!doc) return null;
-  const d = doc as { _id: unknown; name?: string; role?: string; imageUrl?: string; order?: number };
+  const d = doc as {
+    _id: unknown;
+    name?: string;
+    slug?: string;
+    role?: string;
+    bio?: string;
+    imageUrl?: string;
+    order?: number;
+    featuredOnHomepage?: boolean;
+  };
   return {
     _id: String(d._id),
     name: d.name ?? "",
+    slug: d.slug ?? "",
     role: d.role ?? "",
+    bio: d.bio ?? "",
     imageUrl: d.imageUrl ?? "",
     order: d.order ?? 0,
+    featuredOnHomepage: Boolean(d.featuredOnHomepage),
   };
+}
+
+/** Team member by URL slug (public profile). */
+export async function getTeamMemberBySlug(slug: string): Promise<TeamMember | null> {
+  const { dbConnect } = await import("@/lib/db");
+  const { TeamMember } = await import("@/models/TeamMember");
+  const trimmed = slug?.trim();
+  if (!trimmed) return null;
+  await dbConnect();
+  const doc = await TeamMember.findOne({ slug: trimmed }).lean();
+  if (!doc) return null;
+  const d = doc as {
+    _id: unknown;
+    name?: string;
+    slug?: string;
+    role?: string;
+    bio?: string;
+    imageUrl?: string;
+    order?: number;
+    featuredOnHomepage?: boolean;
+  };
+  return {
+    _id: String(d._id),
+    name: d.name ?? "",
+    slug: d.slug ?? "",
+    role: d.role ?? "",
+    bio: d.bio ?? "",
+    imageUrl: d.imageUrl ?? "",
+    order: d.order ?? 0,
+    featuredOnHomepage: Boolean(d.featuredOnHomepage),
+  };
+}
+
+/** Resolve public team URL param: slug or legacy MongoDB id. */
+export async function getTeamMemberBySlugOrId(param: string): Promise<TeamMember | null> {
+  const { isValidObjectId } = await import("mongoose");
+  const raw = param?.trim();
+  if (!raw) return null;
+  if (isValidObjectId(raw)) {
+    return getTeamMemberById(raw);
+  }
+  return getTeamMemberBySlug(raw);
+}
+
+/** Up to 3 team members for homepage: featured first (newest), then by display order. */
+export async function getHomepageTeamMembers(): Promise<TeamMember[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { TeamMember } = await import("@/models/TeamMember");
+  await dbConnect();
+
+  const featured = await TeamMember.find({ featuredOnHomepage: true })
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+  const picked = featured.map((d) => ({
+    _id: String((d as { _id: unknown })._id),
+    name: (d as { name?: string }).name ?? "",
+    slug: (d as { slug?: string }).slug ?? "",
+    role: (d as { role?: string }).role ?? "",
+    bio: (d as { bio?: string }).bio ?? "",
+    imageUrl: (d as { imageUrl?: string }).imageUrl ?? "",
+    order: (d as { order?: number }).order ?? 0,
+    featuredOnHomepage: true,
+  }));
+  const excludeIds = featured.map((d) => d._id);
+
+  if (picked.length < 3) {
+    const rest = await TeamMember.find(
+      excludeIds.length > 0 ? { _id: { $nin: excludeIds } } : {}
+    )
+      .sort({ order: 1 })
+      .limit(3 - picked.length)
+      .lean();
+    picked.push(
+      ...rest.map((d) => ({
+        _id: String((d as { _id: unknown })._id),
+        name: (d as { name?: string }).name ?? "",
+        slug: (d as { slug?: string }).slug ?? "",
+        role: (d as { role?: string }).role ?? "",
+        bio: (d as { bio?: string }).bio ?? "",
+        imageUrl: (d as { imageUrl?: string }).imageUrl ?? "",
+        order: (d as { order?: number }).order ?? 0,
+        featuredOnHomepage: Boolean((d as { featuredOnHomepage?: boolean }).featuredOnHomepage),
+      }))
+    );
+  }
+
+  return picked;
 }
 
 /** Why Choose Us section settings (single doc) */
@@ -559,6 +752,7 @@ export async function getPricingPlans(): Promise<PricingPlanItem[]> {
       features,
       footnote: (doc.footnote != null ? String(doc.footnote) : "") || "7-day free trial",
       featured: Boolean(doc.featured),
+      featuredOnHomepage: Boolean(doc.featuredOnHomepage),
       order: Number(doc.order) || 0,
     };
   });
@@ -590,8 +784,58 @@ export async function getPricingPlanById(id: string): Promise<PricingPlanItem | 
     features,
     footnote: (d.footnote != null ? String(d.footnote) : "") || "7-day free trial",
     featured: Boolean(d.featured),
+    featuredOnHomepage: Boolean(d.featuredOnHomepage),
     order: Number(d.order) || 0,
   };
+}
+
+/** Up to 3 pricing plans for homepage: “show on homepage” first by order, then fill by order. */
+export async function getHomepagePricingPlans(): Promise<PricingPlanItem[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { PricingPlan } = await import("@/models/PricingPlan");
+  await dbConnect();
+
+  const featured = await PricingPlan.find({ featuredOnHomepage: true })
+    .sort({ order: 1, updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+  const mapPlan = (d: Record<string, unknown>): PricingPlanItem => {
+    const arr = d.features;
+    const features = Array.isArray(arr)
+      ? arr.map((x) => (x != null ? String(x) : "")).filter(Boolean)
+      : [];
+    return {
+      _id: String(d._id),
+      name: (d.name != null ? String(d.name) : "") || "Plan",
+      priceMonthly: Number(d.priceMonthly) || 0,
+      priceAnnual: Number(d.priceAnnual) || 0,
+      periodLabel: (d.periodLabel != null ? String(d.periodLabel) : "") || "per month",
+      subtext: (d.subtext != null ? String(d.subtext) : "") || "No credit card required",
+      ctaText: (d.ctaText != null ? String(d.ctaText) : "") || "Try for free",
+      ctaLink: (d.ctaLink != null ? String(d.ctaLink) : "") || "",
+      features,
+      footnote: (d.footnote != null ? String(d.footnote) : "") || "7-day free trial",
+      featured: Boolean(d.featured),
+      featuredOnHomepage: Boolean(d.featuredOnHomepage),
+      order: Number(d.order) || 0,
+    };
+  };
+
+  const picked = featured.map((d) => mapPlan(d as Record<string, unknown>));
+  const excludeIds = featured.map((d) => d._id);
+
+  if (picked.length < 3) {
+    const rest = await PricingPlan.find(
+      excludeIds.length > 0 ? { _id: { $nin: excludeIds } } : {}
+    )
+      .sort({ order: 1, updatedAt: -1 })
+      .limit(3 - picked.length)
+      .lean();
+    picked.push(...rest.map((d) => mapPlan(d as Record<string, unknown>)));
+  }
+
+  return picked;
 }
 
 function mapBlogDoc(doc: {
@@ -643,6 +887,36 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
   return docs.map((doc) => mapBlogDoc(doc));
 }
 
+/**
+ * Up to 3 published posts for homepage: is_featured first (newest), then latest published.
+ */
+export async function getHomepageBlogPosts(): Promise<BlogPost[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Blog } = await import("@/models/Blog");
+  await dbConnect();
+
+  const featured = await Blog.find({ is_published: true, is_featured: true })
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .lean();
+
+  const picked = featured.map((d) => mapBlogDoc(d));
+  const excludeIds = featured.map((d) => d._id);
+
+  if (picked.length < 3) {
+    const rest = await Blog.find({
+      is_published: true,
+      ...(excludeIds.length > 0 ? { _id: { $nin: excludeIds } } : {}),
+    })
+      .sort({ updatedAt: -1 })
+      .limit(3 - picked.length)
+      .lean();
+    picked.push(...rest.map((d) => mapBlogDoc(d)));
+  }
+
+  return picked;
+}
+
 /** Single blog post by id */
 export async function getBlogPostById(id: string): Promise<BlogPost | null> {
   const { dbConnect } = await import("@/lib/db");
@@ -670,13 +944,60 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
   return mapBlogDoc(doc);
 }
 
-/** Dynamic pages (replace with DB query later) */
+function mapPageDoc(doc: Record<string, unknown>): DynamicPage {
+  const status = doc.status === "published" ? "published" : "draft";
+  return {
+    _id: String(doc._id),
+    title: (doc.title != null ? String(doc.title) : "") || "Untitled",
+    slug: (doc.slug != null ? String(doc.slug) : "") || "",
+    template: (doc.template != null ? String(doc.template) : "") || "Default",
+    content: (doc.content != null ? String(doc.content) : "") || "",
+    metaTitle: (doc.metaTitle != null ? String(doc.metaTitle) : "") || "",
+    metaDescription: (doc.metaDescription != null ? String(doc.metaDescription) : "") || "",
+    metaKeywords: (doc.metaKeywords != null ? String(doc.metaKeywords) : "") || "",
+    status,
+  };
+}
+
+/** Dynamic pages from MongoDB (all, for admin list) */
 export async function getDynamicPages(): Promise<DynamicPage[]> {
-  return [
-    { title: "About Us", slug: "about", template: "Default" },
-    { title: "Careers", slug: "careers", template: "Default" },
-    { title: "Case Studies", slug: "case-studies", template: "Landing" },
-  ];
+  const { dbConnect } = await import("@/lib/db");
+  const { Page } = await import("@/models/Page");
+  await dbConnect();
+  const docs = await Page.find().sort({ updatedAt: -1 }).lean();
+  return docs.map((d) => mapPageDoc(d as Record<string, unknown>));
+}
+
+/** Published pages only (for header dropdown) */
+export async function getPublishedPages(): Promise<DynamicPage[]> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Page } = await import("@/models/Page");
+  await dbConnect();
+  const docs = await Page.find({ status: "published" }).sort({ updatedAt: -1 }).lean();
+  return docs.map((d) => mapPageDoc(d as Record<string, unknown>));
+}
+
+/** Single page by id (for admin edit) */
+export async function getPageById(id: string): Promise<DynamicPage | null> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Page } = await import("@/models/Page");
+  const { isValidObjectId } = await import("mongoose");
+  if (!id || !isValidObjectId(id)) return null;
+  await dbConnect();
+  const doc = await Page.findById(id).lean();
+  if (!doc) return null;
+  return mapPageDoc(doc as Record<string, unknown>);
+}
+
+/** Single page by slug (for public route; only published) */
+export async function getPageBySlug(slug: string): Promise<DynamicPage | null> {
+  const { dbConnect } = await import("@/lib/db");
+  const { Page } = await import("@/models/Page");
+  if (!slug?.trim()) return null;
+  await dbConnect();
+  const doc = await Page.findOne({ slug: slug.trim(), status: "published" }).lean();
+  if (!doc) return null;
+  return mapPageDoc(doc as Record<string, unknown>);
 }
 
 /** Site settings sections (links to edit page) */

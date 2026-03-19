@@ -14,6 +14,8 @@ function brandText(siteSettings: SiteSettingsData | null | undefined): string {
 
 export type HeaderProps = {
   siteSettings?: SiteSettingsData | null;
+  /** Dynamic pages from admin (shown in Pages dropdown) */
+  dynamicPages?: { title: string; slug: string }[];
 };
 
 const navLinks = [
@@ -25,15 +27,15 @@ const navLinks = [
   { href: "/#support", label: "Support" },
 ];
 
-// Page section links for dropdown (Team, Services, Blog, Contact only)
-const pageLinks = [
+// Section links for dropdown (anchors on homepage)
+const sectionLinks = [
   { href: "/#team", label: "Team" },
   { href: "/#services", label: "Services" },
   { href: "/#blog", label: "Blog" },
   { href: "/#contact", label: "Contact" },
 ];
 
-export function Header({ siteSettings }: HeaderProps) {
+export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const brand = brandText(siteSettings);
   const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
@@ -106,7 +108,7 @@ export function Header({ siteSettings }: HeaderProps) {
                     className="absolute left-0 top-full z-50 mt-1 w-full min-w-[180px] rounded-lg border border-gray-200 bg-white py-2 shadow-lg md:w-auto"
                     role="menu"
                   >
-                    {pageLinks.map(({ href, label }) => (
+                    {sectionLinks.map(({ href, label }) => (
                       <li key={href} role="none">
                         <Link
                           href={href}
@@ -121,6 +123,22 @@ export function Header({ siteSettings }: HeaderProps) {
                         </Link>
                       </li>
                     ))}
+                    {dynamicPages.length > 0 &&
+                      dynamicPages.map((p) => (
+                        <li key={p.slug} role="none">
+                          <Link
+                            href={`/${p.slug}`}
+                            role="menuitem"
+                            className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                            onClick={() => {
+                              setPagesDropdownOpen(false);
+                              setMobileMenuOpen(false);
+                            }}
+                          >
+                            {p.title || p.slug}
+                          </Link>
+                        </li>
+                      ))}
                   </ul>
                 )}
               </li>

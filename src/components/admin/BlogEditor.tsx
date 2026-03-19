@@ -8,7 +8,7 @@ import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import CharacterCount from "@tiptap/extension-character-count";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, type MutableRefObject } from "react";
 import {
   Bold,
   Italic,
@@ -28,12 +28,20 @@ import {
 type Props = {
   defaultValue?: string;
   onContentChange?: (html: string) => void;
+  /** When set, always holds a function that returns the latest HTML (for reliable form submit). */
+  htmlGetterRef?: MutableRefObject<(() => string) | null>;
+  onEditorReady?: (ready: boolean) => void;
+  /** Admin client forms: true so TipTap mounts immediately (helps bio save on first submit). */
+  immediatelyRender?: boolean;
   placeholder?: string;
 };
 
 export function BlogEditor({
   defaultValue = "",
   onContentChange,
+  htmlGetterRef,
+  onEditorReady,
+  immediatelyRender = false,
   placeholder = "Write your story...",
 }: Props) {
   const editor = useEditor({
@@ -63,7 +71,7 @@ export function BlogEditor({
           "min-h-[280px] w-full px-4 py-4 text-sm leading-relaxed outline-none prose prose-sm prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 max-w-none",
       },
     },
-    immediatelyRender: false,
+    immediatelyRender,
   });
 
   const setLink = useCallback(() => {
@@ -73,12 +81,25 @@ export function BlogEditor({
   }, [editor]);
 
   useEffect(() => {
-    if (!editor || !onContentChange) return;
-    const fn = () => onContentChange(editor.getHTML());
-    editor.on("update", fn);
-    fn();
-    return () => editor.off("update", fn);
-  }, [editor, onContentChange]);
+    if (!editor) return;
+    onEditorReady?.(true);
+    const sync = () => {
+      const html = editor.getHTML();
+      onContentChange?.(html);
+    };
+    if (htmlGetterRef) {
+      htmlGetterRef.current = () => editor.getHTML();
+    }
+    editor.on("update", sync);
+    sync();
+    return () => {
+      onEditorReady?.(false);
+      editor.off("update", sync);
+      if (htmlGetterRef) {
+        htmlGetterRef.current = null;
+      }
+    };
+  }, [editor, onContentChange, htmlGetterRef, onEditorReady]);
 
   if (!editor) return null;
 
