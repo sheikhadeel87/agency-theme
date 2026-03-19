@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Search } from "lucide-react";
+import { AdminLogoutButton } from "./AdminLogoutButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -43,6 +44,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
             />
           </div>
         </div>
+        <AdminLogoutButton />
         <button
           type="button"
           className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
