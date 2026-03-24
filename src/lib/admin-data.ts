@@ -3,6 +3,8 @@
  * Replace with real DB calls (e.g. mongoose) when ready.
  */
 
+import { sanitizePlanPrice } from "@/lib/pricing-display";
+
 export type DashboardModule = {
   title: string;
   href: string;
@@ -775,8 +777,8 @@ export async function getPricingPlanById(id: string): Promise<PricingPlanItem | 
   return {
     _id: String(d._id),
     name: (d.name != null ? String(d.name) : "") || "Plan",
-    priceMonthly: Number(d.priceMonthly) || 0,
-    priceAnnual: Number(d.priceAnnual) || 0,
+    priceMonthly: sanitizePlanPrice(d.priceMonthly),
+    priceAnnual: sanitizePlanPrice(d.priceAnnual),
     periodLabel: (d.periodLabel != null ? String(d.periodLabel) : "") || "per month",
     subtext: (d.subtext != null ? String(d.subtext) : "") || "No credit card required",
     ctaText: (d.ctaText != null ? String(d.ctaText) : "") || "Try for free",
@@ -808,8 +810,8 @@ export async function getHomepagePricingPlans(): Promise<PricingPlanItem[]> {
     return {
       _id: String(d._id),
       name: (d.name != null ? String(d.name) : "") || "Plan",
-      priceMonthly: Number(d.priceMonthly) || 0,
-      priceAnnual: Number(d.priceAnnual) || 0,
+      priceMonthly: sanitizePlanPrice(d.priceMonthly),
+      priceAnnual: sanitizePlanPrice(d.priceAnnual),
       periodLabel: (d.periodLabel != null ? String(d.periodLabel) : "") || "per month",
       subtext: (d.subtext != null ? String(d.subtext) : "") || "No credit card required",
       ctaText: (d.ctaText != null ? String(d.ctaText) : "") || "Try for free",

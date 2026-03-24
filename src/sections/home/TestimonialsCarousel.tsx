@@ -25,9 +25,9 @@ export function TestimonialsCarousel({ testimonials }: Props) {
 
   return (
     <div className="relative mx-auto mt-12 w-full max-w-[1150px] sm:mt-16">
-      <div className="relative overflow-hidden rounded-2xl bg-gray-100 shadow-md sm:rounded-3xl lg:h-[372px]">
-        <div className="grid grid-cols-1 items-stretch gap-8 p-6 sm:p-8 lg:grid-cols-[300px_1fr] lg:gap-10 lg:h-full lg:p-10">
-          <div className="flex min-h-0 w-full items-center justify-center lg:min-w-[300px]">
+      <div className="relative overflow-hidden rounded-2xl bg-gray-100 shadow-md sm:rounded-3xl lg:min-h-[372px]">
+        <div className="grid grid-cols-1 items-stretch gap-8 p-6 sm:p-8 lg:grid-cols-[300px_1fr] lg:gap-10 lg:min-h-[372px] lg:p-10">
+          <div className="flex min-h-0 w-full items-center justify-center self-stretch lg:min-w-[300px]">
             <div className="relative h-0 w-full max-w-[280px] shrink-0 overflow-hidden rounded-xl bg-gray-200 pb-[100%] sm:max-w-[300px] lg:max-w-none lg:h-[300px] lg:w-[300px] lg:pb-0">
               <Image
                 src={imgSrc}
@@ -39,7 +39,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
               />
             </div>
           </div>
-          <div className="flex flex-col justify-center">
+          <div className="flex min-h-0 flex-col justify-start">
             <Quote className="size-14 text-gray-300 sm:size-16" aria-hidden />
             <blockquote className="mt-4 italic text-gray-600 sm:mt-5 sm:text-lg">
               {current.quote || "No quote."}
@@ -55,7 +55,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
               )}
             </footer>
             {current.brandName && (
-              <p className="mt-auto flex items-center justify-end gap-1.5 pt-6 text-right text-sm font-medium text-gray-600 sm:pt-8">
+              <p className="mt-6 flex items-center justify-end gap-1.5 text-right text-sm font-medium text-gray-600 sm:mt-8">
                 <Droplet className="size-4 shrink-0" aria-hidden />
                 <span className="uppercase tracking-wider">{current.brandName}</span>
               </p>

@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import { savePage } from "@/lib/actions/page-actions";
 import type { DynamicPage } from "@/lib/admin-data";
-import { Search, Send } from "lucide-react";
+import { openAdminPreview } from "@/lib/admin-preview";
+import { Eye, Search, Send } from "lucide-react";
 
 const defaultValues: Omit<DynamicPage, "_id"> = {
   title: "",
@@ -30,6 +31,7 @@ export function PageForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState(initialData?.content ?? defaultValues.content);
+  const formRef = useRef<HTMLFormElement>(null);
   const data = initialData ?? { ...defaultValues, _id: "" };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -47,8 +49,18 @@ export function PageForm({ initialData }: Props) {
     router.refresh();
   }
 
+  function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    openAdminPreview("cms-page", {
+      title: String(fd.get("title") ?? ""),
+      content,
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       {data._id && (
         <input type="hidden" name="_id" value={data._id} readOnly />
       )}
@@ -192,7 +204,11 @@ export function PageForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={handlePreview}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
           Save page

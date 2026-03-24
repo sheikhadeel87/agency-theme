@@ -9,7 +9,12 @@ import { saveBlog } from "@/lib/actions/blog-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import type { BlogPost } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
-import { ImageUp, Search, Send, X } from "lucide-react";
+import {
+  isFormCheckboxChecked,
+  openAdminPreview,
+  resolvePreviewImageUrl,
+} from "@/lib/admin-preview";
+import { Eye, ImageUp, Search, Send, X } from "lucide-react";
 
 const defaultValues: Omit<BlogPost, "_id" | "createdAt" | "updatedAt" | "publishedAt"> = {
   title: "",
@@ -36,6 +41,7 @@ export function BlogForm({ initialData }: Props) {
   const [content, setContent] = useState(initialData?.content ?? defaultValues.content);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? defaultValues;
 
@@ -68,8 +74,24 @@ export function BlogForm({ initialData }: Props) {
     router.refresh();
   }
 
+  async function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    const file = fileInputRef.current?.files?.[0];
+    const imageUrl = await resolvePreviewImageUrl(file, imagePreview, data.imageUrl);
+    openAdminPreview("blog", {
+      title: String(fd.get("title") ?? ""),
+      author: String(fd.get("author") ?? ""),
+      description: String(fd.get("description") ?? ""),
+      content,
+      imageUrl,
+      is_featured: isFormCheckboxChecked(form, "is_featured"),
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       {initialData?._id && (
         <input type="hidden" name="_id" value={initialData._id} readOnly />
       )}
@@ -314,7 +336,11 @@ export function BlogForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={() => void handlePreview()}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
           Save post
