@@ -5,7 +5,13 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getPortfolioProjectBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import {
+  getPortfolioProjectBySlug,
+  getSiteSettings,
+  getPublishedPages,
+  getNavSectionVisibility,
+  isPortfolioSectionEnabled,
+} from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const PORTFOLIO_FALLBACK_IMAGE = "/images/hero.png";
@@ -22,6 +28,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  if (!(await isPortfolioSectionEnabled())) return {};
   const project = await getPortfolioProjectBySlug(slug);
   if (!project || project.status !== "Published") return {};
   const title = project.metaTitle || project.title || "Portfolio Project";
@@ -47,10 +54,13 @@ export default async function PortfolioProjectPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [project, siteSettings, dynamicPages] = await Promise.all([
+  if (!(await isPortfolioSectionEnabled())) notFound();
+
+  const [project, siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getPortfolioProjectBySlug(slug),
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
 
   if (!project || project.status !== "Published") notFound();
@@ -63,7 +73,11 @@ export default async function PortfolioProjectPage({
 
   return (
     <>
-      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
+      <Header
+        siteSettings={siteSettings}
+        dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
+      />
       <main className="min-h-screen bg-white">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
@@ -188,7 +202,7 @@ export default async function PortfolioProjectPage({
           </Container>
         </article>
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

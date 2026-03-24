@@ -1,23 +1,36 @@
 import Link from "next/link";
 import { Zap, Facebook, Twitter, Linkedin, Instagram, SendHorizontal } from "lucide-react";
 import { Container } from "@/components/ui/Container";
-import type { SiteSettingsData } from "@/lib/admin-data";
+import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
 
-// Quick Links — main nav / key sections
-const quickLinks: Array<{ label: string; href: string; badge?: string }> = [
+type NavKey = keyof NavSectionVisibility;
+
+const ALL_VISIBLE: NavSectionVisibility = {
+  hero: true,
+  featuresHighlights: true,
+  whyChooseUs: true,
+  team: true,
+  services: true,
+  pricing: true,
+  portfolio: true,
+  testimonials: true,
+  blog: true,
+  contact: true,
+};
+
+const quickLinksBase: Array<{ label: string; href: string; badge?: string; vis?: NavKey }> = [
   { label: "Home", href: "/" },
-  { label: "Features", href: "/#why-choose-us" },
-  { label: "Portfolio", href: "/#portfolio" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Features", href: "/#why-choose-us", vis: "whyChooseUs" },
+  { label: "Portfolio", href: "/#portfolio", vis: "portfolio" },
+  { label: "Pricing", href: "/#pricing", vis: "pricing" },
 ];
 
-// Services — scroll to Services section anchors
-const services = [
-  { label: "Web Development", href: "/#support" },
-  { label: "Graphics Design", href: "/#services" },
-  { label: "Our Blog", href: "/#blog" },
-  { label: "Ui/Ux Design", href: "/#services" },
-] as const;
+const servicesItems: Array<{ label: string; href: string; vis: NavKey }> = [
+  { label: "Web Development", href: "/#support", vis: "featuresHighlights" },
+  { label: "Graphics Design", href: "/#services", vis: "services" },
+  { label: "Our Blog", href: "/#blog", vis: "blog" },
+  { label: "Ui/Ux Design", href: "/#services", vis: "services" },
+];
 
 function brandText(s: SiteSettingsData | null | undefined): string {
   if (!s) return "Nexora";
@@ -31,9 +44,10 @@ function footerDescription(s: SiteSettingsData | null | undefined): string {
 
 export type FooterProps = {
   siteSettings?: SiteSettingsData | null;
+  navVisibility?: NavSectionVisibility;
 };
 
-export function Footer({ siteSettings }: FooterProps) {
+export function Footer({ siteSettings, navVisibility }: FooterProps) {
   const brand = brandText(siteSettings);
   const description = footerDescription(siteSettings);
   const privacyHref = siteSettings?.privacyPolicyUrl?.trim() || "/privacy-policy";
@@ -46,12 +60,22 @@ export function Footer({ siteSettings }: FooterProps) {
     { icon: Instagram, href: socialLinks?.instagram?.trim() || "#", label: "Instagram" },
   ] as const;
 
-  const support = [
-    { label: "Team", href: "/#team" },
-    { label: "Contact Us", href: "/#contact" },
+  const v = navVisibility ?? ALL_VISIBLE;
+  const quickLinks = quickLinksBase.filter(
+    (item) => item.vis === undefined || v[item.vis] === true
+  );
+  const services = servicesItems.filter((item) => v[item.vis] === true);
+
+  type SupportRow = { label: string; href: string; vis?: NavKey };
+  const supportRows: SupportRow[] = [
+    { label: "Team", href: "/#team", vis: "team" },
+    { label: "Contact Us", href: "/#contact", vis: "contact" },
     { label: "Privacy Policy", href: privacyHref },
     { label: "Terms & Conditions", href: termsHref },
-  ] as const;
+  ];
+  const support = supportRows.filter(
+    (row) => row.vis === undefined || v[row.vis] === true
+  );
 
   return (
     <footer className="rounded-t-2xl bg-gray-100 sm:rounded-t-3xl">
@@ -90,7 +114,7 @@ export function Footer({ siteSettings }: FooterProps) {
             </h3>
             <ul className="mt-4 flex flex-col gap-3">
               {quickLinks.map(({ label, href, badge }) => (
-                <li key={href}>
+                <li key={href + label}>
                   <Link
                     href={href}
                     className="inline-flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-gray-900"
@@ -133,7 +157,7 @@ export function Footer({ siteSettings }: FooterProps) {
             </h3>
             <ul className="mt-4 flex flex-col gap-3">
               {support.map(({ label, href }) => (
-                <li key={href}>
+                <li key={label + href}>
                   <Link
                     href={href}
                     className="text-sm text-gray-600 transition-colors hover:text-gray-900"
@@ -186,11 +210,13 @@ export function Footer({ siteSettings }: FooterProps) {
                     Privacy Policy
                   </Link>
                 </li>
-                <li>
-                  <Link href="/#support" className="transition-colors hover:text-gray-900">
-                    Support
-                  </Link>
-                </li>
+                {v.featuresHighlights === true && (
+                  <li>
+                    <Link href="/#support" className="transition-colors hover:text-gray-900">
+                      Support
+                    </Link>
+                  </li>
+                )}
               </ul>
             </nav>
             <p className="text-sm text-gray-500">

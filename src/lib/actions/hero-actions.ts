@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Hero } from "@/models/Hero";
 
@@ -10,6 +11,10 @@ export type SaveHeroState = {
 
 function str(formData: FormData, key: string): string {
   return formData.get(key)?.toString()?.trim() ?? "";
+}
+
+function bool(formData: FormData, key: string): boolean {
+  return formData.get(key)?.toString() === "true" || formData.get(key)?.toString() === "on";
 }
 
 export async function saveHero(formData: FormData): Promise<SaveHeroState> {
@@ -23,6 +28,7 @@ export async function saveHero(formData: FormData): Promise<SaveHeroState> {
       ctaLink: str(formData, "ctaLink"),
       badgeText: str(formData, "badgeText"),
       phoneText: str(formData, "phoneText"),
+      isEnabled: bool(formData, "isEnabled"),
     };
 
     await Hero.findOneAndUpdate(
@@ -30,6 +36,13 @@ export async function saveHero(formData: FormData): Promise<SaveHeroState> {
       { $set: payload },
       { upsert: true, new: true }
     );
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/homepage");
+    } catch (e) {
+      console.warn("revalidatePath after saveHero:", e);
+    }
 
     return { success: true };
   } catch (e) {

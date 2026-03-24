@@ -8,6 +8,7 @@ import { savePricingSettings } from "@/lib/actions/pricing-actions";
 import type { PricingSettingsData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
 import { Eye, Search, Send } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 type Props = {
   initialData: PricingSettingsData;
@@ -17,6 +18,7 @@ export function PricingSectionForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [sectionEnabled, setSectionEnabled] = useState(initialData.isEnabled !== false);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -25,6 +27,7 @@ export function PricingSectionForm({ initialData }: Props) {
     setSaving(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set("isEnabled", sectionEnabled ? "on" : "false");
     const result = await savePricingSettings(formData);
     setSaving(false);
     if (result.error) {
@@ -44,6 +47,7 @@ export function PricingSectionForm({ initialData }: Props) {
       metaTitle: String(fd.get("metaTitle") ?? ""),
       metaDescription: String(fd.get("metaDescription") ?? ""),
       metaKeywords: String(fd.get("metaKeywords") ?? ""),
+      isEnabled: sectionEnabled,
     });
   }
 
@@ -92,6 +96,18 @@ export function PricingSectionForm({ initialData }: Props) {
         </div>
 
         <div className="space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Live site
+            </h3>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/30">
+              <p className="min-w-0 text-sm font-medium text-foreground">
+                Show pricing on the live site (/pricing and homepage)
+              </p>
+              <input type="hidden" name="isEnabled" value={sectionEnabled ? "on" : ""} />
+              <Toggle enabled={sectionEnabled} onChange={setSectionEnabled} className="shrink-0 sm:ml-auto" />
+            </div>
+          </div>
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <Search className="size-4" />

@@ -65,8 +65,15 @@ export async function saveTeamSettings(
       metaTitle: str(formData, "metaTitle") || sectionTitle,
       metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
       metaKeywords: str(formData, "metaKeywords"),
+      isEnabled: bool(formData, "isEnabled"),
     };
     await TeamSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/team");
+    } catch (e) {
+      console.warn("revalidatePath after saveTeamSettings:", e);
+    }
     return { success: true };
   } catch (e) {
     console.error("saveTeamSettings error:", e);

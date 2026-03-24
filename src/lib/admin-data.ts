@@ -5,6 +5,11 @@
 
 import { sanitizePlanPrice } from "@/lib/pricing-display";
 
+/** Missing or non-false counts as enabled (legacy documents without the field). */
+export function cmsEnabled(value: unknown): boolean {
+  return value !== false;
+}
+
 export type DashboardModule = {
   title: string;
   href: string;
@@ -60,6 +65,7 @@ export type TeamSettingsData = {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  isEnabled: boolean;
 };
 
 export type WhyChooseUsSettingsData = {
@@ -77,6 +83,7 @@ export type WhyChooseUsSettingsData = {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  isEnabled: boolean;
 };
 
 export type TestimonialsSettingsData = {
@@ -85,6 +92,7 @@ export type TestimonialsSettingsData = {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  isEnabled: boolean;
 };
 
 export type TestimonialItem = {
@@ -103,6 +111,7 @@ export type PricingSettingsData = {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  isEnabled: boolean;
 };
 
 export type PricingPlanItem = {
@@ -150,6 +159,7 @@ export type DynamicPage = {
   metaDescription: string;
   metaKeywords: string;
   status: "draft" | "published";
+  isEnabled: boolean;
 };
 
 export type SettingsSection = {
@@ -177,6 +187,11 @@ export type SiteSettingsData = {
     linkedin: string;
     instagram: string;
   };
+  servicesSectionEnabled: boolean;
+  portfolioSectionEnabled: boolean;
+  blogSectionEnabled: boolean;
+  contactSectionEnabled: boolean;
+  featuresHighlightsSectionEnabled: boolean;
 };
 
 export type HeroData = {
@@ -187,6 +202,7 @@ export type HeroData = {
   ctaLink: string;
   badgeText: string;
   phoneText: string;
+  isEnabled: boolean;
 };
 
 export type HomepageSection = {
@@ -272,6 +288,9 @@ export async function getServiceById(id: string): Promise<ServiceItem | null> {
  * Prefers items with featuredOnHomepage (newest first), then fills with latest published.
  */
 export async function getHomepageServices(): Promise<ServiceItem[]> {
+  const site = await getSiteSettings();
+  if (!cmsEnabled(site?.servicesSectionEnabled)) return [];
+
   const { dbConnect } = await import("@/lib/db");
   const { Service } = await import("@/models/Service");
   await dbConnect();
@@ -382,6 +401,9 @@ export async function getPortfolioProjectBySlug(
  * Up to 3 published portfolio projects for the homepage: featured first (newest), then backfill.
  */
 export async function getHomepagePortfolioProjects(): Promise<PortfolioProject[]> {
+  const site = await getSiteSettings();
+  if (!cmsEnabled(site?.portfolioSectionEnabled)) return [];
+
   const { dbConnect } = await import("@/lib/db");
   const { Portfolio } = await import("@/models/Portfolio");
   await dbConnect();
@@ -447,14 +469,17 @@ export async function getTeamSettings(): Promise<TeamSettingsData> {
       metaTitle: "",
       metaDescription: "",
       metaKeywords: "",
+      isEnabled: true,
     };
   }
+  const d = doc as { sectionTitle?: string; sectionDescription?: string; metaTitle?: string; metaDescription?: string; metaKeywords?: string; isEnabled?: boolean };
   return {
-    sectionTitle: (doc as { sectionTitle?: string }).sectionTitle ?? "",
-    sectionDescription: (doc as { sectionDescription?: string }).sectionDescription ?? "",
-    metaTitle: (doc as { metaTitle?: string }).metaTitle ?? "",
-    metaDescription: (doc as { metaDescription?: string }).metaDescription ?? "",
-    metaKeywords: (doc as { metaKeywords?: string }).metaKeywords ?? "",
+    sectionTitle: d.sectionTitle ?? "",
+    sectionDescription: d.sectionDescription ?? "",
+    metaTitle: d.metaTitle ?? "",
+    metaDescription: d.metaDescription ?? "",
+    metaKeywords: d.metaKeywords ?? "",
+    isEnabled: cmsEnabled(d.isEnabled),
   };
 }
 
@@ -509,6 +534,9 @@ export async function getTeamMemberById(id: string): Promise<TeamMember | null> 
 
 /** Team member by URL slug (public profile). */
 export async function getTeamMemberBySlug(slug: string): Promise<TeamMember | null> {
+  const teamSettings = await getTeamSettings();
+  if (!cmsEnabled(teamSettings.isEnabled)) return null;
+
   const { dbConnect } = await import("@/lib/db");
   const { TeamMember } = await import("@/models/TeamMember");
   const trimmed = slug?.trim();
@@ -540,9 +568,13 @@ export async function getTeamMemberBySlug(slug: string): Promise<TeamMember | nu
 
 /** Resolve public team URL param: slug or legacy MongoDB id. */
 export async function getTeamMemberBySlugOrId(param: string): Promise<TeamMember | null> {
-  const { isValidObjectId } = await import("mongoose");
   const raw = param?.trim();
   if (!raw) return null;
+
+  const teamSettings = await getTeamSettings();
+  if (!cmsEnabled(teamSettings.isEnabled)) return null;
+
+  const { isValidObjectId } = await import("mongoose");
   if (isValidObjectId(raw)) {
     return getTeamMemberById(raw);
   }
@@ -551,6 +583,9 @@ export async function getTeamMemberBySlugOrId(param: string): Promise<TeamMember
 
 /** Up to 3 team members for homepage: featured first (newest), then by display order. */
 export async function getHomepageTeamMembers(): Promise<TeamMember[]> {
+  const teamSettings = await getTeamSettings();
+  if (!cmsEnabled(teamSettings.isEnabled)) return [];
+
   const { dbConnect } = await import("@/lib/db");
   const { TeamMember } = await import("@/models/TeamMember");
   await dbConnect();
@@ -618,6 +653,7 @@ export async function getWhyChooseUsSettings(): Promise<WhyChooseUsSettingsData>
       metaTitle: "",
       metaDescription: "",
       metaKeywords: "",
+      isEnabled: true,
     };
   }
   const d = doc as Record<string, unknown>;
@@ -637,6 +673,7 @@ export async function getWhyChooseUsSettings(): Promise<WhyChooseUsSettingsData>
     metaTitle: str("metaTitle"),
     metaDescription: str("metaDescription"),
     metaKeywords: str("metaKeywords"),
+    isEnabled: cmsEnabled(d.isEnabled),
   };
 }
 
@@ -653,6 +690,7 @@ export async function getTestimonialsSettings(): Promise<TestimonialsSettingsDat
       metaTitle: "",
       metaDescription: "",
       metaKeywords: "",
+      isEnabled: true,
     };
   }
   const d = doc as Record<string, unknown>;
@@ -663,6 +701,7 @@ export async function getTestimonialsSettings(): Promise<TestimonialsSettingsDat
     metaTitle: str("metaTitle"),
     metaDescription: str("metaDescription"),
     metaKeywords: str("metaKeywords"),
+    isEnabled: cmsEnabled(d.isEnabled),
   };
 }
 
@@ -717,6 +756,7 @@ export async function getPricingSettings(): Promise<PricingSettingsData> {
       metaTitle: "",
       metaDescription: "",
       metaKeywords: "",
+      isEnabled: true,
     };
   }
   const d = doc as Record<string, unknown>;
@@ -727,6 +767,7 @@ export async function getPricingSettings(): Promise<PricingSettingsData> {
     metaTitle: str("metaTitle"),
     metaDescription: str("metaDescription"),
     metaKeywords: str("metaKeywords"),
+    isEnabled: cmsEnabled(d.isEnabled),
   };
 }
 
@@ -793,6 +834,9 @@ export async function getPricingPlanById(id: string): Promise<PricingPlanItem | 
 
 /** Up to 3 pricing plans for homepage: “show on homepage” first by order, then fill by order. */
 export async function getHomepagePricingPlans(): Promise<PricingPlanItem[]> {
+  const pricingSettings = await getPricingSettings();
+  if (!cmsEnabled(pricingSettings.isEnabled)) return [];
+
   const { dbConnect } = await import("@/lib/db");
   const { PricingPlan } = await import("@/models/PricingPlan");
   await dbConnect();
@@ -893,6 +937,9 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
  * Up to 3 published posts for homepage: is_featured first (newest), then latest published.
  */
 export async function getHomepageBlogPosts(): Promise<BlogPost[]> {
+  const site = await getSiteSettings();
+  if (!cmsEnabled(site?.blogSectionEnabled)) return [];
+
   const { dbConnect } = await import("@/lib/db");
   const { Blog } = await import("@/models/Blog");
   await dbConnect();
@@ -970,6 +1017,7 @@ function mapPageDoc(doc: Record<string, unknown>): DynamicPage {
     metaDescription: (doc.metaDescription != null ? String(doc.metaDescription) : "") || "",
     metaKeywords: (doc.metaKeywords != null ? String(doc.metaKeywords) : "") || "",
     status,
+    isEnabled: cmsEnabled(doc.isEnabled),
   };
 }
 
@@ -982,13 +1030,18 @@ export async function getDynamicPages(): Promise<DynamicPage[]> {
   return docs.map((d) => mapPageDoc(d as Record<string, unknown>));
 }
 
-/** Published pages only (for header dropdown) */
+/**
+ * Published CMS pages for the live site (header “Pages” dropdown, etc.).
+ * Excludes drafts and pages with `isEnabled === false` after `mapPageDoc` normalization.
+ */
 export async function getPublishedPages(): Promise<DynamicPage[]> {
   const { dbConnect } = await import("@/lib/db");
   const { Page } = await import("@/models/Page");
   await dbConnect();
   const docs = await Page.find({ status: "published" }).sort({ updatedAt: -1 }).lean();
-  return docs.map((d) => mapPageDoc(d as Record<string, unknown>));
+  return docs
+    .map((d) => mapPageDoc(d as Record<string, unknown>))
+    .filter((p) => p.isEnabled === true);
 }
 
 /** Single page by id (for admin edit) */
@@ -1011,7 +1064,9 @@ export async function getPageBySlug(slug: string): Promise<DynamicPage | null> {
   await dbConnect();
   const doc = await Page.findOne({ slug: slug.trim(), status: "published" }).lean();
   if (!doc) return null;
-  return mapPageDoc(doc as Record<string, unknown>);
+  const page = mapPageDoc(doc as Record<string, unknown>);
+  if (!page.isEnabled) return null;
+  return page;
 }
 
 /** Site settings sections (links to edit page) */
@@ -1034,6 +1089,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData | null> {
   const doc = await SiteSettings.findOne().lean();
   if (!doc) return null;
 
+  const d = doc as Record<string, unknown>;
   return {
     _id: String(doc._id),
     siteName: doc.siteName ?? "",
@@ -1053,6 +1109,11 @@ export async function getSiteSettings(): Promise<SiteSettingsData | null> {
       linkedin: doc.socialLinks?.linkedin ?? "",
       instagram: doc.socialLinks?.instagram ?? "",
     },
+    servicesSectionEnabled: cmsEnabled(d.servicesSectionEnabled),
+    portfolioSectionEnabled: cmsEnabled(d.portfolioSectionEnabled),
+    blogSectionEnabled: cmsEnabled(d.blogSectionEnabled),
+    contactSectionEnabled: cmsEnabled(d.contactSectionEnabled),
+    featuresHighlightsSectionEnabled: cmsEnabled(d.featuresHighlightsSectionEnabled),
   };
 }
 
@@ -1066,6 +1127,7 @@ export async function getHeroData(): Promise<HeroData | null> {
   const doc = await Hero.findOne().lean();
   if (!doc) return null;
 
+  const h = doc as Record<string, unknown>;
   return {
     _id: String(doc._id),
     heading: doc.heading ?? "",
@@ -1074,7 +1136,82 @@ export async function getHeroData(): Promise<HeroData | null> {
     ctaLink: doc.ctaLink ?? "",
     badgeText: doc.badgeText ?? "",
     phoneText: doc.phoneText ?? "",
+    isEnabled: cmsEnabled(h.isEnabled),
   };
+}
+
+export type NavSectionVisibility = {
+  hero: boolean;
+  featuresHighlights: boolean;
+  whyChooseUs: boolean;
+  team: boolean;
+  services: boolean;
+  pricing: boolean;
+  portfolio: boolean;
+  testimonials: boolean;
+  blog: boolean;
+  contact: boolean;
+};
+
+/**
+ * Per-flag booleans for the live homepage and main nav. Each is `true` only when that
+ * block’s `isEnabled` (or site-level section flag) is allowed on the live site after
+ * `cmsEnabled` normalization (`false` in DB disables; missing field stays enabled).
+ */
+export function buildNavSectionVisibility(args: {
+  siteSettings: SiteSettingsData | null;
+  hero: HeroData | null;
+  teamSettings: TeamSettingsData;
+  whyChooseUs: WhyChooseUsSettingsData;
+  pricing: PricingSettingsData;
+  testimonials: TestimonialsSettingsData;
+}): NavSectionVisibility {
+  return {
+    hero: !args.hero || cmsEnabled(args.hero.isEnabled),
+    featuresHighlights: cmsEnabled(args.siteSettings?.featuresHighlightsSectionEnabled),
+    whyChooseUs: cmsEnabled(args.whyChooseUs.isEnabled),
+    team: cmsEnabled(args.teamSettings.isEnabled),
+    services: cmsEnabled(args.siteSettings?.servicesSectionEnabled),
+    pricing: cmsEnabled(args.pricing.isEnabled),
+    portfolio: cmsEnabled(args.siteSettings?.portfolioSectionEnabled),
+    testimonials: cmsEnabled(args.testimonials.isEnabled),
+    blog: cmsEnabled(args.siteSettings?.blogSectionEnabled),
+    contact: cmsEnabled(args.siteSettings?.contactSectionEnabled),
+  };
+}
+
+export async function getNavSectionVisibility(): Promise<NavSectionVisibility> {
+  const [siteSettings, hero, teamSettings, whyChooseUs, pricing, testimonials] = await Promise.all([
+    getSiteSettings(),
+    getHeroData(),
+    getTeamSettings(),
+    getWhyChooseUsSettings(),
+    getPricingSettings(),
+    getTestimonialsSettings(),
+  ]);
+  return buildNavSectionVisibility({
+    siteSettings,
+    hero,
+    teamSettings,
+    whyChooseUs,
+    pricing,
+    testimonials,
+  });
+}
+
+export async function isBlogSectionEnabled(): Promise<boolean> {
+  const s = await getSiteSettings();
+  return cmsEnabled(s?.blogSectionEnabled);
+}
+
+export async function isPortfolioSectionEnabled(): Promise<boolean> {
+  const s = await getSiteSettings();
+  return cmsEnabled(s?.portfolioSectionEnabled);
+}
+
+export async function isPricingSectionEnabled(): Promise<boolean> {
+  const p = await getPricingSettings();
+  return cmsEnabled(p.isEnabled);
 }
 
 /** Homepage content sections (replace with DB/config later) */

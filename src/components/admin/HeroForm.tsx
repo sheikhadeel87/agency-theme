@@ -8,6 +8,7 @@ import { saveHero } from "@/lib/actions/hero-actions";
 import type { HeroData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
 import { Eye } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 const defaultValues: Omit<HeroData, "_id"> = {
   heading: "",
@@ -16,6 +17,7 @@ const defaultValues: Omit<HeroData, "_id"> = {
   ctaLink: "",
   badgeText: "",
   phoneText: "",
+  isEnabled: true,
 };
 
 type Props = {
@@ -75,12 +77,14 @@ export function HeroForm({ initialData }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? defaultValues;
+  const [heroEnabled, setHeroEnabled] = useState(data.isEnabled !== false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set("isEnabled", heroEnabled ? "on" : "false");
     const result = await saveHero(formData);
     if (result.error) {
       setError(result.error);
@@ -102,6 +106,7 @@ export function HeroForm({ initialData }: Props) {
       ctaLink: String(fd.get("ctaLink") ?? ""),
       badgeText: String(fd.get("badgeText") ?? ""),
       phoneText: String(fd.get("phoneText") ?? ""),
+      isEnabled: heroEnabled,
     } satisfies HeroData);
   }
 
@@ -151,6 +156,17 @@ export function HeroForm({ initialData }: Props) {
           placeholder="Call us (0123) 456 – 789"
           defaultValue={data.phoneText}
         />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Live site
+        </h3>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/30">
+          <p className="min-w-0 text-sm font-medium text-foreground">Show hero on the live homepage</p>
+          <input type="hidden" name="isEnabled" value={heroEnabled ? "on" : ""} />
+          <Toggle enabled={heroEnabled} onChange={setHeroEnabled} className="shrink-0 sm:ml-auto" />
+        </div>
       </div>
 
       {error && (

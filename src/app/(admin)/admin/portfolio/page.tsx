@@ -7,7 +7,8 @@ import {
   AdminTableRow,
   AdminTableCell,
 } from "@/components/admin/AdminTable";
-import { getPortfolioProjects } from "@/lib/admin-data";
+import { getPortfolioProjects, getSiteSettings } from "@/lib/admin-data";
+import { AdminHomepageSectionLiveToggle } from "@/components/admin/AdminHomepageSectionLiveToggle";
 
 const primaryButtonClass =
   "inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -17,7 +18,8 @@ const linkButtonClass =
 export const dynamic = "force-dynamic";
 
 export default async function PortfolioPage() {
-  const projects = await getPortfolioProjects();
+  const [projects, siteSettings] = await Promise.all([getPortfolioProjects(), getSiteSettings()]);
+  const sectionLive = siteSettings?.portfolioSectionEnabled !== false;
 
   return (
     <div className="space-y-6">
@@ -30,6 +32,12 @@ export default async function PortfolioPage() {
           Add Project
         </Link>
       </AdminPageHeader>
+      <AdminHomepageSectionLiveToggle
+        module="portfolio"
+        initialEnabled={sectionLive}
+        title="Portfolio on live site"
+        description="Homepage block, project pages, and Portfolio in navigation. Matches Site Settings → Homepage sections."
+      />
       {projects.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-8 text-center ring-1 ring-foreground/10">
           <p className="text-sm text-muted-foreground">

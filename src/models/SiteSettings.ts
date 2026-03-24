@@ -18,6 +18,12 @@ export interface ISiteSettings {
     linkedin: string;
     instagram: string;
   };
+  /** Homepage blocks without their own settings collection */
+  servicesSectionEnabled: boolean;
+  portfolioSectionEnabled: boolean;
+  blogSectionEnabled: boolean;
+  contactSectionEnabled: boolean;
+  featuresHighlightsSectionEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +52,11 @@ const siteSettingsSchema = new mongoose.Schema<ISiteSettings>(
     privacyPolicyUrl: { type: String, default: "" },
     termsUrl: { type: String, default: "" },
     socialLinks: { type: socialLinksSchema, default: () => ({}) },
+    servicesSectionEnabled: { type: Boolean, default: true },
+    portfolioSectionEnabled: { type: Boolean, default: true },
+    blogSectionEnabled: { type: Boolean, default: true },
+    contactSectionEnabled: { type: Boolean, default: true },
+    featuresHighlightsSectionEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

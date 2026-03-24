@@ -32,6 +32,11 @@ export function ContactForm({ initialData }: Props) {
     privacyPolicyUrl: "",
     termsUrl: "",
     socialLinks: { facebook: "", twitter: "", linkedin: "", instagram: "" },
+    servicesSectionEnabled: true,
+    portfolioSectionEnabled: true,
+    blogSectionEnabled: true,
+    contactSectionEnabled: true,
+    featuresHighlightsSectionEnabled: true,
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

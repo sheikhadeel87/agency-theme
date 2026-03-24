@@ -9,6 +9,8 @@ export interface IPage {
   metaDescription: string;
   metaKeywords: string;
   status: "draft" | "published";
+  /** When false, page is hidden from the live site (nav + direct URL). */
+  isEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +25,7 @@ const pageSchema = new mongoose.Schema<IPage>(
     metaDescription: { type: String, default: "" },
     metaKeywords: { type: String, default: "" },
     status: { type: String, enum: ["draft", "published"], default: "draft" },
+    isEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

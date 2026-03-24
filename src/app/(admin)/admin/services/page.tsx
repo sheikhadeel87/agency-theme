@@ -8,7 +8,8 @@ import {
   AdminTableCell,
 } from "@/components/admin/AdminTable";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
-import { getServices } from "@/lib/admin-data";
+import { getServices, getSiteSettings } from "@/lib/admin-data";
+import { AdminHomepageSectionLiveToggle } from "@/components/admin/AdminHomepageSectionLiveToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,8 @@ function stripHtml(html: string, maxLen = 60): string {
 }
 
 export default async function ServicesPage() {
-  const services = await getServices();
+  const [services, siteSettings] = await Promise.all([getServices(), getSiteSettings()]);
+  const sectionLive = siteSettings?.servicesSectionEnabled !== false;
 
   return (
     <div className="space-y-6">
@@ -34,6 +36,12 @@ export default async function ServicesPage() {
           Add Service
         </Link>
       </AdminPageHeader>
+      <AdminHomepageSectionLiveToggle
+        module="services"
+        initialEnabled={sectionLive}
+        title="Services on live site"
+        description="Homepage block and Services link in the main navigation. Matches Site Settings → Homepage sections."
+      />
       {services.length === 0 ? (
         <AdminEmptyState
           title="No services yet"

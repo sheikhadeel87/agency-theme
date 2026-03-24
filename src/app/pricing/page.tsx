@@ -2,11 +2,22 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PricingSection } from "@/sections/home/PricingSection";
-import { getPricingSettings, getPricingPlans, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import {
+  getPricingSettings,
+  getPricingPlans,
+  getSiteSettings,
+  getPublishedPages,
+  getNavSectionVisibility,
+  isPricingSectionEnabled,
+} from "@/lib/admin-data";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (!(await isPricingSectionEnabled())) {
+    return { title: "Not found" };
+  }
   const settings = await getPricingSettings();
   return {
     title: settings.metaTitle || settings.sectionTitle || "Pricing",
@@ -18,20 +29,27 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PricingPage() {
-  const [settings, plans, siteSettings, dynamicPages] = await Promise.all([
+  if (!(await isPricingSectionEnabled())) notFound();
+
+  const [settings, plans, siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getPricingSettings(),
     getPricingPlans(),
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
 
   return (
     <>
-      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
+      <Header
+        siteSettings={siteSettings}
+        dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
+      />
       <main>
         <PricingSection settings={settings} plans={plans} />
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

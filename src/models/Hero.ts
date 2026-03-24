@@ -7,6 +7,7 @@ export interface IHero {
   ctaLink: string;
   badgeText: string;
   phoneText: string;
+  isEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +20,7 @@ const heroSchema = new mongoose.Schema<IHero>(
     ctaLink: { type: String, default: "" },
     badgeText: { type: String, default: "" },
     phoneText: { type: String, default: "" },
+    isEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
