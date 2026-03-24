@@ -4,6 +4,9 @@
  */
 
 import { sanitizePlanPrice } from "@/lib/pricing-display";
+import type { NavItem } from "@/lib/navigation";
+
+export type { NavChildItem, NavItem, PublicNavEntry } from "@/lib/navigation";
 
 /** Missing or non-false counts as enabled (legacy documents without the field). */
 export function cmsEnabled(value: unknown): boolean {
@@ -192,6 +195,7 @@ export type SiteSettingsData = {
   blogSectionEnabled: boolean;
   contactSectionEnabled: boolean;
   featuresHighlightsSectionEnabled: boolean;
+  navigation: NavItem[];
 };
 
 export type HeroData = {
@@ -208,12 +212,31 @@ export type HeroData = {
 export type HomepageSection = {
   title: string;
   description: string;
+  /** Admin route for the Homepage dashboard “Edit” link. */
+  actionHref: string;
+  /** Button label; defaults to `"Edit"` (Hero uses `"Edit Hero"`). */
+  actionLabel?: string;
 };
 
 export type LegalSection = {
   title: string;
   description: string;
   actionHref: string;
+};
+
+export type LegalPageContentData = {
+  /** ISO timestamp for remounting admin editors after save. */
+  updatedAtIso: string;
+  privacyPolicyHtml: string;
+  privacyLastUpdated: string;
+  privacyMetaTitle: string;
+  privacyMetaDescription: string;
+  privacyMetaKeywords: string;
+  termsConditionsHtml: string;
+  termsLastUpdated: string;
+  termsMetaTitle: string;
+  termsMetaDescription: string;
+  termsMetaKeywords: string;
 };
 
 /** Dashboard: list of admin modules (no DB yet) */
@@ -428,6 +451,20 @@ export async function getHomepagePortfolioProjects(): Promise<PortfolioProject[]
   }
 
   return picked;
+}
+
+/** All published projects for `/portfolio` archive (newest first). */
+export async function getPublishedPortfolioProjects(): Promise<PortfolioProject[]> {
+  if (!(await isPortfolioSectionEnabled())) return [];
+
+  const { dbConnect } = await import("@/lib/db");
+  const { Portfolio } = await import("@/models/Portfolio");
+  await dbConnect();
+
+  const docs = await Portfolio.find({ status: "Published" })
+    .sort({ updatedAt: -1 })
+    .lean();
+  return docs.map((d) => mapPortfolioDoc(d));
 }
 
 /** Unique category labels derived from a project list (e.g. homepage subset). */
@@ -1076,6 +1113,7 @@ export function getSiteSettingsSections(): SettingsSection[] {
     { title: "Contact Info", description: "Manage email, phone, and address shown on the site.", actionHref: "/admin/site-settings/edit" },
     { title: "Social Links", description: "Manage social media profiles displayed on the website.", actionHref: "/admin/site-settings/edit" },
     { title: "Footer & Legal", description: "Manage footer text, newsletter, and legal page links.", actionHref: "/admin/site-settings/edit" },
+    { title: "Navigation", description: "Drag-and-drop menu, labels, links, and dropdowns for the site header.", actionHref: "/admin/site-settings/navigation" },
   ];
 }
 
@@ -1090,6 +1128,13 @@ export async function getSiteSettings(): Promise<SiteSettingsData | null> {
   if (!doc) return null;
 
   const d = doc as Record<string, unknown>;
+  const { mapDocNavigation, getDefaultNavigation } = await import("@/lib/navigation");
+  const rawNav = d.navigation;
+  const navigation =
+    Array.isArray(rawNav) && rawNav.length > 0
+      ? mapDocNavigation(rawNav)
+      : getDefaultNavigation();
+
   return {
     _id: String(doc._id),
     siteName: doc.siteName ?? "",
@@ -1114,6 +1159,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData | null> {
     blogSectionEnabled: cmsEnabled(d.blogSectionEnabled),
     contactSectionEnabled: cmsEnabled(d.contactSectionEnabled),
     featuresHighlightsSectionEnabled: cmsEnabled(d.featuresHighlightsSectionEnabled),
+    navigation,
   };
 }
 
@@ -1217,21 +1263,91 @@ export async function isPricingSectionEnabled(): Promise<boolean> {
 /** Homepage content sections (replace with DB/config later) */
 export async function getHomepageSections(): Promise<HomepageSection[]> {
   return [
-    { title: "Hero", description: "Headline, subheadline, and CTA buttons." },
-    { title: "Features", description: "Feature highlights and icons." },
-    { title: "Why Choose Us", description: "Value propositions and differentiators." },
-    { title: "Services", description: "Services preview block." },
-    { title: "Team", description: "Team section heading and layout." },
-    { title: "Testimonials", description: "Client quotes and carousel." },
-    { title: "Blog", description: "Latest posts preview." },
-    { title: "Contact", description: "Contact form and details." },
+    {
+      title: "Hero Section",
+      description: "Manage homepage hero content.",
+      actionHref: "/admin/homepage/hero",
+      actionLabel: "Edit Hero",
+    },
+    {
+      title: "Features",
+      description: "Feature highlights and icons.",
+      actionHref: "/admin/site-settings",
+    },
+    {
+      title: "Why Choose Us",
+      description: "Value propositions and differentiators.",
+      actionHref: "/admin/why-choose-us",
+    },
+    {
+      title: "Services",
+      description: "Services preview block.",
+      actionHref: "/admin/services",
+    },
+    {
+      title: "Team",
+      description: "Team section heading and layout.",
+      actionHref: "/admin/team",
+    },
+    {
+      title: "Testimonials",
+      description: "Client quotes and carousel.",
+      actionHref: "/admin/testimonials",
+    },
+    {
+      title: "Blog",
+      description: "Latest posts preview.",
+      actionHref: "/admin/blog",
+    },
+    {
+      title: "Contact",
+      description: "Contact form and details.",
+      actionHref: "/admin/contact",
+    },
   ];
 }
 
-/** Legal page sections (replace with DB/config later) */
-export async function getLegalSections(): Promise<LegalSection[]> {
+/** Legal page sections — “Edit” opens the CMS editor for each route. */
+export function getLegalSections(): LegalSection[] {
   return [
-    { title: "Privacy Policy", description: "Edit the privacy policy page content and last updated date.", actionHref: "#" },
-    { title: "Terms & Conditions", description: "Edit the terms of service and usage conditions.", actionHref: "#" },
+    {
+      title: "Privacy Policy",
+      description: "Edit the privacy policy page content and last updated date.",
+      actionHref: "/admin/legal/privacy-policy",
+    },
+    {
+      title: "Terms & Conditions",
+      description: "Edit the terms of service and usage conditions.",
+      actionHref: "/admin/legal/terms-conditions",
+    },
   ];
+}
+
+/** Singleton legal document (privacy + terms HTML and SEO). */
+export async function getLegalPageContent(): Promise<LegalPageContentData> {
+  const { dbConnect } = await import("@/lib/db");
+  const { LegalPageContent } = await import("@/models/LegalPageContent");
+  await dbConnect();
+  const doc = await LegalPageContent.findOne().lean();
+  const d = (doc ?? {}) as Record<string, unknown>;
+  const updatedRaw = d.updatedAt;
+  const updatedAtIso =
+    updatedRaw instanceof Date
+      ? updatedRaw.toISOString()
+      : typeof updatedRaw === "string"
+        ? updatedRaw
+        : "";
+  return {
+    updatedAtIso,
+    privacyPolicyHtml: String(d.privacyPolicyHtml ?? ""),
+    privacyLastUpdated: String(d.privacyLastUpdated ?? ""),
+    privacyMetaTitle: String(d.privacyMetaTitle ?? ""),
+    privacyMetaDescription: String(d.privacyMetaDescription ?? ""),
+    privacyMetaKeywords: String(d.privacyMetaKeywords ?? ""),
+    termsConditionsHtml: String(d.termsConditionsHtml ?? ""),
+    termsLastUpdated: String(d.termsLastUpdated ?? ""),
+    termsMetaTitle: String(d.termsMetaTitle ?? ""),
+    termsMetaDescription: String(d.termsMetaDescription ?? ""),
+    termsMetaKeywords: String(d.termsMetaKeywords ?? ""),
+  };
 }

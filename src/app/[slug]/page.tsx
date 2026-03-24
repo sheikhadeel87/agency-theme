@@ -63,7 +63,6 @@ export default async function DynamicPageRoute({
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
-        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-white py-16 sm:py-20 lg:py-24">
         <Container>

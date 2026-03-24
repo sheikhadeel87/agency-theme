@@ -12,6 +12,7 @@ import {
   getNavSectionVisibility,
   isBlogSectionEnabled,
 } from "@/lib/admin-data";
+import { HOMEPAGE_BLOG_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { notFound } from "next/navigation";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
@@ -52,17 +53,16 @@ export default async function BlogArchivePage() {
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
-        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-[#fafafa]">
         <div className="border-b border-gray-200/80 bg-white py-8 sm:py-10">
           <Container as="div">
             <nav className="mb-4">
               <Link
-                href="/"
+                href={HOMEPAGE_BLOG_SECTION_HREF}
                 className="text-sm font-medium text-blue-600 hover:underline"
               >
-                ← Back to Home
+                ← Back to blog section
               </Link>
             </nav>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600/90">

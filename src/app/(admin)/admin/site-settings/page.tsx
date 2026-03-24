@@ -34,12 +34,21 @@ export default async function SiteSettingsPage() {
           .join(" · ") || "Not set"
       : "Not set";
 
-  const sectionValues = [
-    { title: sections[0].title, description: sections[0].description, summary: brandingSummary },
-    { title: sections[1].title, description: sections[1].description, summary: contactSummary },
-    { title: sections[2].title, description: sections[2].description, summary: socialSummary },
-    { title: sections[3].title, description: sections[3].description, summary: footerSummary },
-  ];
+  const navCount = s?.navigation?.length ?? 0;
+  const navEnabled = s?.navigation?.filter((i) => i.isEnabled).length ?? 0;
+  const navigationSummary =
+    navCount > 0
+      ? `${navEnabled} visible / ${navCount} items`
+      : "Default menu (not saved yet)";
+
+  const summaries = [brandingSummary, contactSummary, socialSummary, footerSummary, navigationSummary];
+
+  const sectionValues = sections.map((sec, i) => ({
+    title: sec.title,
+    description: sec.description,
+    summary: summaries[i] ?? "—",
+    actionHref: sec.actionHref,
+  }));
 
   return (
     <div className="space-y-6">
@@ -48,12 +57,12 @@ export default async function SiteSettingsPage() {
         description="Manage logo, favicon, contact info, and social links."
       />
       <div className="grid gap-4 sm:grid-cols-2">
-        {sectionValues.map(({ title, description, summary }) => (
+        {sectionValues.map(({ title, description, summary, actionHref }) => (
           <AdminCard
             key={title}
             title={title}
             description={description}
-            actionHref="/admin/site-settings/edit"
+            actionHref={actionHref}
             actionLabel="Configure"
           >
             <p className="text-sm text-muted-foreground">{summary}</p>

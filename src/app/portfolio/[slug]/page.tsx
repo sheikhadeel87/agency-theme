@@ -76,16 +76,15 @@ export default async function PortfolioProjectPage({
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
-        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-white">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
-              href="/#portfolio"
+              href="/portfolio"
               className="mb-8 inline-block text-sm font-medium text-blue-600 hover:underline"
             >
-              ← Back to Portfolio
+              ← Back to portfolio
             </Link>
 
             {/* Same reading column + hero treatment as blog post pages */}

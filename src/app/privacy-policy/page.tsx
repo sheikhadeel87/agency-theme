@@ -1,141 +1,72 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getSiteSettings, getPublishedPages, getNavSectionVisibility } from "@/lib/admin-data";
+import { DefaultPrivacyPolicyContent } from "@/components/legal/DefaultPrivacyPolicyContent";
+import {
+  getLegalPageContent,
+  getSiteSettings,
+  getPublishedPages,
+  getNavSectionVisibility,
+} from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata(): Promise<Metadata> {
+  const legal = await getLegalPageContent();
+  const title = legal.privacyMetaTitle.trim() || "Privacy Policy";
+  const description = legal.privacyMetaDescription.trim() || undefined;
+  const rawKw = legal.privacyMetaKeywords.trim();
+  const keywords = rawKw
+    ? rawKw
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean)
+    : undefined;
+  return {
+    title,
+    description,
+    ...(keywords?.length ? { keywords } : {}),
+  };
+}
+
 export default async function PrivacyPolicyPage() {
-  const [siteSettings, dynamicPages, navVisibility] = await Promise.all([
+  const [legal, siteSettings, dynamicPages, navVisibility] = await Promise.all([
+    getLegalPageContent(),
     getSiteSettings(),
     getPublishedPages(),
     getNavSectionVisibility(),
   ]);
+
+  const customHtml = legal.privacyPolicyHtml.trim();
+  const lastUpdated =
+    legal.privacyLastUpdated.trim() || String(new Date().getFullYear());
+
   return (
     <>
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
-        navVisibility={navVisibility}
       />
       <main className="bg-white py-16 sm:py-20 lg:py-24">
-      <Container>
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-3xl font-semibold text-[#0f172a] sm:text-4xl lg:text-5xl">
-            Privacy Policy
-          </h1>
+        <Container>
+          <div className="mx-auto max-w-3xl">
+            <h1 className="text-3xl font-semibold text-[#0f172a] sm:text-4xl lg:text-5xl">
+              Privacy Policy
+            </h1>
 
-          <p className="mt-4 text-gray-600">
-            Last updated: {new Date().getFullYear()}
-          </p>
+            <p className="mt-4 text-gray-600">Last updated: {lastUpdated}</p>
 
-          <div className="mt-10 space-y-8 text-gray-700 leading-relaxed">
-            
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                1. Introduction
-              </h2>
-              <p className="mt-3">
-                Welcome to our website. Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your information when you use our services.
-              </p>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                2. Information We Collect
-              </h2>
-              <p className="mt-3">
-                We may collect personal information such as your name, email address, phone number, and any other details you provide through our contact forms or services.
-              </p>
-              <ul className="mt-3 list-disc pl-6 space-y-1">
-                <li>Name and contact details</li>
-                <li>Email address</li>
-                <li>Phone number</li>
-                <li>Usage data and analytics</li>
-              </ul>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                3. How We Use Your Information
-              </h2>
-              <p className="mt-3">
-                We use your information to:
-              </p>
-              <ul className="mt-3 list-disc pl-6 space-y-1">
-                <li>Provide and maintain our services</li>
-                <li>Respond to your inquiries</li>
-                <li>Improve user experience</li>
-                <li>Send updates and marketing communications</li>
-              </ul>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                4. Cookies and Tracking Technologies
-              </h2>
-              <p className="mt-3">
-                We use cookies and similar tracking technologies to monitor activity on our website and improve our services.
-              </p>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                5. Data Security
-              </h2>
-              <p className="mt-3">
-                We take reasonable measures to protect your personal data. However, no method of transmission over the internet is completely secure.
-              </p>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                6. Third-Party Services
-              </h2>
-              <p className="mt-3">
-                We may use third-party services such as analytics tools or payment processors that collect, monitor, and analyze information.
-              </p>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                7. Your Rights
-              </h2>
-              <p className="mt-3">
-                You have the right to access, update, or delete your personal information. You may contact us for any privacy-related requests.
-              </p>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                8. Changes to This Policy
-              </h2>
-              <p className="mt-3">
-                We may update this Privacy Policy from time to time. Any changes will be posted on this page.
-              </p>
-            </section>
-
-            {/* Section */}
-            <section>
-              <h2 className="text-xl font-semibold text-[#0f172a]">
-                9. Contact Us
-              </h2>
-              <p className="mt-3">
-                If you have any questions about this Privacy Policy, please contact us through our website contact form.
-              </p>
-            </section>
-
+            {customHtml ? (
+              <div
+                className="prose prose-gray mt-10 max-w-none prose-p:text-gray-700 prose-headings:text-[#0f172a] prose-a:text-blue-600 prose-ul:list-disc prose-ol:list-decimal"
+                dangerouslySetInnerHTML={{ __html: customHtml }}
+              />
+            ) : (
+              <DefaultPrivacyPolicyContent />
+            )}
           </div>
-        </div>
-      </Container>
+        </Container>
       </main>
       <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>

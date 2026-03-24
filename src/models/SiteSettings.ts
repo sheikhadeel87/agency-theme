@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import type { NavChildItem, NavItem } from "@/lib/navigation";
 
 export interface ISiteSettings {
   siteName: string;
@@ -24,9 +25,33 @@ export interface ISiteSettings {
   blogSectionEnabled: boolean;
   contactSectionEnabled: boolean;
   featuresHighlightsSectionEnabled: boolean;
+  /** Primary navbar: labels, hrefs, order, optional dropdown children. */
+  navigation: NavItem[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+const navChildSchema = new mongoose.Schema<NavChildItem>(
+  {
+    label: { type: String, default: "" },
+    href: { type: String, default: "" },
+    isEnabled: { type: Boolean, default: true },
+    order: { type: Number, default: 1 },
+  },
+  { _id: false }
+);
+
+const navItemSchema = new mongoose.Schema<NavItem>(
+  {
+    label: { type: String, default: "" },
+    href: { type: String, default: "" },
+    isEnabled: { type: Boolean, default: true },
+    order: { type: Number, default: 1 },
+    appendDynamicPages: { type: Boolean, default: false },
+    children: { type: [navChildSchema], default: undefined },
+  },
+  { _id: false }
+);
 
 const socialLinksSchema = new mongoose.Schema(
   {
@@ -57,6 +82,7 @@ const siteSettingsSchema = new mongoose.Schema<ISiteSettings>(
     blogSectionEnabled: { type: Boolean, default: true },
     contactSectionEnabled: { type: Boolean, default: true },
     featuresHighlightsSectionEnabled: { type: Boolean, default: true },
+    navigation: { type: [navItemSchema], default: () => [] },
   },
   { timestamps: true }
 );

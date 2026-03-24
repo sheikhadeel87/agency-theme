@@ -3,6 +3,7 @@ import {
   getSiteSettings,
   type SiteSettingsData,
 } from "@/lib/admin-data";
+import { getDefaultNavigation } from "@/lib/navigation";
 
 const emptySiteSettings: SiteSettingsData = {
   _id: "",
@@ -23,6 +24,7 @@ const emptySiteSettings: SiteSettingsData = {
   blogSectionEnabled: true,
   contactSectionEnabled: true,
   featuresHighlightsSectionEnabled: true,
+  navigation: getDefaultNavigation(),
 };
 
 export async function loadPreviewShell() {

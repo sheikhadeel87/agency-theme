@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import type { SiteSettingsData } from "@/lib/admin-data";
 import { adminPreviewStorageKey } from "@/lib/admin-preview";
+import { HOMEPAGE_BLOG_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { PreviewChrome } from "@/components/preview/PreviewChrome";
 import { PreviewEmptyState } from "@/components/preview/PreviewEmptyState";
@@ -70,10 +71,10 @@ export function BlogPreviewClient({ siteSettings, dynamicPages }: Shell) {
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
-              href="/blog"
+              href={HOMEPAGE_BLOG_SECTION_HREF}
               className="mb-8 inline-block text-sm font-medium text-blue-600 hover:underline"
             >
-              ← Back to Blog
+              ← Back to blog section
             </Link>
 
             <div className="mx-auto w-full max-w-3xl">
@@ -88,7 +89,13 @@ export function BlogPreviewClient({ siteSettings, dynamicPages }: Shell) {
                 </h1>
                 <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
                   {post.author?.trim() && <span>By {post.author}</span>}
-                  <span>{new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+                  <span>
+                    {new Date().toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
                 </div>
               </header>
 

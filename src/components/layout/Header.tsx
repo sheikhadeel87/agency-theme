@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Zap } from "lucide-react";
+import { useState } from "react";
+import { Zap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
-import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
+import { SiteNavbar } from "@/components/layout/SiteNavbar";
+import type { SiteSettingsData } from "@/lib/admin-data";
 
 function brandText(siteSettings: SiteSettingsData | null | undefined): string {
   if (!siteSettings) return "Nexora";
@@ -14,76 +15,13 @@ function brandText(siteSettings: SiteSettingsData | null | undefined): string {
 
 export type HeaderProps = {
   siteSettings?: SiteSettingsData | null;
-  /** Dynamic pages from admin (shown in Pages dropdown) */
+  /** Passed through to `SiteNavbar` for `appendDynamicPages` dropdown items. */
   dynamicPages?: { title: string; slug: string }[];
-  /** When omitted, all section links are shown (e.g. previews). */
-  navVisibility?: NavSectionVisibility;
 };
 
-const ALL_VISIBLE: NavSectionVisibility = {
-  hero: true,
-  featuresHighlights: true,
-  whyChooseUs: true,
-  team: true,
-  services: true,
-  pricing: true,
-  portfolio: true,
-  testimonials: true,
-  blog: true,
-  contact: true,
-};
-
-type NavKey = keyof NavSectionVisibility;
-
-const mainNavItems: Array<{ href: string; label: string; vis?: NavKey }> = [
-  { href: "/", label: "Home" },
-  { href: "/#why-choose-us", label: "Features", vis: "whyChooseUs" },
-  { href: "/#pricing", label: "Pricing", vis: "pricing" },
-  { href: "/#portfolio", label: "Portfolio", vis: "portfolio" },
-  { href: "/#testimonials", label: "Testimonials", vis: "testimonials" },
-  { href: "/#support", label: "Support", vis: "featuresHighlights" },
-];
-
-const sectionDropdownItems: Array<{ href: string; label: string; vis: NavKey }> = [
-  { href: "/#team", label: "Team", vis: "team" },
-  { href: "/#services", label: "Services", vis: "services" },
-  { href: "/#blog", label: "Blog", vis: "blog" },
-  { href: "/#contact", label: "Contact", vis: "contact" },
-];
-
-function filterMainNav(v: NavSectionVisibility) {
-  return mainNavItems.filter(
-    (item) => item.vis === undefined || v[item.vis] === true
-  );
-}
-
-function filterSectionDropdown(v: NavSectionVisibility) {
-  return sectionDropdownItems.filter((item) => v[item.vis] === true);
-}
-
-export function Header({ siteSettings, dynamicPages = [], navVisibility }: HeaderProps) {
+export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const brand = brandText(siteSettings);
-  const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
-  const pagesRef = useRef<HTMLLIElement>(null);
-
-  const v = navVisibility ?? ALL_VISIBLE;
-  const navLinks = filterMainNav(v);
-  const sectionLinks = filterSectionDropdown(v);
-  const pagesMenuItemsCount = sectionLinks.length + dynamicPages.length;
-  const showPagesDropdown = pagesMenuItemsCount > 0;
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (pagesRef.current && !pagesRef.current.contains(event.target as Node)) {
-        setPagesDropdownOpen(false);
-      }
-    }
-    if (pagesDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [pagesDropdownOpen]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm">
@@ -100,83 +38,14 @@ export function Header({ siteSettings, dynamicPages = [], navVisibility }: Heade
           </Link>
 
           <div className="flex items-center gap-2">
-          <nav
-            className={`absolute left-0 right-0 top-full border-b border-gray-200/80 bg-white md:static md:border-0 md:bg-transparent ${
-              mobileMenuOpen ? "block" : "hidden md:block"
-            }`}
-            aria-label="Main navigation"
-          >
-            <ul className="flex flex-col gap-1 px-4 py-4 md:flex-row md:items-center md:gap-8 md:px-0 md:py-0">
-              {navLinks.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="block rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:px-0 md:py-0 md:hover:bg-transparent"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-              {showPagesDropdown && (
-              <li className="relative" ref={pagesRef}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-1 rounded-md px-3 py-2 text-left text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:w-auto md:px-0 md:py-0 md:hover:bg-transparent"
-                  onClick={() => setPagesDropdownOpen(!pagesDropdownOpen)}
-                  aria-expanded={pagesDropdownOpen}
-                  aria-haspopup="true"
-                  aria-label="Toggle Pages menu"
-                >
-                  Pages
-                  <ChevronDown
-                    className={`size-4 shrink-0 transition-transform md:ml-0.5 ${
-                      pagesDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {pagesDropdownOpen && (
-                  <ul
-                    className="absolute left-0 top-full z-50 mt-1 w-full min-w-[180px] rounded-lg border border-gray-200 bg-white py-2 shadow-lg md:w-auto"
-                    role="menu"
-                  >
-                    {sectionLinks.map(({ href, label }) => (
-                      <li key={href} role="none">
-                        <Link
-                          href={href}
-                          role="menuitem"
-                          className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                          onClick={() => {
-                            setPagesDropdownOpen(false);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          {label}
-                        </Link>
-                      </li>
-                    ))}
-                    {dynamicPages.length > 0 &&
-                      dynamicPages.map((p) => (
-                        <li key={p.slug} role="none">
-                          <Link
-                            href={`/${p.slug}`}
-                            role="menuitem"
-                            className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                            onClick={() => {
-                              setPagesDropdownOpen(false);
-                              setMobileMenuOpen(false);
-                            }}
-                          >
-                            {p.title || p.slug}
-                          </Link>
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </li>
-              )}
-            </ul>
-          </nav>
+            <SiteNavbar
+              dynamicPages={dynamicPages}
+              fallbackNavigation={siteSettings?.navigation}
+              onNavigate={() => setMobileMenuOpen(false)}
+              className={`absolute left-0 right-0 top-full border-b border-gray-200/80 bg-white md:static md:border-0 md:bg-transparent ${
+                mobileMenuOpen ? "block" : "hidden md:block"
+              }`}
+            />
 
             <button
               type="button"
