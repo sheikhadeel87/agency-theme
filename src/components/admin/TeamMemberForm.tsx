@@ -9,7 +9,8 @@ import { BlogEditor } from "@/components/admin/BlogEditor";
 import { saveTeamMember } from "@/lib/actions/team-actions";
 import type { TeamMember } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
-import { ImageUp, Send, X } from "lucide-react";
+import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
+import { Eye, ImageUp, Send, X } from "lucide-react";
 
 const defaultValues: Omit<TeamMember, "_id"> = {
   name: "",
@@ -31,6 +32,7 @@ export function TeamMemberForm({ initialData }: Props) {
   const [bio, setBio] = useState(initialData?.bio ?? defaultValues.bio);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   /** Latest TipTap HTML — avoids stale React state on submit. */
   const bioHtmlGetterRef = useRef<(() => string) | null>(null);
   /** Synced on every editor change (setState can lag behind on submit). */
@@ -79,8 +81,23 @@ export function TeamMemberForm({ initialData }: Props) {
     router.refresh();
   }
 
+  async function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    const file = fileInputRef.current?.files?.[0];
+    const imageUrl = await resolvePreviewImageUrl(file, imagePreview, data.imageUrl);
+    const bioHtml = bioHtmlGetterRef.current?.() ?? bioLatestRef.current ?? bio;
+    openAdminPreview("team-member", {
+      name: String(fd.get("name") ?? ""),
+      role: String(fd.get("role") ?? ""),
+      bio: bioHtml,
+      imageUrl,
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       {initialData?._id && (
         <input type="hidden" name="_id" value={initialData._id} readOnly />
       )}
@@ -267,7 +284,11 @@ export function TeamMemberForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={() => void handlePreview()}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
           Save member

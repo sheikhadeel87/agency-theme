@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
+import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveSiteSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
-import { ImageUp, X } from "lucide-react";
+import { Eye, ImageUp, X } from "lucide-react";
 
 const emptySocial = {
   facebook: "",
@@ -89,6 +90,7 @@ export function SiteSettingsForm({ initialData }: Props) {
   const [faviconPreview, setFaviconPreview] = useState<string | null>(initialData?.faviconUrl ?? null);
   const logoRef = useRef<HTMLInputElement>(null);
   const faviconRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? defaultValues;
 
@@ -123,8 +125,38 @@ export function SiteSettingsForm({ initialData }: Props) {
     router.refresh();
   }
 
+  async function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    const logoFile = logoRef.current?.files?.[0];
+    const faviconFile = faviconRef.current?.files?.[0];
+    const logoUrl = await resolvePreviewImageUrl(logoFile, logoPreview, data.logoUrl);
+    const faviconUrl = await resolvePreviewImageUrl(faviconFile, faviconPreview, data.faviconUrl);
+    openAdminPreview("site-settings", {
+      _id: initialData?._id ?? "",
+      siteName: String(fd.get("siteName") ?? ""),
+      logoText: String(fd.get("logoText") ?? ""),
+      logoUrl,
+      faviconUrl,
+      contactEmail: String(fd.get("contactEmail") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      address: String(fd.get("address") ?? ""),
+      mapEmbedUrl: String(fd.get("mapEmbedUrl") ?? ""),
+      footerText: String(fd.get("footerText") ?? ""),
+      privacyPolicyUrl: String(fd.get("privacyPolicyUrl") ?? ""),
+      termsUrl: String(fd.get("termsUrl") ?? ""),
+      socialLinks: {
+        facebook: String(fd.get("facebook") ?? ""),
+        twitter: String(fd.get("twitter") ?? ""),
+        linkedin: String(fd.get("linkedin") ?? ""),
+        instagram: String(fd.get("instagram") ?? ""),
+      },
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-foreground">Branding</h3>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -332,7 +364,11 @@ export function SiteSettingsForm({ initialData }: Props) {
           {error}
         </p>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" className="gap-2" onClick={() => void handlePreview()}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit">Save settings</Button>
         <Button
           type="button"

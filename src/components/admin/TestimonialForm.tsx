@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { saveTestimonial } from "@/lib/actions/testimonials-actions";
 import type { TestimonialItem } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
-import { ImageUp, Send, X } from "lucide-react";
+import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
+import {
+  countQuoteWords,
+  quoteExceedsWordLimit,
+  TESTIMONIAL_QUOTE_MAX_WORDS,
+} from "@/lib/testimonial-quote";
+import { Eye, ImageUp, Send, X } from "lucide-react";
 
 const defaultValues: Omit<TestimonialItem, "_id"> = {
   quote: "",
@@ -25,11 +31,12 @@ type Props = {
 
 export function TestimonialForm({ initialData }: Props) {
   const router = useRouter();
+  const data = initialData ?? defaultValues;
   const [error, setError] = useState<string | null>(null);
+  const [quoteWords, setQuoteWords] = useState(() => countQuoteWords(data.quote));
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const data = initialData ?? defaultValues;
+  const formRef = useRef<HTMLFormElement>(null);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -47,6 +54,11 @@ export function TestimonialForm({ initialData }: Props) {
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const quote = String(formData.get("quote") ?? "");
+    if (quoteExceedsWordLimit(quote)) {
+      setError(`Quote must be ${TESTIMONIAL_QUOTE_MAX_WORDS} words or fewer.`);
+      return;
+    }
     const result = await saveTestimonial(formData);
     if (result.error) {
       setError(result.error);
@@ -56,8 +68,31 @@ export function TestimonialForm({ initialData }: Props) {
     router.refresh();
   }
 
+  async function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+
+    const fd = new FormData(form);
+    const quote = String(fd.get("quote") ?? "");
+    if (quoteExceedsWordLimit(quote)) {
+      setError(`Quote must be ${TESTIMONIAL_QUOTE_MAX_WORDS} words or fewer to use preview.`);
+      return;
+    }
+
+    const file = fileInputRef.current?.files?.[0];
+    const imageUrl = await resolvePreviewImageUrl(file, imagePreview, data.imageUrl);
+
+    openAdminPreview("testimonial", {
+      quote,
+      authorName: String(fd.get("authorName") ?? ""),
+      designation: String(fd.get("designation") ?? ""),
+      brandName: String(fd.get("brandName") ?? ""),
+      imageUrl,
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       {initialData?._id && (
         <input type="hidden" name="_id" value={initialData._id} readOnly />
       )}
@@ -79,8 +114,16 @@ export function TestimonialForm({ initialData }: Props) {
                   placeholder="Client quote..."
                   defaultValue={data.quote}
                   rows={5}
-                  className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
+                  onInput={(e) => setQuoteWords(countQuoteWords(e.currentTarget.value))}
+                  aria-invalid={quoteWords > TESTIMONIAL_QUOTE_MAX_WORDS}
+                  className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50 aria-invalid:border-destructive/60"
                 />
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Max {TESTIMONIAL_QUOTE_MAX_WORDS} words ({quoteWords}/{TESTIMONIAL_QUOTE_MAX_WORDS}).
+                  {quoteWords > TESTIMONIAL_QUOTE_MAX_WORDS ? (
+                    <span className="font-medium text-destructive"> Shorten to save or preview.</span>
+                  ) : null}
+                </p>
               </div>
               <div>
                 <label htmlFor="authorName" className="mb-1.5 block text-sm font-medium text-foreground">
@@ -205,7 +248,11 @@ export function TestimonialForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={() => void handlePreview()}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
           Save testimonial

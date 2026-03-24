@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveHero } from "@/lib/actions/hero-actions";
 import type { HeroData } from "@/lib/admin-data";
+import { openAdminPreview } from "@/lib/admin-preview";
+import { Eye } from "lucide-react";
 
 const defaultValues: Omit<HeroData, "_id"> = {
   heading: "",
@@ -70,6 +72,7 @@ function Field({
 export function HeroForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? defaultValues;
 
@@ -87,8 +90,23 @@ export function HeroForm({ initialData }: Props) {
     router.refresh();
   }
 
+  function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    openAdminPreview("hero", {
+      _id: initialData?._id ?? "preview",
+      heading: String(fd.get("heading") ?? ""),
+      description: String(fd.get("description") ?? ""),
+      ctaText: String(fd.get("ctaText") ?? ""),
+      ctaLink: String(fd.get("ctaLink") ?? ""),
+      badgeText: String(fd.get("badgeText") ?? ""),
+      phoneText: String(fd.get("phoneText") ?? ""),
+    } satisfies HeroData);
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label="Heading"
@@ -140,7 +158,11 @@ export function HeroForm({ initialData }: Props) {
           {error}
         </p>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" className="gap-2" onClick={handlePreview}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit">Save hero</Button>
         <Button
           type="button"

@@ -5,6 +5,7 @@ import { dbConnect } from "@/lib/db";
 import { TestimonialsSettings } from "@/models/TestimonialsSettings";
 import { Testimonial } from "@/models/Testimonial";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
+import { quoteExceedsWordLimit, TESTIMONIAL_QUOTE_MAX_WORDS } from "@/lib/testimonial-quote";
 
 export type SaveTestimonialsSettingsState = { success?: boolean; error?: string };
 export type SaveTestimonialState = { success?: boolean; error?: string };
@@ -72,8 +73,14 @@ export async function saveTestimonial(formData: FormData): Promise<SaveTestimoni
       }
     }
     const order = parseInt(formData.get("order")?.toString() ?? "0", 10) || 0;
+    const quote = str(formData, "quote");
+    if (quoteExceedsWordLimit(quote)) {
+      return {
+        error: `Quote must be ${TESTIMONIAL_QUOTE_MAX_WORDS} words or fewer.`,
+      };
+    }
     const payload = {
-      quote: str(formData, "quote"),
+      quote,
       authorName: str(formData, "authorName"),
       designation: str(formData, "designation"),
       brandName: str(formData, "brandName"),

@@ -2,6 +2,7 @@
 export function shouldUseUnoptimizedImage(src: string): boolean {
   if (!src) return false;
   if (src.startsWith("blob:")) return true;
+  if (src.startsWith("data:")) return true;
   if (src.startsWith("/uploads/")) return true;
   return false;
 }

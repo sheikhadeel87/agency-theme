@@ -8,6 +8,7 @@ import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { PricingSectionForm } from "@/components/admin/PricingSectionForm";
 import { DeletePricingPlanButton } from "@/components/admin/DeletePricingPlanButton";
 import { getPricingSettings, getPricingPlans } from "@/lib/admin-data";
+import { formatPlanPriceForDisplay } from "@/lib/pricing-display";
 
 export const dynamic = "force-dynamic";
 
@@ -76,9 +77,12 @@ export default async function PricingAdminPage() {
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    ${plan.priceMonthly} / {plan.periodLabel}
+                    ${formatPlanPriceForDisplay(plan.priceMonthly)} / {plan.periodLabel}
                     {plan.priceAnnual > 0 && (
-                      <span className="ml-1"> · ${plan.priceAnnual}/yr</span>
+                      <span className="ml-1">
+                        {" "}
+                        · ${formatPlanPriceForDisplay(plan.priceAnnual)}/yr
+                      </span>
                     )}
                   </p>
                 </div>

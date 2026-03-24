@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agency Theme
 
-## Getting Started
+A **Next.js** marketing site with a built-in **admin area** for content: services, portfolio, blog, team, pages, pricing, testimonials, and site settings. Data is stored in **MongoDB** via Mongoose.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router) · React · TypeScript · Tailwind CSS  
+- MongoDB / Mongoose · TipTap (rich text) · Cloudinary or local uploads · Nodemailer (contact form)
+
+## Prerequisites
+
+- Node.js 20+ recommended  
+- Running MongoDB instance (local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
+
+## Setup
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Edit **`.env.local`** — at minimum set **`MONGODB_URI`**. See `.env.example` for optional **Cloudinary**, **SMTP** (contact form), and **admin** overrides.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Admin
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- URL: **`/admin`** (protected; unauthenticated users are sent to **`/admin/login`**).  
+- Default credentials (override with `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `.env.local`):  
+  **username:** `adeel` · **password:** `adeel123`  
+- For production, set a strong **`ADMIN_SESSION_SECRET`** (see `.env.example`).
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command        | Description              |
+| -------------- | ------------------------ |
+| `npm run dev`  | Development server       |
+| `npm run build`| Production build         |
+| `npm run start`| Run production server    |
+| `npm run lint` | ESLint                   |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project layout (high level)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/` — routes (public site, blog, admin under `(admin)/admin`)  
+- `src/components/` — UI and admin forms  
+- `src/models/` — Mongoose schemas  
+- `src/lib/` — DB connection, server actions, utilities  
+- `src/middleware.ts` — admin route protection  

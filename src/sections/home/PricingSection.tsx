@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import type { PricingSettingsData, PricingPlanItem } from "@/lib/admin-data";
+import { formatPlanPriceForDisplay, sanitizePlanPrice } from "@/lib/pricing-display";
 
 export type PricingSectionProps = {
   settings: PricingSettingsData;
@@ -110,7 +111,9 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
 
         <ul className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 sm:mt-16 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {displayPlans.map((plan, index) => {
-            const price = billingAnnual ? plan.priceAnnual : plan.priceMonthly;
+            const price = sanitizePlanPrice(
+              billingAnnual ? plan.priceAnnual : plan.priceMonthly
+            );
             const periodLabel = billingAnnual ? "per year" : (plan.periodLabel || "per month");
             const ctaClass = `mt-6 w-full rounded-full py-3.5 text-center text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] sm:mt-8 ${
               plan.featured
@@ -136,7 +139,7 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
                 </h3>
                 <p className="mt-4 flex items-baseline gap-1">
                   <span className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl">
-                    ${price}
+                    ${formatPlanPriceForDisplay(price)}
                   </span>
                   <span className="text-sm text-gray-500">/{periodLabel}</span>
                 </p>

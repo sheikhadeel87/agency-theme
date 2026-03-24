@@ -12,6 +12,7 @@ const RESERVED_SLUGS = new Set([
   "blog",
   "portfolio",
   "pricing",
+  "preview",
   "privacy-policy",
   "terms-conditions",
   "api",

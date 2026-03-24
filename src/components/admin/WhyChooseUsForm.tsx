@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
+import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import { saveWhyChooseUsSettings } from "@/lib/actions/why-choose-us-actions";
 import type { WhyChooseUsSettingsData } from "@/lib/admin-data";
-import { ImageUp, Search, Send, X } from "lucide-react";
+import { Eye, ImageUp, Search, Send, X } from "lucide-react";
 
 type Props = {
   initialData: WhyChooseUsSettingsData;
@@ -116,6 +117,7 @@ export function WhyChooseUsForm({ initialData }: Props) {
   const ref1 = useRef<HTMLInputElement>(null);
   const ref2 = useRef<HTMLInputElement>(null);
   const ref3 = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleFile = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -155,8 +157,36 @@ export function WhyChooseUsForm({ initialData }: Props) {
     router.refresh();
   }
 
+  async function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    const f1 = cleared1 ? undefined : ref1.current?.files?.[0];
+    const f2 = cleared2 ? undefined : ref2.current?.files?.[0];
+    const f3 = cleared3 ? undefined : ref3.current?.files?.[0];
+    const image1Url = cleared1 ? "" : await resolvePreviewImageUrl(f1, preview1, initialData.image1Url);
+    const image2Url = cleared2 ? "" : await resolvePreviewImageUrl(f2, preview2, initialData.image2Url);
+    const image3Url = cleared3 ? "" : await resolvePreviewImageUrl(f3, preview3, initialData.image3Url);
+    openAdminPreview("why-choose-us", {
+      sectionSubtitle: String(fd.get("sectionSubtitle") ?? ""),
+      sectionTitle: String(fd.get("sectionTitle") ?? ""),
+      sectionDescription,
+      ctaText: String(fd.get("ctaText") ?? ""),
+      ctaLink: String(fd.get("ctaLink") ?? ""),
+      image1Url,
+      image2Url,
+      image3Url,
+      image1Alt: String(fd.get("image1Alt") ?? ""),
+      image2Alt: String(fd.get("image2Alt") ?? ""),
+      image3Alt: String(fd.get("image3Alt") ?? ""),
+      metaTitle: String(fd.get("metaTitle") ?? ""),
+      metaDescription: String(fd.get("metaDescription") ?? ""),
+      metaKeywords: String(fd.get("metaKeywords") ?? ""),
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* Main content */}
         <div className="space-y-6">
@@ -357,7 +387,11 @@ export function WhyChooseUsForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={() => void handlePreview()}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" disabled={saving} className="gap-2">
           <Send className="size-4" />
           {saving ? "Saving…" : "Save section & SEO"}

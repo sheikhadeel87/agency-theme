@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveContactSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
-import { MapPin } from "lucide-react";
+import { openAdminPreview } from "@/lib/admin-preview";
+import { Eye, MapPin } from "lucide-react";
 
 type Props = {
   initialData?: SiteSettingsData | null;
@@ -15,6 +16,7 @@ type Props = {
 export function ContactForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? {
     _id: "",
@@ -45,8 +47,20 @@ export function ContactForm({ initialData }: Props) {
     router.refresh();
   }
 
+  function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    openAdminPreview("contact", {
+      contactEmail: String(fd.get("contactEmail") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      address: String(fd.get("address") ?? ""),
+      mapEmbedUrl: String(fd.get("mapEmbedUrl") ?? ""),
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       <section className="space-y-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <MapPin className="size-4" />
@@ -134,7 +148,11 @@ export function ContactForm({ initialData }: Props) {
           {error}
         </p>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" className="gap-2" onClick={handlePreview}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit">Save contact & map</Button>
         <Button
           type="button"

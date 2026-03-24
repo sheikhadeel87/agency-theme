@@ -1,18 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { savePricingPlan } from "@/lib/actions/pricing-actions";
 import type { PricingPlanItem } from "@/lib/admin-data";
-import { ArrowLeft, Send, Star } from "lucide-react";
+import { isFormCheckboxChecked, openAdminPreview } from "@/lib/admin-preview";
+import { ArrowLeft, Eye, Send, Star } from "lucide-react";
 
 type Props = {
   initialData?: PricingPlanItem | null;
 };
+
+function blockNonNumericNumberKeys(e: KeyboardEvent<HTMLInputElement>) {
+  if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+}
 
 const defaultPlan: Omit<PricingPlanItem, "_id"> = {
   name: "",
@@ -32,6 +37,7 @@ const defaultPlan: Omit<PricingPlanItem, "_id"> = {
 export function PricingPlanForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const data = initialData ?? { ...defaultPlan, _id: "" };
   const featuresText = (data.features && data.features.length > 0)
     ? data.features.join("\n")
@@ -51,8 +57,37 @@ export function PricingPlanForm({ initialData }: Props) {
     router.refresh();
   }
 
+  function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    const featuresRaw = String(fd.get("features") ?? "");
+    const features = featuresRaw
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const pm = parseFloat(String(fd.get("priceMonthly") ?? ""));
+    const pa = parseFloat(String(fd.get("priceAnnual") ?? ""));
+    const plan: PricingPlanItem = {
+      _id: "preview",
+      name: String(fd.get("name") ?? ""),
+      priceMonthly: Number.isFinite(pm) ? pm : 0,
+      priceAnnual: Number.isFinite(pa) ? pa : 0,
+      periodLabel: String(fd.get("periodLabel") ?? "per month"),
+      subtext: String(fd.get("subtext") ?? ""),
+      ctaText: String(fd.get("ctaText") ?? ""),
+      ctaLink: String(fd.get("ctaLink") ?? ""),
+      features,
+      footnote: String(fd.get("footnote") ?? ""),
+      featured: isFormCheckboxChecked(form, "featured"),
+      featuredOnHomepage: isFormCheckboxChecked(form, "featuredOnHomepage"),
+      order: parseInt(String(fd.get("order") ?? "0"), 10) || 0,
+    };
+    openAdminPreview("pricing-plan", { plan, settings: {} });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       {data._id && <input type="hidden" name="_id" value={data._id} readOnly />}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -84,10 +119,12 @@ export function PricingPlanForm({ initialData }: Props) {
                     name="priceMonthly"
                     type="number"
                     min={0}
-                    step={1}
+                    max={1_000_000}
+                    step="0.01"
                     placeholder="29"
                     defaultValue={data.priceMonthly || undefined}
                     className="h-10"
+                    onKeyDown={blockNonNumericNumberKeys}
                   />
                 </div>
                 <div>
@@ -99,10 +136,12 @@ export function PricingPlanForm({ initialData }: Props) {
                     name="priceAnnual"
                     type="number"
                     min={0}
-                    step={1}
+                    max={1_000_000}
+                    step="0.01"
                     placeholder="290"
                     defaultValue={data.priceAnnual || undefined}
                     className="h-10"
+                    onKeyDown={blockNonNumericNumberKeys}
                   />
                 </div>
               </div>
@@ -223,8 +262,11 @@ export function PricingPlanForm({ initialData }: Props) {
                   name="order"
                   type="number"
                   min={0}
+                  step={1}
+                  placeholder="0"
                   defaultValue={data.order}
                   className="h-9 text-sm"
+                  onKeyDown={blockNonNumericNumberKeys}
                 />
               </div>
             </div>
@@ -238,7 +280,11 @@ export function PricingPlanForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={handlePreview}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
           Save plan

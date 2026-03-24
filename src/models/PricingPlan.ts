@@ -20,8 +20,8 @@ export interface IPricingPlan {
 const schema = new mongoose.Schema<IPricingPlan>(
   {
     name: { type: String, default: "" },
-    priceMonthly: { type: Number, default: 0 },
-    priceAnnual: { type: Number, default: 0 },
+    priceMonthly: { type: Number, default: 0, min: 0, max: 1_000_000 },
+    priceAnnual: { type: Number, default: 0, min: 0, max: 1_000_000 },
     periodLabel: { type: String, default: "per month" },
     subtext: { type: String, default: "No credit card required" },
     ctaText: { type: String, default: "Try for free" },
@@ -30,7 +30,7 @@ const schema = new mongoose.Schema<IPricingPlan>(
     footnote: { type: String, default: "7-day free trial" },
     featured: { type: Boolean, default: false },
     featuredOnHomepage: { type: Boolean, default: false },
-    order: { type: Number, default: 0 },
+    order: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );

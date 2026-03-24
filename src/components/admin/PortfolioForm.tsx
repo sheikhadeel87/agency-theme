@@ -9,7 +9,8 @@ import { savePortfolio } from "@/lib/actions/portfolio-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
 import type { PortfolioProject } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
-import { ImageUp, Search, Send, X } from "lucide-react";
+import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
+import { Eye, ImageUp, Search, Send, X } from "lucide-react";
 
 const defaultValues: Omit<PortfolioProject, "_id"> = {
   title: "",
@@ -41,6 +42,7 @@ export function PortfolioForm({ initialData }: Props) {
   );
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? defaultValues;
   const categoriesStr = Array.isArray(data.categories) ? data.categories.join(", ") : "";
@@ -76,8 +78,42 @@ export function PortfolioForm({ initialData }: Props) {
     router.refresh();
   }
 
+  function splitComma(s: string) {
+    return s
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+  }
+
+  function splitLines(s: string) {
+    return s
+      .split(/\r?\n/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+  }
+
+  async function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    const file = fileInputRef.current?.files?.[0];
+    const imageUrl = await resolvePreviewImageUrl(file, imagePreview, data.imageUrl);
+    const galleryRaw = String(fd.get("galleryImages") ?? "");
+    openAdminPreview("portfolio", {
+      title: String(fd.get("title") ?? ""),
+      shortDescription: String(fd.get("shortDescription") ?? ""),
+      fullDescription,
+      client: String(fd.get("client") ?? ""),
+      categories: splitComma(String(fd.get("categories") ?? "")),
+      technologyStack: splitComma(String(fd.get("technologyStack") ?? "")),
+      imageUrl,
+      galleryImages: splitLines(galleryRaw),
+      projectUrl: String(fd.get("projectUrl") ?? ""),
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       {initialData?._id && (
         <input type="hidden" name="_id" value={initialData._id} readOnly />
       )}
@@ -380,7 +416,11 @@ export function PortfolioForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={() => void handlePreview()}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" className="gap-2">
           <Send className="size-4" />
           Save project

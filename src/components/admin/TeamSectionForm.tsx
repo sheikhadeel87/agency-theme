@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveTeamSettings } from "@/lib/actions/team-actions";
 import type { TeamSettingsData } from "@/lib/admin-data";
-import { Search, Send } from "lucide-react";
+import { openAdminPreview } from "@/lib/admin-preview";
+import { Eye, Search, Send } from "lucide-react";
 
 type Props = {
   initialData: TeamSettingsData;
@@ -16,6 +17,7 @@ export function TeamSectionForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,8 +34,21 @@ export function TeamSectionForm({ initialData }: Props) {
     router.refresh();
   }
 
+  function handlePreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const fd = new FormData(form);
+    openAdminPreview("team-section", {
+      sectionTitle: String(fd.get("sectionTitle") ?? ""),
+      sectionDescription: String(fd.get("sectionDescription") ?? ""),
+      metaTitle: String(fd.get("metaTitle") ?? ""),
+      metaDescription: String(fd.get("metaDescription") ?? ""),
+      metaKeywords: String(fd.get("metaKeywords") ?? ""),
+    });
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* Main content */}
         <div className="space-y-6">
@@ -144,7 +159,11 @@ export function TeamSectionForm({ initialData }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Button type="button" variant="outline" className="gap-2" onClick={handlePreview}>
+          <Eye className="size-4" />
+          Preview
+        </Button>
         <Button type="submit" disabled={saving} className="gap-2">
           <Send className="size-4" />
           {saving ? "Saving…" : "Save section & SEO"}

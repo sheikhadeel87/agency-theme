@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { PricingSettings } from "@/models/PricingSettings";
 import { PricingPlan } from "@/models/PricingPlan";
+import { PRICING_MAX_AMOUNT } from "@/lib/pricing-display";
 
 export type SavePricingSettingsState = { success?: boolean; error?: string };
 export type SavePricingPlanState = { success?: boolean; error?: string };
@@ -14,10 +15,19 @@ function str(formData: FormData, key: string): string {
 }
 
 function num(formData: FormData, key: string): number {
-  const v = formData.get(key)?.toString()?.trim();
-  if (v === "" || v == null) return 0;
+  const v = formData.get(key)?.toString()?.trim().replace(/,/g, "") ?? "";
+  if (v === "" || /e/i.test(v)) return 0;
   const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+  if (!Number.isFinite(n) || n < 0 || n > PRICING_MAX_AMOUNT) return 0;
+  return Math.round(n * 100) / 100;
+}
+
+function intField(formData: FormData, key: string): number {
+  const v = formData.get(key)?.toString()?.trim() ?? "";
+  if (v === "" || /e/i.test(v)) return 0;
+  const n = parseInt(v, 10);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(n, 999_999);
 }
 
 function bool(formData: FormData, key: string): boolean {
@@ -84,7 +94,7 @@ export async function savePricingPlan(formData: FormData): Promise<SavePricingPl
       footnote: str(formData, "footnote") || "7-day free trial",
       featured: bool(formData, "featured"),
       featuredOnHomepage: bool(formData, "featuredOnHomepage"),
-      order: num(formData, "order"),
+      order: intField(formData, "order"),
     };
 
     if (id && isValidObjectId(id)) {
