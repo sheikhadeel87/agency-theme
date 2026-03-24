@@ -11,7 +11,6 @@ import {
   DollarSign,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
 import { getDashboardModules } from "@/lib/admin-data";
 
@@ -51,12 +50,6 @@ export default async function AdminDashboardPage() {
           />
         ))}
       </div>
-      <Card className="p-6">
-        <p className="text-sm text-muted-foreground">
-          Forms and data will be added in the next phase. This is the admin
-          shell only.
-        </p>
-      </Card>
     </div>
   );
 }

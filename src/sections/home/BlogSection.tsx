@@ -3,6 +3,7 @@ import Link from "next/link";
 import { User, Calendar, Sparkles } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { BlogPost } from "@/lib/admin-data";
+import { HOMEPAGE_BLOG_SECTION_ID } from "@/lib/homepage-section-anchors";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const BLOG_FALLBACK_IMAGE = "/images/blog-1.png";
@@ -29,11 +30,10 @@ export function BlogSection({ posts }: BlogSectionProps) {
 
   return (
     <section
-      id="blog"
+      id={HOMEPAGE_BLOG_SECTION_ID}
       className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
       aria-labelledby="blog-heading"
     >
-      {/* Soft color wash — barely there, breaks the flat gray */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.45]"
         aria-hidden

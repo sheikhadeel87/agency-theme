@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveContactSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
+import { getDefaultNavigation } from "@/lib/navigation";
 import { openAdminPreview } from "@/lib/admin-preview";
 import { Eye, MapPin } from "lucide-react";
 
@@ -37,6 +38,7 @@ export function ContactForm({ initialData }: Props) {
     blogSectionEnabled: true,
     contactSectionEnabled: true,
     featuresHighlightsSectionEnabled: true,
+    navigation: getDefaultNavigation(),
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

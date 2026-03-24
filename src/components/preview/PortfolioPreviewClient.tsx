@@ -83,10 +83,10 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
-              href="/#portfolio"
+              href="/portfolio"
               className="mb-8 inline-block text-sm font-medium text-blue-600 hover:underline"
             >
-              ← Back to Portfolio
+              ← Back to portfolio
             </Link>
 
             <div className="mx-auto w-full max-w-3xl">

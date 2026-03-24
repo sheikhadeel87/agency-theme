@@ -23,6 +23,8 @@ const titleByPath: Record<string, string> = {
   "/admin/blog/edit": "Edit Post",
   "/admin/pages": "Pages",
   "/admin/legal": "Legal",
+  "/admin/legal/privacy-policy": "Edit Privacy Policy",
+  "/admin/legal/terms-conditions": "Edit Terms & Conditions",
 };
 
 function getTitle(pathname: string): string {

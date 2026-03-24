@@ -12,6 +12,7 @@ import {
   getNavSectionVisibility,
   isBlogSectionEnabled,
 } from "@/lib/admin-data";
+import { HOMEPAGE_BLOG_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const BLOG_FALLBACK_IMAGE = "/images/blog-1.png";
@@ -30,7 +31,9 @@ export async function generateMetadata({
   return {
     title: post.metaTitle || post.title || "Blog",
     description: post.metaDescription || post.description || undefined,
-    keywords: post.metaKeywords ? post.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean) : undefined,
+    keywords: post.metaKeywords
+      ? post.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
+      : undefined,
     openGraph: post.ogImage ? { images: [post.ogImage] } : undefined,
   };
 }
@@ -69,18 +72,20 @@ export default async function BlogPostPage({
 
   return (
     <>
-      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
+      <Header
+        siteSettings={siteSettings}
+        dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+      />
       <main className="min-h-screen bg-white">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
-              href="/blog"
+              href={HOMEPAGE_BLOG_SECTION_HREF}
               className="mb-8 inline-block text-sm font-medium text-blue-600 hover:underline"
             >
-              ← Back to Blog
+              ← Back to blog section
             </Link>
 
-            {/* Match reading column: hero + title aren’t full-bleed edge-to-edge */}
             <div className="mx-auto w-full max-w-3xl">
               <header className="mb-6">
                 {post.is_featured && (

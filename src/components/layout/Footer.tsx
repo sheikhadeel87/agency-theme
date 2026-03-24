@@ -21,14 +21,14 @@ const ALL_VISIBLE: NavSectionVisibility = {
 const quickLinksBase: Array<{ label: string; href: string; badge?: string; vis?: NavKey }> = [
   { label: "Home", href: "/" },
   { label: "Features", href: "/#why-choose-us", vis: "whyChooseUs" },
-  { label: "Portfolio", href: "/#portfolio", vis: "portfolio" },
+  { label: "Portfolio", href: "/portfolio", vis: "portfolio" },
   { label: "Pricing", href: "/#pricing", vis: "pricing" },
 ];
 
 const servicesItems: Array<{ label: string; href: string; vis: NavKey }> = [
   { label: "Web Development", href: "/#support", vis: "featuresHighlights" },
   { label: "Graphics Design", href: "/#services", vis: "services" },
-  { label: "Our Blog", href: "/#blog", vis: "blog" },
+  { label: "Our Blog", href: "/blog", vis: "blog" },
   { label: "Ui/Ux Design", href: "/#services", vis: "services" },
 ];
 

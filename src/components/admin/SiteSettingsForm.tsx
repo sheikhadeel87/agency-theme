@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveSiteSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
+import { getDefaultNavigation } from "@/lib/navigation";
 import { Eye, ImageUp, X } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 
@@ -36,6 +37,7 @@ const defaultValues: Omit<SiteSettingsData, "_id"> = {
   blogSectionEnabled: true,
   contactSectionEnabled: true,
   featuresHighlightsSectionEnabled: true,
+  navigation: getDefaultNavigation(),
 };
 
 type Props = {
@@ -190,6 +192,7 @@ export function SiteSettingsForm({ initialData }: Props) {
       blogSectionEnabled: homepageSections.blogSectionEnabled,
       contactSectionEnabled: homepageSections.contactSectionEnabled,
       featuresHighlightsSectionEnabled: homepageSections.featuresHighlightsSectionEnabled,
+      navigation: data.navigation?.length ? data.navigation : getDefaultNavigation(),
     });
   }
 
