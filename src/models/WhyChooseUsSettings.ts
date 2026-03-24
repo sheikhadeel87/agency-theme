@@ -15,6 +15,7 @@ export interface IWhyChooseUsSettings {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  isEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const schema = new mongoose.Schema<IWhyChooseUsSettings>(
     metaTitle: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
     metaKeywords: { type: String, default: "" },
+    isEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

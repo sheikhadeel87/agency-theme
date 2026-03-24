@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getPageBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import {
+  getPageBySlug,
+  getSiteSettings,
+  getPublishedPages,
+  getNavSectionVisibility,
+} from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +31,7 @@ export async function generateMetadata({
   const { slug } = await params;
   if (RESERVED_SLUGS.has(slug)) return {};
   const page = await getPageBySlug(slug);
-  if (!page) return {};
+  if (!page) return { title: "Not found" };
   return {
     title: page.metaTitle || page.title || "Page",
     description: page.metaDescription || undefined,
@@ -44,17 +49,22 @@ export default async function DynamicPageRoute({
   const { slug } = await params;
   if (RESERVED_SLUGS.has(slug)) notFound();
 
-  const [page, siteSettings, dynamicPages] = await Promise.all([
+  const [page, siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getPageBySlug(slug),
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
 
   if (!page) notFound();
 
   return (
     <>
-      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
+      <Header
+        siteSettings={siteSettings}
+        dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
+      />
       <main className="min-h-screen bg-white py-16 sm:py-20 lg:py-24">
         <Container>
           <article className="mx-auto max-w-3xl">
@@ -72,7 +82,7 @@ export default async function DynamicPageRoute({
           </article>
         </Container>
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

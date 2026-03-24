@@ -10,6 +10,7 @@ import { BlogEditor } from "@/components/admin/BlogEditor";
 import { saveWhyChooseUsSettings } from "@/lib/actions/why-choose-us-actions";
 import type { WhyChooseUsSettingsData } from "@/lib/admin-data";
 import { Eye, ImageUp, Search, Send, X } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 type Props = {
   initialData: WhyChooseUsSettingsData;
@@ -114,6 +115,7 @@ export function WhyChooseUsForm({ initialData }: Props) {
   const [sectionDescription, setSectionDescription] = useState(
     initialData.sectionDescription ?? ""
   );
+  const [sectionEnabled, setSectionEnabled] = useState(initialData.isEnabled !== false);
   const ref1 = useRef<HTMLInputElement>(null);
   const ref2 = useRef<HTMLInputElement>(null);
   const ref3 = useRef<HTMLInputElement>(null);
@@ -148,6 +150,8 @@ export function WhyChooseUsForm({ initialData }: Props) {
     const form = e.currentTarget;
     const formData = new FormData(form);
     formData.set("sectionDescription", sectionDescription);
+    // Explicit values so Server Actions always persist false (empty hidden inputs are unreliable).
+    formData.set("isEnabled", sectionEnabled ? "on" : "false");
     const result = await saveWhyChooseUsSettings(formData);
     setSaving(false);
     if (result.error) {
@@ -182,6 +186,7 @@ export function WhyChooseUsForm({ initialData }: Props) {
       metaTitle: String(fd.get("metaTitle") ?? ""),
       metaDescription: String(fd.get("metaDescription") ?? ""),
       metaKeywords: String(fd.get("metaKeywords") ?? ""),
+      isEnabled: sectionEnabled,
     });
   }
 
@@ -322,6 +327,16 @@ export function WhyChooseUsForm({ initialData }: Props) {
 
         {/* Sidebar - SEO */}
         <div className="space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Live site
+            </h3>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/30">
+              <p className="min-w-0 text-sm font-medium text-foreground">Show this section on the live homepage</p>
+              <input type="hidden" name="isEnabled" value={sectionEnabled ? "on" : ""} />
+              <Toggle enabled={sectionEnabled} onChange={setSectionEnabled} className="shrink-0 sm:ml-auto" />
+            </div>
+          </div>
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <Search className="size-4" />

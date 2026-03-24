@@ -14,6 +14,10 @@ function str(formData: FormData, key: string): string {
   return formData.get(key)?.toString()?.trim() ?? "";
 }
 
+function bool(formData: FormData, key: string): boolean {
+  return formData.get(key)?.toString() === "true" || formData.get(key)?.toString() === "on";
+}
+
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB for logo/favicon
 
 export async function saveSiteSettings(
@@ -76,6 +80,11 @@ export async function saveSiteSettings(
         linkedin: str(formData, "linkedin"),
         instagram: str(formData, "instagram"),
       },
+      servicesSectionEnabled: bool(formData, "servicesSectionEnabled"),
+      portfolioSectionEnabled: bool(formData, "portfolioSectionEnabled"),
+      blogSectionEnabled: bool(formData, "blogSectionEnabled"),
+      contactSectionEnabled: bool(formData, "contactSectionEnabled"),
+      featuresHighlightsSectionEnabled: bool(formData, "featuresHighlightsSectionEnabled"),
     };
 
     await SiteSettings.findOneAndUpdate(
@@ -87,6 +96,8 @@ export async function saveSiteSettings(
     try {
       revalidatePath("/");
       revalidatePath("/admin/site-settings");
+      revalidatePath("/blog");
+      revalidatePath("/pricing");
     } catch (e) {
       console.warn("revalidatePath after saveSiteSettings:", e);
     }
@@ -135,6 +146,49 @@ export async function saveContactSettings(
     console.error("saveContactSettings error:", e);
     return {
       error: e instanceof Error ? e.message : "Failed to save contact settings.",
+    };
+  }
+}
+
+export type HomepageSectionModule = "services" | "portfolio" | "blog";
+
+const SECTION_LIVE_FLAG = {
+  services: "servicesSectionEnabled",
+  portfolio: "portfolioSectionEnabled",
+  blog: "blogSectionEnabled",
+} as const satisfies Record<HomepageSectionModule, string>;
+
+/** Toggle homepage + nav visibility for services, portfolio, or blog (same fields as Site Settings). */
+export async function setHomepageSectionLiveEnabled(
+  module: HomepageSectionModule,
+  enabled: boolean
+): Promise<SaveSiteSettingsState> {
+  try {
+    await dbConnect();
+    const field = SECTION_LIVE_FLAG[module];
+    await SiteSettings.findOneAndUpdate(
+      {},
+      { $set: { [field]: enabled } },
+      { upsert: true, new: true }
+    );
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/site-settings");
+      if (module === "services") revalidatePath("/admin/services");
+      if (module === "portfolio") revalidatePath("/admin/portfolio");
+      if (module === "blog") {
+        revalidatePath("/admin/blog");
+        revalidatePath("/blog");
+      }
+    } catch (e) {
+      console.warn("revalidatePath after setHomepageSectionLiveEnabled:", e);
+    }
+    return { success: true };
+  } catch (e) {
+    console.error("setHomepageSectionLiveEnabled error:", e);
+    return {
+      error: e instanceof Error ? e.message : "Failed to update section visibility.",
     };
   }
 }

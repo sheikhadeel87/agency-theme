@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { WhyChooseUsSettings } from "@/models/WhyChooseUsSettings";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
@@ -8,6 +9,10 @@ export type SaveWhyChooseUsState = { success?: boolean; error?: string };
 
 function str(formData: FormData, key: string): string {
   return formData.get(key)?.toString()?.trim() ?? "";
+}
+
+function bool(formData: FormData, key: string): boolean {
+  return formData.get(key)?.toString() === "true" || formData.get(key)?.toString() === "on";
 }
 
 export async function saveWhyChooseUsSettings(
@@ -79,9 +84,16 @@ export async function saveWhyChooseUsSettings(
       metaTitle: str(formData, "metaTitle") || sectionTitle,
       metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
       metaKeywords: str(formData, "metaKeywords"),
+      isEnabled: bool(formData, "isEnabled"),
     };
 
     await WhyChooseUsSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin/homepage");
+    } catch (e) {
+      console.warn("revalidatePath after saveWhyChooseUsSettings:", e);
+    }
     return { success: true };
   } catch (e) {
     console.error("saveWhyChooseUsSettings error:", e);

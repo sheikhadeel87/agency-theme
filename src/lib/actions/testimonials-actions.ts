@@ -15,6 +15,10 @@ function str(formData: FormData, key: string): string {
   return formData.get(key)?.toString()?.trim() ?? "";
 }
 
+function bool(formData: FormData, key: string): boolean {
+  return formData.get(key)?.toString() === "true" || formData.get(key)?.toString() === "on";
+}
+
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
 
 /** Save testimonials section settings + SEO (single doc, upsert) */
@@ -30,6 +34,7 @@ export async function saveTestimonialsSettings(
       metaTitle: str(formData, "metaTitle") || sectionTitle,
       metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
       metaKeywords: str(formData, "metaKeywords"),
+      isEnabled: bool(formData, "isEnabled"),
     };
     await TestimonialsSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
     try {

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { saveSiteSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
 import { Eye, ImageUp, X } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 const emptySocial = {
   facebook: "",
@@ -30,6 +31,11 @@ const defaultValues: Omit<SiteSettingsData, "_id"> = {
   privacyPolicyUrl: "",
   termsUrl: "",
   socialLinks: emptySocial,
+  servicesSectionEnabled: true,
+  portfolioSectionEnabled: true,
+  blogSectionEnabled: true,
+  contactSectionEnabled: true,
+  featuresHighlightsSectionEnabled: true,
 };
 
 type Props = {
@@ -83,6 +89,14 @@ function Field({
   );
 }
 
+type HomepageSectionFlags = {
+  featuresHighlightsSectionEnabled: boolean;
+  servicesSectionEnabled: boolean;
+  portfolioSectionEnabled: boolean;
+  blogSectionEnabled: boolean;
+  contactSectionEnabled: boolean;
+};
+
 export function SiteSettingsForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +107,17 @@ export function SiteSettingsForm({ initialData }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
 
   const data = initialData ?? defaultValues;
+  const [homepageSections, setHomepageSections] = useState<HomepageSectionFlags>(() => ({
+    featuresHighlightsSectionEnabled: data.featuresHighlightsSectionEnabled !== false,
+    servicesSectionEnabled: data.servicesSectionEnabled !== false,
+    portfolioSectionEnabled: data.portfolioSectionEnabled !== false,
+    blogSectionEnabled: data.blogSectionEnabled !== false,
+    contactSectionEnabled: data.contactSectionEnabled !== false,
+  }));
+
+  const setHomepageFlag = <K extends keyof HomepageSectionFlags>(key: K, value: boolean) => {
+    setHomepageSections((prev) => ({ ...prev, [key]: value }));
+  };
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -116,6 +141,14 @@ export function SiteSettingsForm({ initialData }: Props) {
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set(
+      "featuresHighlightsSectionEnabled",
+      homepageSections.featuresHighlightsSectionEnabled ? "on" : "false"
+    );
+    formData.set("servicesSectionEnabled", homepageSections.servicesSectionEnabled ? "on" : "false");
+    formData.set("portfolioSectionEnabled", homepageSections.portfolioSectionEnabled ? "on" : "false");
+    formData.set("blogSectionEnabled", homepageSections.blogSectionEnabled ? "on" : "false");
+    formData.set("contactSectionEnabled", homepageSections.contactSectionEnabled ? "on" : "false");
     const result = await saveSiteSettings(formData);
     if (result.error) {
       setError(result.error);
@@ -152,6 +185,11 @@ export function SiteSettingsForm({ initialData }: Props) {
         linkedin: String(fd.get("linkedin") ?? ""),
         instagram: String(fd.get("instagram") ?? ""),
       },
+      servicesSectionEnabled: homepageSections.servicesSectionEnabled,
+      portfolioSectionEnabled: homepageSections.portfolioSectionEnabled,
+      blogSectionEnabled: homepageSections.blogSectionEnabled,
+      contactSectionEnabled: homepageSections.contactSectionEnabled,
+      featuresHighlightsSectionEnabled: homepageSections.featuresHighlightsSectionEnabled,
     });
   }
 
@@ -322,6 +360,68 @@ export function SiteSettingsForm({ initialData }: Props) {
             placeholder="/terms-conditions"
             defaultValue={data.termsUrl}
           />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">Homepage sections (live site)</h3>
+        <p className="text-sm text-muted-foreground">
+          Turn off blocks you do not want on the public homepage or in navigation (blog archive, portfolio detail pages, etc.).
+        </p>
+        <div className="grid gap-3 sm:max-w-xl">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-card p-3">
+            <span className="min-w-0 text-sm font-medium text-foreground">Feature highlights (Support block)</span>
+            <input
+              type="hidden"
+              name="featuresHighlightsSectionEnabled"
+              value={homepageSections.featuresHighlightsSectionEnabled ? "on" : ""}
+            />
+            <Toggle
+              enabled={homepageSections.featuresHighlightsSectionEnabled}
+              onChange={(v) => setHomepageFlag("featuresHighlightsSectionEnabled", v)}
+              className="shrink-0 sm:ml-auto"
+            />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-card p-3">
+            <span className="min-w-0 text-sm font-medium text-foreground">Services section</span>
+            <input type="hidden" name="servicesSectionEnabled" value={homepageSections.servicesSectionEnabled ? "on" : ""} />
+            <Toggle
+              enabled={homepageSections.servicesSectionEnabled}
+              onChange={(v) => setHomepageFlag("servicesSectionEnabled", v)}
+              className="shrink-0 sm:ml-auto"
+            />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-card p-3">
+            <span className="min-w-0 text-sm font-medium text-foreground">Portfolio section & project pages</span>
+            <input
+              type="hidden"
+              name="portfolioSectionEnabled"
+              value={homepageSections.portfolioSectionEnabled ? "on" : ""}
+            />
+            <Toggle
+              enabled={homepageSections.portfolioSectionEnabled}
+              onChange={(v) => setHomepageFlag("portfolioSectionEnabled", v)}
+              className="shrink-0 sm:ml-auto"
+            />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-card p-3">
+            <span className="min-w-0 text-sm font-medium text-foreground">Blog section & blog pages</span>
+            <input type="hidden" name="blogSectionEnabled" value={homepageSections.blogSectionEnabled ? "on" : ""} />
+            <Toggle
+              enabled={homepageSections.blogSectionEnabled}
+              onChange={(v) => setHomepageFlag("blogSectionEnabled", v)}
+              className="shrink-0 sm:ml-auto"
+            />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-card p-3">
+            <span className="min-w-0 text-sm font-medium text-foreground">Contact section</span>
+            <input type="hidden" name="contactSectionEnabled" value={homepageSections.contactSectionEnabled ? "on" : ""} />
+            <Toggle
+              enabled={homepageSections.contactSectionEnabled}
+              onChange={(v) => setHomepageFlag("contactSectionEnabled", v)}
+              className="shrink-0 sm:ml-auto"
+            />
+          </div>
         </div>
       </section>
 

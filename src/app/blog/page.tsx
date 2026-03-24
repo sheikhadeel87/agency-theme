@@ -9,7 +9,10 @@ import {
   getPublishedBlogPosts,
   getSiteSettings,
   getPublishedPages,
+  getNavSectionVisibility,
+  isBlogSectionEnabled,
 } from "@/lib/admin-data";
+import { notFound } from "next/navigation";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 export const dynamic = "force-dynamic";
@@ -35,10 +38,13 @@ function formatDate(iso: string | null): string {
 }
 
 export default async function BlogArchivePage() {
-  const [posts, siteSettings, dynamicPages] = await Promise.all([
+  if (!(await isBlogSectionEnabled())) notFound();
+
+  const [posts, siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getPublishedBlogPosts(),
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
 
   return (
@@ -46,6 +52,7 @@ export default async function BlogArchivePage() {
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-[#fafafa]">
         <div className="border-b border-gray-200/80 bg-white py-8 sm:py-10">
@@ -131,7 +138,7 @@ export default async function BlogArchivePage() {
           )}
         </Container>
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

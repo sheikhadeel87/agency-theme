@@ -18,6 +18,11 @@ const emptySiteSettings: SiteSettingsData = {
   privacyPolicyUrl: "",
   termsUrl: "",
   socialLinks: { facebook: "", twitter: "", linkedin: "", instagram: "" },
+  servicesSectionEnabled: true,
+  portfolioSectionEnabled: true,
+  blogSectionEnabled: true,
+  contactSectionEnabled: true,
+  featuresHighlightsSectionEnabled: true,
 };
 
 export async function loadPreviewShell() {

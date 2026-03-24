@@ -5,7 +5,13 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getBlogPostBySlug, getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import {
+  getBlogPostBySlug,
+  getSiteSettings,
+  getPublishedPages,
+  getNavSectionVisibility,
+  isBlogSectionEnabled,
+} from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 const BLOG_FALLBACK_IMAGE = "/images/blog-1.png";
@@ -18,6 +24,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  if (!(await isBlogSectionEnabled())) return { title: "Not found" };
   const post = await getBlogPostBySlug(slug);
   if (!post || !post.is_published) return { title: "Post not found" };
   return {
@@ -47,10 +54,13 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [post, siteSettings, dynamicPages] = await Promise.all([
+  if (!(await isBlogSectionEnabled())) notFound();
+
+  const [post, siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getBlogPostBySlug(slug),
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
 
   if (!post || !post.is_published) notFound();
@@ -116,7 +126,7 @@ export default async function BlogPostPage({
           </Container>
         </article>
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

@@ -9,6 +9,7 @@ import {
   getTeamMemberBySlugOrId,
   getSiteSettings,
   getPublishedPages,
+  getNavSectionVisibility,
 } from "@/lib/admin-data";
 import { hasMeaningfulHtmlContent } from "@/lib/html-utils";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
@@ -42,10 +43,11 @@ export default async function TeamMemberProfilePage({
 }) {
   const { slug: rawSlug } = await params;
   const slug = decodeURIComponent(rawSlug);
-  const [member, siteSettings, dynamicPages] = await Promise.all([
+  const [member, siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getTeamMemberBySlugOrId(slug),
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
 
   if (!member) notFound();
@@ -58,6 +60,7 @@ export default async function TeamMemberProfilePage({
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-[#fafafa]">
         <article className="py-16 sm:py-20 lg:py-24">
@@ -119,7 +122,7 @@ export default async function TeamMemberProfilePage({
           </Container>
         </article>
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

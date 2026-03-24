@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Zap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
-import type { SiteSettingsData } from "@/lib/admin-data";
+import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
 
 function brandText(siteSettings: SiteSettingsData | null | undefined): string {
   if (!siteSettings) return "Nexora";
@@ -16,30 +16,62 @@ export type HeaderProps = {
   siteSettings?: SiteSettingsData | null;
   /** Dynamic pages from admin (shown in Pages dropdown) */
   dynamicPages?: { title: string; slug: string }[];
+  /** When omitted, all section links are shown (e.g. previews). */
+  navVisibility?: NavSectionVisibility;
 };
 
-const navLinks = [
+const ALL_VISIBLE: NavSectionVisibility = {
+  hero: true,
+  featuresHighlights: true,
+  whyChooseUs: true,
+  team: true,
+  services: true,
+  pricing: true,
+  portfolio: true,
+  testimonials: true,
+  blog: true,
+  contact: true,
+};
+
+type NavKey = keyof NavSectionVisibility;
+
+const mainNavItems: Array<{ href: string; label: string; vis?: NavKey }> = [
   { href: "/", label: "Home" },
-  { href: "/#why-choose-us", label: "Features" },
-  { href: "/#pricing", label: "Pricing" },
-  { href: "/#portfolio", label: "Portfolio" },
-  { href: "/#testimonials", label: "Testimonials" },
-  { href: "/#support", label: "Support" },
+  { href: "/#why-choose-us", label: "Features", vis: "whyChooseUs" },
+  { href: "/#pricing", label: "Pricing", vis: "pricing" },
+  { href: "/#portfolio", label: "Portfolio", vis: "portfolio" },
+  { href: "/#testimonials", label: "Testimonials", vis: "testimonials" },
+  { href: "/#support", label: "Support", vis: "featuresHighlights" },
 ];
 
-// Section links for dropdown (anchors on homepage)
-const sectionLinks = [
-  { href: "/#team", label: "Team" },
-  { href: "/#services", label: "Services" },
-  { href: "/#blog", label: "Blog" },
-  { href: "/#contact", label: "Contact" },
+const sectionDropdownItems: Array<{ href: string; label: string; vis: NavKey }> = [
+  { href: "/#team", label: "Team", vis: "team" },
+  { href: "/#services", label: "Services", vis: "services" },
+  { href: "/#blog", label: "Blog", vis: "blog" },
+  { href: "/#contact", label: "Contact", vis: "contact" },
 ];
 
-export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
+function filterMainNav(v: NavSectionVisibility) {
+  return mainNavItems.filter(
+    (item) => item.vis === undefined || v[item.vis] === true
+  );
+}
+
+function filterSectionDropdown(v: NavSectionVisibility) {
+  return sectionDropdownItems.filter((item) => v[item.vis] === true);
+}
+
+export function Header({ siteSettings, dynamicPages = [], navVisibility }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const brand = brandText(siteSettings);
   const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
   const pagesRef = useRef<HTMLLIElement>(null);
+
+  const v = navVisibility ?? ALL_VISIBLE;
+  const navLinks = filterMainNav(v);
+  const sectionLinks = filterSectionDropdown(v);
+  const pagesMenuItemsCount = sectionLinks.length + dynamicPages.length;
+  const showPagesDropdown = pagesMenuItemsCount > 0;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -86,7 +118,7 @@ export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
                   </Link>
                 </li>
               ))}
-              {/* Pages dropdown */}
+              {showPagesDropdown && (
               <li className="relative" ref={pagesRef}>
                 <button
                   type="button"
@@ -142,6 +174,7 @@ export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
                   </ul>
                 )}
               </li>
+              )}
             </ul>
           </nav>
 

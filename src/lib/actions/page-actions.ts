@@ -36,6 +36,7 @@ export async function savePage(formData: FormData): Promise<SavePageState> {
     if (!slug) slug = `page-${Date.now()}`;
 
     const isPublished = bool(formData, "is_published");
+    const isEnabled = bool(formData, "isEnabled");
     const payload = {
       title: title || "Untitled",
       slug,
@@ -45,6 +46,7 @@ export async function savePage(formData: FormData): Promise<SavePageState> {
       metaDescription: str(formData, "metaDescription") || "",
       metaKeywords: str(formData, "metaKeywords") || "",
       status: isPublished ? "published" : "draft",
+      isEnabled,
     };
 
     const { isValidObjectId } = await import("mongoose");

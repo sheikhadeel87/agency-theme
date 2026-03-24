@@ -11,6 +11,7 @@ import { savePage } from "@/lib/actions/page-actions";
 import type { DynamicPage } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
 import { Eye, Search, Send } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 const defaultValues: Omit<DynamicPage, "_id"> = {
   title: "",
@@ -21,6 +22,7 @@ const defaultValues: Omit<DynamicPage, "_id"> = {
   metaDescription: "",
   metaKeywords: "",
   status: "draft",
+  isEnabled: true,
 };
 
 type Props = {
@@ -31,8 +33,10 @@ export function PageForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState(initialData?.content ?? defaultValues.content);
-  const formRef = useRef<HTMLFormElement>(null);
   const data = initialData ?? { ...defaultValues, _id: "" };
+  const [published, setPublished] = useState(data.status === "published");
+  const [liveEnabled, setLiveEnabled] = useState(data.isEnabled !== false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,6 +44,8 @@ export function PageForm({ initialData }: Props) {
     const form = e.currentTarget;
     const formData = new FormData(form);
     formData.set("content", content);
+    formData.set("is_published", published ? "on" : "false");
+    formData.set("isEnabled", liveEnabled ? "on" : "false");
     const result = await savePage(formData);
     if (result.error) {
       setError(result.error);
@@ -135,18 +141,29 @@ export function PageForm({ initialData }: Props) {
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Publish
             </h3>
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/50">
-              <input
-                type="checkbox"
-                name="is_published"
-                defaultChecked={data.status === "published"}
-                className="size-4 rounded border-input"
-              />
-              <span className="text-sm font-medium">Published</span>
-            </label>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Published pages appear in the site’s Pages dropdown and are visible at their URL.
-            </p>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/30 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Published</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Published pages appear in the site’s Pages dropdown and are visible at their URL.
+                  </p>
+                </div>
+                <input type="hidden" name="is_published" value={published ? "on" : ""} />
+                <Toggle enabled={published} onChange={setPublished} className="shrink-0 sm:ml-auto" />
+              </div>
+              <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-muted/30 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Show on live site</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    When off, the page is hidden from navigation and returns 404 on the public site (draft or
+                    published).
+                  </p>
+                </div>
+                <input type="hidden" name="isEnabled" value={liveEnabled ? "on" : ""} />
+                <Toggle enabled={liveEnabled} onChange={setLiveEnabled} className="shrink-0 sm:ml-auto" />
+              </div>
+            </div>
           </div>
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">

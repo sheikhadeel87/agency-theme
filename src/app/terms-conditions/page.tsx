@@ -1,18 +1,23 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { getSiteSettings, getPublishedPages } from "@/lib/admin-data";
+import { getSiteSettings, getPublishedPages, getNavSectionVisibility } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function TermsConditionsPage() {
-  const [siteSettings, dynamicPages] = await Promise.all([
+  const [siteSettings, dynamicPages, navVisibility] = await Promise.all([
     getSiteSettings(),
     getPublishedPages(),
+    getNavSectionVisibility(),
   ]);
   return (
     <>
-      <Header siteSettings={siteSettings} dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))} />
+      <Header
+        siteSettings={siteSettings}
+        dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
+      />
       <main className="bg-white py-16 sm:py-20 lg:py-24">
       <Container>
         <div className="mx-auto max-w-3xl">
@@ -130,7 +135,7 @@ export default async function TermsConditionsPage() {
         </div>
       </Container>
       </main>
-      <Footer siteSettings={siteSettings} />
+      <Footer siteSettings={siteSettings} navVisibility={navVisibility} />
     </>
   );
 }

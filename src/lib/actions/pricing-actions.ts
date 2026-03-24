@@ -47,6 +47,7 @@ export async function savePricingSettings(
       metaTitle: str(formData, "metaTitle") || sectionTitle,
       metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
       metaKeywords: str(formData, "metaKeywords"),
+      isEnabled: bool(formData, "isEnabled"),
     };
     await PricingSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
     try {
