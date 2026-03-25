@@ -76,7 +76,7 @@ export default async function BlogPostPage({
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
       />
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-background">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
@@ -93,10 +93,10 @@ export default async function BlogPostPage({
                     Featured
                   </span>
                 )}
-                <h1 className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl">
+                <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl">
                   {post.title || "Untitled"}
                 </h1>
-                <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+                <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
                   {post.author && <span>By {post.author}</span>}
                   {(post.publishedAt || post.createdAt) && (
                     <span>{formatDate(post.publishedAt ?? post.createdAt)}</span>
@@ -104,7 +104,7 @@ export default async function BlogPostPage({
                 </div>
               </header>
 
-              <div className="relative mb-8 h-[min(22vh,140px)] w-full overflow-hidden rounded-xl bg-gray-100 sm:h-[min(24vh,160px)] sm:rounded-2xl md:h-[min(26vh,180px)]">
+              <div className="relative mb-8 h-[min(22vh,140px)] w-full overflow-hidden rounded-xl bg-muted sm:h-[min(24vh,160px)] sm:rounded-2xl md:h-[min(26vh,180px)]">
                 <Image
                   src={heroImageSrc}
                   alt={post.title || "Post"}
@@ -118,13 +118,13 @@ export default async function BlogPostPage({
               </div>
 
               {post.description && (
-                <p className="mb-6 text-base text-gray-600 sm:text-lg">{post.description}</p>
+                <p className="mb-6 text-base text-muted-foreground sm:text-lg">{post.description}</p>
               )}
             </div>
 
             {post.content && (
               <div
-                className="prose prose-gray mx-auto max-w-3xl"
+                className="prose prose-neutral mx-auto max-w-3xl dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             )}

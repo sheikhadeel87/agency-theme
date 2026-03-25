@@ -41,8 +41,8 @@ export default async function PortfolioArchivePage() {
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
       />
-      <main className="min-h-screen bg-white">
-        <div className="border-b border-gray-200/80 bg-white py-8 sm:py-10">
+      <main className="min-h-screen bg-muted">
+        <div className="border-b border-border bg-background py-8 sm:py-10">
           <Container as="div">
             <nav className="mb-4">
               <Link
@@ -55,10 +55,10 @@ export default async function PortfolioArchivePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600/90">
               Selected work
             </p>
-            <h1 className="mt-2 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-indigo-900 bg-clip-text text-2xl font-semibold leading-tight text-transparent sm:text-3xl lg:text-4xl">
+            <h1 className="mt-2 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-indigo-900 bg-clip-text text-2xl font-semibold leading-tight text-transparent dark:from-white dark:via-slate-200 dark:to-indigo-300 sm:text-3xl lg:text-4xl">
               Portfolio
             </h1>
-            <p className="mt-3 max-w-2xl text-sm text-gray-600 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
               Every published project — open a card for the full case study.
             </p>
           </Container>
@@ -66,7 +66,7 @@ export default async function PortfolioArchivePage() {
 
         <Container as="div" className="py-8 sm:py-12">
           {projects.length === 0 ? (
-            <p className="text-center text-gray-500">
+            <p className="text-center text-muted-foreground">
               No published projects yet. Check back soon.
             </p>
           ) : (

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Zap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { SiteNavbar } from "@/components/layout/SiteNavbar";
+import { ThemeToggle } from "@/components/theme";
 import type { SiteSettingsData } from "@/lib/admin-data";
 
 function brandText(siteSettings: SiteSettingsData | null | undefined): string {
@@ -24,12 +25,12 @@ export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
   const brand = brandText(siteSettings);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
       <Container>
         <div className="flex h-16 items-center justify-between gap-4 sm:h-18">
           <Link
             href="/"
-            className="inline-flex shrink-0 items-center gap-2 text-xl font-semibold tracking-tight text-gray-900"
+            className="inline-flex shrink-0 items-center gap-2 text-xl font-semibold tracking-tight text-foreground"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
               <Zap className="size-5" />
@@ -42,14 +43,16 @@ export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
               dynamicPages={dynamicPages}
               fallbackNavigation={siteSettings?.navigation}
               onNavigate={() => setMobileMenuOpen(false)}
-              className={`absolute left-0 right-0 top-full border-b border-gray-200/80 bg-white md:static md:border-0 md:bg-transparent ${
+              className={`absolute left-0 right-0 top-full border-b border-border bg-background md:static md:border-0 md:bg-transparent ${
                 mobileMenuOpen ? "block" : "hidden md:block"
               }`}
             />
 
+            <ThemeToggle />
+
             <button
               type="button"
-              className="inline-flex size-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 md:hidden"
+              className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
               aria-label="Toggle menu"

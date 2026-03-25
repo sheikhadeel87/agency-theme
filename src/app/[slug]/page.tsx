@@ -64,19 +64,19 @@ export default async function DynamicPageRoute({
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
       />
-      <main className="min-h-screen bg-white py-16 sm:py-20 lg:py-24">
+      <main className="min-h-screen bg-background py-16 sm:py-20 lg:py-24">
         <Container>
           <article className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               {page.title}
             </h1>
             {page.content ? (
               <div
-                className="mt-8 prose prose-gray max-w-none prose-p:text-gray-700 prose-headings:text-[#0f172a] prose-a:text-blue-600 prose-ul:list-disc prose-ol:list-decimal"
+                className="mt-8 prose prose-neutral max-w-none dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-ul:list-disc prose-ol:list-decimal"
                 dangerouslySetInnerHTML={{ __html: page.content }}
               />
             ) : (
-              <p className="mt-6 text-gray-600">No content yet.</p>
+              <p className="mt-6 text-muted-foreground">No content yet.</p>
             )}
           </article>
         </Container>

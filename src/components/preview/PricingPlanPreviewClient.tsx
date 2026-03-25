@@ -78,21 +78,21 @@ export function PricingPlanPreviewClient({ siteSettings, dynamicPages }: Shell) 
   return (
     <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
       <section
-        className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
+        className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
         aria-labelledby="pricing-preview-heading"
       >
         <Container as="div" className="relative">
           <header className="mx-auto max-w-2xl text-center">
             <h2
               id="pricing-preview-heading"
-              className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
+              className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl"
             >
               {settings.sectionTitle || "We Offer Great Affordable Premium Prices."}
             </h2>
             {settings.sectionDescription ? (
-              <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">{settings.sectionDescription}</p>
+              <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">{settings.sectionDescription}</p>
             ) : (
-              <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+              <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
                 Monthly billing preview (toggle is only on the full pricing section).
               </p>
             )}
@@ -100,18 +100,18 @@ export function PricingPlanPreviewClient({ siteSettings, dynamicPages }: Shell) 
 
           <ul className="mx-auto mt-12 flex max-w-5xl justify-center sm:mt-16">
             <li
-              className={`flex w-full max-w-sm flex-col rounded-3xl bg-white p-8 shadow-sm sm:p-10 ${
-                plan.featured ? "ring-2 ring-blue-500/20 ring-offset-4 ring-offset-[#fafafa] md:ring-2" : ""
+              className={`flex w-full max-w-sm flex-col rounded-3xl border border-border/60 bg-card p-8 shadow-sm sm:p-10 ${
+                plan.featured ? "ring-2 ring-blue-500/30 ring-offset-4 ring-offset-muted md:ring-2" : ""
               }`}
             >
-              <h3 className="text-xl font-semibold text-[#0f172a]">{plan.name || "Plan"}</h3>
+              <h3 className="text-xl font-semibold text-foreground">{plan.name || "Plan"}</h3>
               <p className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl">
+                <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                   ${formatPlanPriceForDisplay(price)}
                 </span>
-                <span className="text-sm text-gray-500">/{periodLabel}</span>
+                <span className="text-sm text-muted-foreground">/{periodLabel}</span>
               </p>
-              {plan.subtext ? <p className="mt-1 text-xs text-gray-500">{plan.subtext}</p> : null}
+              {plan.subtext ? <p className="mt-1 text-xs text-muted-foreground">{plan.subtext}</p> : null}
               {plan.ctaLink ? (
                 <Link href={plan.ctaLink} className={ctaClass}>
                   {plan.ctaText || "CTA"}
@@ -119,15 +119,15 @@ export function PricingPlanPreviewClient({ siteSettings, dynamicPages }: Shell) 
               ) : (
                 <span className={ctaClass}>{plan.ctaText || "CTA"}</span>
               )}
-              <ul className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-8 sm:mt-10">
+              <ul className="mt-8 flex flex-col gap-3 border-t border-border pt-8 sm:mt-10">
                 {features.map((feature) => (
-                  <li key={feature} className="text-sm text-gray-600">
+                  <li key={feature} className="text-sm text-muted-foreground">
                     {feature}
                   </li>
                 ))}
               </ul>
               {plan.footnote ? (
-                <p className="mt-6 text-center text-xs text-gray-500 sm:mt-8">{plan.footnote}</p>
+                <p className="mt-6 text-center text-xs text-muted-foreground sm:mt-8">{plan.footnote}</p>
               ) : null}
             </li>
           </ul>

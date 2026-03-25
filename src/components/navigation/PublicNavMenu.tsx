@@ -10,16 +10,16 @@ const navListClass =
   "flex flex-col gap-1 px-4 py-4 md:flex-row md:items-center md:gap-8 md:px-0 md:py-0";
 
 const navLinkClass =
-  "block rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:px-0 md:py-0 md:hover:bg-transparent";
+  "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:px-0 md:py-0 md:hover:bg-transparent";
 
 const dropdownTriggerClass =
-  "flex w-full items-center gap-1 rounded-md px-3 py-2 text-left text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:w-auto md:px-0 md:py-0 md:hover:bg-transparent";
+  "flex w-full items-center gap-1 rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:w-auto md:px-0 md:py-0 md:hover:bg-transparent";
 
 const dropdownPanelClass =
-  "absolute left-0 top-full z-50 mt-1 w-full min-w-[180px] rounded-lg border border-gray-200 bg-white py-2 shadow-lg md:w-auto";
+  "absolute left-0 top-full z-50 mt-1 w-full min-w-[180px] rounded-lg border border-border bg-popover py-2 text-popover-foreground shadow-lg md:w-auto";
 
 const dropdownItemClass =
-  "block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900";
+  "block px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted";
 
 export type PublicNavMenuProps = {
   entries: PublicNavEntry[];

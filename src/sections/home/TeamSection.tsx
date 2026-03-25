@@ -13,7 +13,7 @@ export function TeamSection({ settings, members }: Props) {
   return (
     <section
       id="team"
-      className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="team-heading"
     >
       {/* Subtle radial/curved pattern in top area */}
@@ -29,12 +29,12 @@ export function TeamSection({ settings, members }: Props) {
         <header className="mx-auto max-w-2xl text-center">
           <h2
             id="team-heading"
-            className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
+            className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl"
           >
             {settings.sectionTitle || "Meet With Our Creative Dedicated Team"}
           </h2>
           {settings.sectionDescription ? (
-            <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+            <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
               {settings.sectionDescription}
             </p>
           ) : null}
@@ -49,7 +49,7 @@ export function TeamSection({ settings, members }: Props) {
                   <article className="flex flex-col items-center text-center">
                     <Link
                       href={profileHref}
-                      className="group relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl bg-gray-200 outline-none ring-blue-500/0 transition hover:opacity-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:rounded-3xl"
+                      className="group relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl bg-muted outline-none ring-blue-500/0 transition hover:opacity-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:rounded-3xl"
                       aria-label={`View profile of ${member.name}`}
                     >
                       {member.imageUrl ? (
@@ -62,15 +62,15 @@ export function TeamSection({ settings, members }: Props) {
                           unoptimized={shouldUseUnoptimizedImage(member.imageUrl)}
                         />
                       ) : (
-                        <div className="flex size-full items-center justify-center text-4xl font-semibold text-gray-400 transition group-hover:bg-gray-300/30">
+                        <div className="flex size-full items-center justify-center text-4xl font-semibold text-muted-foreground transition group-hover:bg-muted-foreground/10">
                           {member.name.charAt(0) || "?"}
                         </div>
                       )}
                     </Link>
-                    <h3 className="mt-6 text-lg font-semibold text-[#0f172a] sm:text-xl">
+                    <h3 className="mt-6 text-lg font-semibold text-foreground sm:text-xl">
                       {member.name}
                     </h3>
-                    <p className="mt-1 text-gray-600">{member.role}</p>
+                    <p className="mt-1 text-muted-foreground">{member.role}</p>
                   </article>
                 </li>
               );

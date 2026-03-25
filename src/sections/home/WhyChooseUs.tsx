@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { WhyChooseUsSettingsData } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
@@ -26,7 +25,7 @@ export function WhyChooseUs({ settings }: Props) {
   return (
     <section
       id="why-choose-us"
-      className="bg-[#f5f5f5] py-16 sm:py-20 lg:py-24"
+      className="bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="why-choose-us-heading"
     >
       <Container as="div">
@@ -34,7 +33,7 @@ export function WhyChooseUs({ settings }: Props) {
           {/* Left: image collage */}
           <div className="relative order-2 aspect-[1.02] w-full max-w-[520px] lg:order-1 lg:max-w-none">
             <div
-              className="absolute left-0 top-0 z-10 w-[38%] overflow-hidden rounded-2xl bg-gray-200 sm:rounded-3xl"
+              className="absolute left-0 top-0 z-10 w-[38%] overflow-hidden rounded-2xl bg-muted sm:rounded-3xl"
               style={{ aspectRatio: "4/5" }}
             >
               <Image
@@ -47,7 +46,7 @@ export function WhyChooseUs({ settings }: Props) {
               />
             </div>
             <div
-              className="absolute bottom-0 left-0 z-10 w-[38%] overflow-hidden rounded-2xl bg-gray-200 sm:rounded-3xl"
+              className="absolute bottom-0 left-0 z-10 w-[38%] overflow-hidden rounded-2xl bg-muted sm:rounded-3xl"
               style={{ aspectRatio: "4/4.5", top: "56%" }}
             >
               <Image
@@ -59,7 +58,7 @@ export function WhyChooseUs({ settings }: Props) {
                 unoptimized={shouldUseUnoptimizedImage(img2)}
               />
             </div>
-            <div className="absolute right-0 top-0 z-10 h-full w-[52%] overflow-hidden rounded-2xl bg-gray-200 sm:rounded-3xl">
+            <div className="absolute right-0 top-0 z-10 h-full w-[52%] overflow-hidden rounded-2xl bg-muted sm:rounded-3xl">
               <Image
                 src={img3}
                 alt={alt3}
@@ -80,13 +79,13 @@ export function WhyChooseUs({ settings }: Props) {
             ) : null}
             <h2
               id="why-choose-us-heading"
-              className="mt-4 text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
+              className="mt-4 text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl"
             >
               {settings.sectionTitle || "We Make Our customers happy by giving Best services."}
             </h2>
             {settings.sectionDescription ? (
               <div
-                className="mt-6 prose prose-gray max-w-none sm:mt-8 prose-p:text-gray-600 prose-p:sm:text-lg prose-headings:text-[#0f172a] prose-a:text-blue-600"
+                className="mt-6 max-w-none prose prose-neutral dark:prose-invert sm:mt-8 prose-p:text-muted-foreground prose-p:sm:text-lg prose-headings:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400"
                 dangerouslySetInnerHTML={{ __html: settings.sectionDescription }}
               />
             ) : null}
@@ -106,7 +105,7 @@ export function WhyChooseUs({ settings }: Props) {
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </Link>
-                <span className="text-sm font-semibold uppercase tracking-wider text-gray-900 sm:text-base">
+                <span className="text-sm font-semibold uppercase tracking-wider text-foreground sm:text-base">
                   {settings.ctaText || "See How We Work"}
                 </span>
               </div>

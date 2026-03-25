@@ -13,7 +13,7 @@ export function PortfolioSection({ projects, categories }: PortfolioSectionProps
   return (
     <section
       id="portfolio"
-      className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-background py-16 sm:py-20 lg:py-24"
       aria-labelledby="portfolio-heading"
     >
       <div
@@ -31,12 +31,12 @@ export function PortfolioSection({ projects, categories }: PortfolioSectionProps
           </p>
           <h2
             id="portfolio-heading"
-            className="mt-3 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-indigo-900 bg-clip-text text-2xl font-semibold leading-tight text-transparent sm:mt-4 sm:text-3xl lg:text-4xl"
+            className="mt-3 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-indigo-900 bg-clip-text text-2xl font-semibold leading-tight text-transparent dark:from-white dark:via-slate-100 dark:to-indigo-200 sm:mt-4 sm:text-3xl lg:text-4xl"
           >
             Our Recent Works & Case Studies
           </h2>
           <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 sm:mt-5" />
-          <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+          <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
             Real projects, real outcomes — filter by category or browse everything
             we&apos;ve shipped recently.
           </p>

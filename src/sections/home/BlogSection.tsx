@@ -31,7 +31,7 @@ export function BlogSection({ posts }: BlogSectionProps) {
   return (
     <section
       id={HOMEPAGE_BLOG_SECTION_ID}
-      className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="blog-heading"
     >
       <div
@@ -49,12 +49,12 @@ export function BlogSection({ posts }: BlogSectionProps) {
           </p>
           <h2
             id="blog-heading"
-            className="mt-2 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-indigo-900 bg-clip-text text-xl font-semibold leading-tight text-transparent sm:mt-3 sm:text-2xl lg:text-3xl"
+            className="mt-2 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-indigo-900 bg-clip-text text-xl font-semibold leading-tight text-transparent dark:from-white dark:via-slate-100 dark:to-indigo-200 sm:mt-3 sm:text-2xl lg:text-3xl"
           >
             Latest Blogs & News
           </h2>
           <div className="mx-auto mt-3 h-1 w-14 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 sm:mt-4" />
-          <p className="mt-3 text-sm text-gray-600 sm:mt-4 sm:text-base">
+          <p className="mt-3 text-sm text-muted-foreground sm:mt-4 sm:text-base">
             Ideas, build notes, and updates from our team — click a card to read
             the full story.
           </p>
@@ -67,17 +67,17 @@ export function BlogSection({ posts }: BlogSectionProps) {
             return (
               <li key={post._id}>
                 <article
-                  className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-white transition-all duration-300 ease-out motion-reduce:transform-none motion-reduce:hover:translate-y-0 hover:-translate-y-1 ${
+                  className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-card text-card-foreground transition-all duration-300 ease-out motion-reduce:transform-none motion-reduce:hover:translate-y-0 hover:-translate-y-1 ${
                     post.is_featured
-                      ? "shadow-md shadow-blue-500/10 ring-1 ring-blue-200/80 hover:shadow-xl hover:shadow-blue-500/15"
-                      : "shadow-sm ring-1 ring-gray-100/80 hover:shadow-xl hover:ring-gray-200/90"
+                      ? "shadow-md shadow-blue-500/10 ring-1 ring-blue-500/30 hover:shadow-xl hover:shadow-blue-500/15"
+                      : "shadow-sm ring-1 ring-border/80 hover:shadow-xl hover:ring-border"
                   }`}
                 >
                   <Link
                     href={post.slug ? `/blog/${encodeURIComponent(post.slug)}` : "/blog"}
                     className="block flex-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
                   >
-                    <div className="relative aspect-[2/1] overflow-hidden rounded-t-2xl bg-gray-100">
+                    <div className="relative aspect-[2/1] overflow-hidden rounded-t-2xl bg-muted">
                       <Image
                         src={cardImageSrc}
                         alt={post.title || ""}
@@ -96,21 +96,21 @@ export function BlogSection({ posts }: BlogSectionProps) {
                     <div className="flex flex-col gap-2.5 p-4 sm:p-5 sm:gap-3">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                         {post.is_featured && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/70">
-                            <Sparkles className="size-3.5 shrink-0 text-amber-600" aria-hidden />
+                          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/70 dark:from-amber-950 dark:to-orange-950 dark:text-amber-100 dark:ring-amber-800/50">
+                            <Sparkles className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
                             Featured
                           </span>
                         )}
-                        <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                           <User className="size-4 shrink-0" aria-hidden />
                           {post.author || "—"}
                         </span>
-                        <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                           <Calendar className="size-4 shrink-0" aria-hidden />
                           {formatDate(post.publishedAt ?? post.createdAt)}
                         </span>
                       </div>
-                      <h3 className="text-base font-semibold leading-snug text-[#0f172a] transition-colors duration-200 group-hover:text-blue-600 sm:text-lg">
+                      <h3 className="text-base font-semibold leading-snug text-foreground transition-colors duration-200 group-hover:text-blue-600 sm:text-lg">
                         {post.title || "Untitled"}
                       </h3>
                     </div>

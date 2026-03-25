@@ -53,18 +53,18 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      className="relative overflow-hidden bg-[#f8f8fb] py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="contact-heading"
     >
       <Container as="div" className="relative">
         <header className="mx-auto max-w-2xl text-center">
           <h2
             id="contact-heading"
-            className="text-3xl font-semibold leading-tight tracking-tight text-[#0f172a] sm:text-4xl lg:text-5xl"
+            className="text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
           >
             Let&apos;s Stay Connected
           </h2>
-          <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+          <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
             It is a long established fact that a reader will be distracted by
             the readable content of a page when looking at its layout. The
             point of using.
@@ -72,24 +72,24 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
         </header>
 
         {hasContactInfo && (
-          <div className="mx-auto mt-8 max-w-6xl rounded-2xl border border-slate-200/90 bg-white px-4 py-8 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:px-8 sm:py-10">
+          <div className="mx-auto mt-8 max-w-6xl rounded-2xl border border-border bg-card px-4 py-8 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:px-8 sm:py-10 dark:shadow-none">
             <ul
-              className={`grid gap-8 sm:gap-0 sm:divide-x sm:divide-slate-200/80 ${contactGridClass}`}
+              className={`grid gap-8 sm:gap-0 sm:divide-x sm:divide-border ${contactGridClass}`}
             >
               {email && (
                 <li className="flex flex-col items-center text-center sm:px-6 lg:px-8">
                   <span
-                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50 text-slate-600"
+                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted text-muted-foreground"
                     aria-hidden
                   >
                     <Mail className="size-5" strokeWidth={1.75} />
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Email
                   </span>
                   <a
                     href={`mailto:${email}`}
-                    className="mt-1.5 break-all text-sm font-medium text-[#0f172a] underline-offset-4 transition hover:text-slate-700 hover:underline hover:decoration-slate-400"
+                    className="mt-1.5 break-all text-sm font-medium text-foreground underline-offset-4 transition hover:text-primary hover:underline hover:decoration-muted-foreground"
                   >
                     {email}
                   </a>
@@ -98,17 +98,17 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
               {phone && (
                 <li className="flex flex-col items-center text-center sm:px-6 lg:px-8">
                   <span
-                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50 text-slate-600"
+                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted text-muted-foreground"
                     aria-hidden
                   >
                     <Phone className="size-5" strokeWidth={1.75} />
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Phone
                   </span>
                   <a
                     href={`tel:${phone.replace(/\s/g, "")}`}
-                    className="mt-1.5 text-sm font-medium text-[#0f172a] underline-offset-4 transition hover:text-slate-700 hover:underline hover:decoration-slate-400"
+                    className="mt-1.5 text-sm font-medium text-foreground underline-offset-4 transition hover:text-primary hover:underline hover:decoration-muted-foreground"
                   >
                     {phone}
                   </a>
@@ -117,15 +117,15 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
               {address && (
                 <li className="flex flex-col items-center text-center sm:px-6 lg:px-8">
                   <span
-                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50 text-slate-600"
+                    className="mb-3 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted text-muted-foreground"
                     aria-hidden
                   >
                     <MapPin className="size-5" strokeWidth={1.75} />
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Address
                   </span>
-                  <p className="mt-1.5 max-w-xs text-pretty text-sm font-medium leading-relaxed text-[#0f172a] sm:max-w-none">
+                  <p className="mt-1.5 max-w-xs text-pretty text-sm font-medium leading-relaxed text-foreground sm:max-w-none">
                     {address}
                   </p>
                 </li>
@@ -136,7 +136,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
 
         <div className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-10">
           {/* Left: map */}
-          <div className="min-h-[520px] overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl">
+          <div className="min-h-[520px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl dark:shadow-none">
             <iframe
               title="Office location map"
               src={mapSrc}
@@ -151,7 +151,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
           </div>
 
           {/* Right: form */}
-          <div className="rounded-2xl border border-gray-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:p-8 min-h-[520px]">
+          <div className="min-h-[520px] rounded-2xl border border-border bg-card p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:p-8 dark:shadow-none">
             <form
               className="flex h-full flex-col gap-5 sm:gap-6"
               onSubmit={handleContactSubmit}
@@ -159,7 +159,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
             >
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-gray-700">Full name</span>
+                  <span className="text-sm font-medium text-foreground">Full name</span>
                   <input
                     type="text"
                     name="name"
@@ -167,7 +167,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                     autoComplete="name"
                     placeholder="M.Adeel"
                     disabled={pending}
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    className="rounded-xl border border-border bg-muted/50 px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
 
@@ -187,38 +187,38 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-gray-700">Phone number</span>
+                  <span className="text-sm font-medium text-foreground">Phone number</span>
                   <input
                     type="tel"
                     name="phone"
                     autoComplete="tel"
                     placeholder="+923004199389"
                     disabled={pending}
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    className="rounded-xl border border-border bg-muted/50 px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
 
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-gray-700">Subject</span>
+                  <span className="text-sm font-medium text-foreground">Subject</span>
                   <input
                     type="text"
                     name="subject"
                     placeholder="Confirmation"
                     disabled={pending}
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    className="rounded-xl border border-border bg-muted/50 px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
               </div>
 
               <label className="flex flex-1 flex-col gap-1.5">
-                <span className="text-sm font-medium text-gray-700">Message</span>
+                <span className="text-sm font-medium text-foreground">Message</span>
                 <textarea
                   name="message"
                   rows={6}
                   required
                   placeholder="Please confirm my order and dispatch date"
                   disabled={pending}
-                  className="min-h-[180px] resize-none rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  className="min-h-[180px] resize-none rounded-xl border border-border bg-muted/50 px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                 />
               </label>
 

@@ -25,17 +25,17 @@ function ProjectCard({
 
   return (
     <article
-      className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-white transition-all duration-300 ease-out motion-reduce:transform-none motion-reduce:hover:translate-y-0 hover:-translate-y-1 md:rounded-3xl ${
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card transition-all duration-300 ease-out motion-reduce:transform-none motion-reduce:hover:translate-y-0 hover:-translate-y-1 md:rounded-3xl ${
         project.featuredOnHomepage
-          ? "shadow-md shadow-blue-500/10 ring-1 ring-blue-200/80 hover:shadow-xl hover:shadow-blue-500/15"
-          : "shadow-sm ring-1 ring-gray-100/80 hover:shadow-xl hover:ring-gray-200/90"
+          ? "shadow-md shadow-blue-500/10 ring-1 ring-blue-500/40 hover:shadow-xl hover:shadow-blue-500/15"
+          : "shadow-sm ring-1 ring-border hover:shadow-xl hover:ring-border"
       }`}
     >
       <Link
         href={href}
         className="flex h-full min-h-0 flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
       >
-        <div className="relative aspect-[2/1] w-full shrink-0 overflow-hidden bg-gray-100">
+        <div className="relative aspect-[2/1] w-full shrink-0 overflow-hidden bg-muted">
           <Image
             src={imageUrl}
             alt={project.title || "Project"}
@@ -55,7 +55,7 @@ function ProjectCard({
         <div className="flex min-h-0 flex-1 flex-col px-5 py-4 sm:px-6 sm:py-5">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {project.featuredOnHomepage && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/70">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/70 dark:from-amber-950 dark:to-orange-950 dark:text-amber-100 dark:ring-amber-800/50">
                 <Sparkles className="size-3.5 shrink-0 text-amber-600" aria-hidden />
                 Featured
               </span>
@@ -66,14 +66,14 @@ function ProjectCard({
               </p>
             )}
           </div>
-          <h4 className="text-base font-semibold leading-tight text-[#0f172a] transition-colors duration-200 group-hover:text-blue-600 sm:text-lg lg:text-xl">
+          <h4 className="text-base font-semibold leading-tight text-foreground transition-colors duration-200 group-hover:text-blue-500 sm:text-lg lg:text-xl">
             {project.title || "Untitled"}
           </h4>
           {project.client && (
-            <p className="mt-1 text-sm text-gray-500">{project.client}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{project.client}</p>
           )}
           {project.shortDescription && (
-            <p className="mt-2 min-h-0 flex-1 line-clamp-3 text-sm leading-relaxed text-gray-600">
+            <p className="mt-2 min-h-0 flex-1 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
               {project.shortDescription}
             </p>
           )}
@@ -96,10 +96,10 @@ export function PortfolioFilter({ projects, categories }: Props) {
       : projects.filter((p) => p.categories.includes(activeFilter));
 
   const filterBtnClass = (active: boolean) =>
-    `rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+    `rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
       active
         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25"
-        : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm"
+        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:shadow-sm"
     }`;
 
   return (
@@ -131,7 +131,7 @@ export function PortfolioFilter({ projects, categories }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="mx-auto mt-14 max-w-md text-center text-sm text-gray-500">
+        <p className="mx-auto mt-14 max-w-md text-center text-sm text-muted-foreground">
           No projects in this category yet.
         </p>
       )}

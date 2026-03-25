@@ -28,7 +28,7 @@ export function Hero({ heroData }: HeroProps) {
 
   return (
     <section
-      className="flex flex-1 flex-col bg-[#f5f5f5] py-16 sm:py-20 lg:py-28"
+      className="flex flex-1 flex-col bg-muted py-16 sm:py-20 lg:py-28"
       aria-labelledby="hero-heading"
     >
       <Container as="div">
@@ -37,11 +37,11 @@ export function Hero({ heroData }: HeroProps) {
           <div className="order-2 lg:order-1">
             <h1
               id="hero-heading"
-              className="text-3xl font-semibold leading-tight tracking-tight text-[#0f172a] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.2] xl:text-5xl"
+              className="text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem] lg:leading-[1.2] xl:text-5xl"
             >
               {heading}
             </h1>
-            <p className="mt-6 text-lg text-gray-600 sm:mt-8">
+            <p className="mt-6 text-lg text-muted-foreground sm:mt-8">
               {description}
             </p>
             <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-8">
@@ -52,14 +52,14 @@ export function Hero({ heroData }: HeroProps) {
                 {ctaText}
               </Link>
               {showPhoneBlock && (
-                <div className="border-l-2 border-gray-200 pl-5 sm:pl-6">
+                <div className="border-l-2 border-border pl-5 sm:pl-6">
                   {phoneText && (
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-foreground">
                       {phoneText}
                     </p>
                   )}
                   {badgeText && (
-                    <p className="mt-0.5 text-sm text-gray-500">{badgeText}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{badgeText}</p>
                   )}
                 </div>
               )}
@@ -68,7 +68,7 @@ export function Hero({ heroData }: HeroProps) {
 
           {/* Right: hero image with decorative shapes */}
           <div className="relative order-1 lg:order-2">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-gray-200 sm:aspect-[6/5] lg:aspect-[4/3]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-muted sm:aspect-[6/5] lg:aspect-[4/3]">
               <Image
                 src="/images/hero.png"
                 alt="Agency team or digital services"

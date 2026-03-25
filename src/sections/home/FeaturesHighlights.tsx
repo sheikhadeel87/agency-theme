@@ -29,7 +29,7 @@ export function FeaturesHighlights() {
   return (
     <section
     id="support"
-      className="bg-white py-16 sm:py-20 lg:py-24"
+      className="bg-background py-16 sm:py-20 lg:py-24"
       aria-label="Feature highlights"
     >
       <Container as="div">
@@ -45,10 +45,10 @@ export function FeaturesHighlights() {
               >
                 <Icon className="size-7 sm:size-8" strokeWidth={1.5} />
               </div>
-              <h2 className="mt-6 text-xl font-semibold text-[#0f172a] sm:text-2xl">
+              <h2 className="mt-6 text-xl font-semibold text-foreground sm:text-2xl">
                 {title}
               </h2>
-              <p className="mt-3 text-gray-600 sm:mt-4 sm:text-lg">
+              <p className="mt-3 text-muted-foreground sm:mt-4 sm:text-lg">
                 {description}
               </p>
             </article>
