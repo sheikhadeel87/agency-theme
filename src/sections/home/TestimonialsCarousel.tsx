@@ -25,7 +25,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
 
   return (
     <div className="relative mx-auto mt-12 w-full max-w-[1150px] sm:mt-16">
-      <div className="relative overflow-hidden rounded-2xl bg-gray-100 shadow-md sm:rounded-3xl lg:min-h-[372px]">
+      <div className="relative overflow-hidden rounded-2xl bg-muted shadow-md sm:rounded-3xl lg:min-h-[372px]">
         <div className="grid grid-cols-1 items-stretch gap-8 p-6 sm:p-8 lg:grid-cols-[300px_1fr] lg:gap-10 lg:min-h-[372px] lg:p-10">
           <div className="flex min-h-0 w-full items-center justify-center self-stretch lg:min-w-[300px]">
             <div className="relative h-0 w-full max-w-[280px] shrink-0 overflow-hidden rounded-xl bg-gray-200 pb-[100%] sm:max-w-[300px] lg:max-w-none lg:h-[300px] lg:w-[300px] lg:pb-0">
@@ -40,22 +40,22 @@ export function TestimonialsCarousel({ testimonials }: Props) {
             </div>
           </div>
           <div className="flex min-h-0 flex-col justify-start">
-            <Quote className="size-14 text-gray-300 sm:size-16" aria-hidden />
-            <blockquote className="mt-4 italic text-gray-600 sm:mt-5 sm:text-lg">
+            <Quote className="size-14 text-muted-foreground/40 sm:size-16" aria-hidden />
+            <blockquote className="mt-4 italic text-muted-foreground sm:mt-5 sm:text-lg">
               {current.quote || "No quote."}
             </blockquote>
             <footer className="mt-6 flex flex-col gap-0.5 sm:mt-8">
-              <cite className="not-italic font-bold text-[#0f172a]">
+              <cite className="not-italic font-bold text-foreground">
                 {current.authorName || "—"}
               </cite>
               {(current.designation || current.brandName) && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {[current.designation, current.brandName].filter(Boolean).join(" · ")}
                 </p>
               )}
             </footer>
             {current.brandName && (
-              <p className="mt-6 flex items-center justify-end gap-1.5 text-right text-sm font-medium text-gray-600 sm:mt-8">
+              <p className="mt-6 flex items-center justify-end gap-1.5 text-right text-sm font-medium text-muted-foreground sm:mt-8">
                 <Droplet className="size-4 shrink-0" aria-hidden />
                 <span className="uppercase tracking-wider">{current.brandName}</span>
               </p>
@@ -71,7 +71,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
           <button
             type="button"
             onClick={goPrev}
-            className="flex size-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200"
+            className="flex size-12 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-muted"
             aria-label="Previous testimonial"
           >
             <ChevronLeft className="size-6" />
@@ -79,7 +79,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
           <button
             type="button"
             onClick={goNext}
-            className="flex size-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200"
+            className="flex size-12 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-muted"
             aria-label="Next testimonial"
           >
             <ChevronRight className="size-6" />

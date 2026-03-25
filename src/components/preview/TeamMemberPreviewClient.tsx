@@ -14,7 +14,7 @@ import { PreviewEmptyState } from "@/components/preview/PreviewEmptyState";
 const TYPE = "team-member";
 
 const bioHtmlClassName =
-  "team-member-bio mt-6 max-w-none text-base leading-relaxed text-gray-700 [&_p]:mt-3 [&_p]:first:mt-0 [&_p]:text-gray-700 [&_li]:text-gray-700 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:my-3 [&_ul]:list-inside [&_ul]:list-disc [&_ol]:my-3 [&_ol]:list-inside [&_ol]:list-decimal [&_a]:text-blue-600 [&_a]:underline";
+  "team-member-bio mt-6 max-w-none text-base leading-relaxed text-muted-foreground [&_p]:mt-3 [&_p]:first:mt-0 [&_p]:text-muted-foreground [&_li]:text-muted-foreground [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_ul]:my-3 [&_ul]:list-inside [&_ul]:list-disc [&_ol]:my-3 [&_ol]:list-inside [&_ol]:list-decimal [&_a]:text-blue-600 [&_a]:underline dark:[&_a]:text-blue-400";
 
 type Payload = {
   name?: string;
@@ -49,7 +49,7 @@ export function TeamMemberPreviewClient({ siteSettings, dynamicPages }: Shell) {
 
   if (state === "pending") {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-gray-600">
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Loading preview…
       </div>
     );
@@ -70,7 +70,7 @@ export function TeamMemberPreviewClient({ siteSettings, dynamicPages }: Shell) {
 
   return (
     <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
-      <main className="min-h-screen bg-[#fafafa]">
+      <main className="min-h-screen bg-muted">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div" className="max-w-3xl">
             <Link
@@ -80,9 +80,9 @@ export function TeamMemberPreviewClient({ siteSettings, dynamicPages }: Shell) {
               ← Back to team
             </Link>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:rounded-3xl">
               <div className="grid gap-0 sm:grid-cols-[minmax(0,280px)_1fr] sm:items-start">
-                <div className="relative aspect-square w-full max-h-[400px] bg-gray-100 sm:max-h-none sm:min-h-[320px]">
+                <div className="relative aspect-square w-full max-h-[400px] bg-muted sm:max-h-none sm:min-h-[320px]">
                   {member.imageUrl?.trim() ? (
                     <Image
                       src={member.imageUrl}
@@ -94,28 +94,28 @@ export function TeamMemberPreviewClient({ siteSettings, dynamicPages }: Shell) {
                       unoptimized={shouldUseUnoptimizedImage(member.imageUrl)}
                     />
                   ) : (
-                    <div className="flex size-full items-center justify-center text-6xl font-semibold text-gray-300">
+                    <div className="flex size-full items-center justify-center text-6xl font-semibold text-muted-foreground/40">
                       {name.charAt(0) || "?"}
                     </div>
                   )}
                 </div>
 
                 <div className="flex flex-col p-6 sm:p-8 lg:p-10">
-                  <h1 className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl">
+                  <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl">
                     {name}
                   </h1>
-                  {member.role?.trim() ? <p className="mt-2 text-lg text-gray-600">{member.role}</p> : null}
+                  {member.role?.trim() ? <p className="mt-2 text-lg text-muted-foreground">{member.role}</p> : null}
 
                   {hasBio ? (
                     bioIsHtml ? (
                       <div className={bioHtmlClassName} dangerouslySetInnerHTML={{ __html: bio }} />
                     ) : (
-                      <p className="mt-6 whitespace-pre-wrap text-base leading-relaxed text-gray-700">
+                      <p className="mt-6 whitespace-pre-wrap text-base leading-relaxed text-muted-foreground">
                         {bio.trim()}
                       </p>
                     )
                   ) : (
-                    <p className="mt-6 text-sm text-gray-500">No bio has been added for this team member yet.</p>
+                    <p className="mt-6 text-sm text-muted-foreground">No bio has been added for this team member yet.</p>
                   )}
                 </div>
               </div>

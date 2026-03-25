@@ -64,23 +64,23 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="pricing-heading"
     >
       <Container as="div" className="relative">
         <header className="mx-auto max-w-2xl text-center [animation:pricing-fade-in-up_0.6s_ease-out_both]">
           <h2
             id="pricing-heading"
-            className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
+            className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl"
           >
             {settings.sectionTitle || "We Offer Great Affordable Premium Prices."}
           </h2>
           {settings.sectionDescription ? (
-            <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+            <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
               {settings.sectionDescription}
             </p>
           ) : (
-            <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">
+            <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
               It is a long established fact that a reader will be distracted by
               the readable content of a page when looking at its layout. The point
               of using.
@@ -88,7 +88,7 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
           )}
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
-            <span className={`text-sm font-medium ${!billingAnnual ? "text-gray-700" : "text-gray-500"}`}>
+            <span className={`text-sm font-medium ${!billingAnnual ? "text-foreground" : "text-muted-foreground"}`}>
               Bill Monthly
             </span>
             <button
@@ -96,14 +96,14 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
               role="switch"
               aria-checked={billingAnnual}
               onClick={() => setBillingAnnual((v) => !v)}
-              className="relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-gray-200 px-1 transition-colors duration-300 sm:h-9 sm:w-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-muted-foreground/20 px-1 transition-colors duration-300 sm:h-9 sm:w-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-background"
             >
               <span
                 className="block size-6 rounded-full bg-blue-600 shadow-sm transition-transform duration-300 ease-out sm:size-7"
                 style={{ transform: billingAnnual ? "translateX(calc(100% + 2px))" : "translateX(0)" }}
               />
             </button>
-            <span className={`text-sm font-medium ${billingAnnual ? "text-gray-700" : "text-gray-500"}`}>
+            <span className={`text-sm font-medium ${billingAnnual ? "text-foreground" : "text-muted-foreground"}`}>
               Bill Annually
             </span>
           </div>
@@ -124,9 +124,9 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
             return (
               <li
                 key={plan._id}
-                className={`flex flex-col rounded-3xl bg-white p-8 shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg sm:p-10 ${
+                className={`flex flex-col rounded-3xl border border-border/60 bg-card p-8 shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg sm:p-10 ${
                   plan.featured
-                    ? "ring-2 ring-blue-500/20 ring-offset-4 ring-offset-[#fafafa] md:ring-2"
+                    ? "ring-2 ring-blue-500/30 ring-offset-4 ring-offset-muted md:ring-2"
                     : ""
                 }`}
                 style={{
@@ -134,17 +134,17 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
                   animationDelay: `${120 + index * 80}ms`,
                 }}
               >
-                <h3 className="text-xl font-semibold text-[#0f172a]">
+                <h3 className="text-xl font-semibold text-foreground">
                   {plan.name}
                 </h3>
                 <p className="mt-4 flex items-baseline gap-1">
-                  <span className="text-3xl font-semibold tracking-tight text-[#0f172a] sm:text-4xl">
+                  <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     ${formatPlanPriceForDisplay(price)}
                   </span>
-                  <span className="text-sm text-gray-500">/{periodLabel}</span>
+                  <span className="text-sm text-muted-foreground">/{periodLabel}</span>
                 </p>
                 {plan.subtext ? (
-                  <p className="mt-1 text-xs text-gray-500">{plan.subtext}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{plan.subtext}</p>
                 ) : null}
                 {plan.ctaLink ? (
                   <Link href={plan.ctaLink} className={ctaClass}>
@@ -153,18 +153,18 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
                 ) : (
                   <span className={ctaClass}>{plan.ctaText}</span>
                 )}
-                <ul className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-8 sm:mt-10">
+                <ul className="mt-8 flex flex-col gap-3 border-t border-border pt-8 sm:mt-10">
                   {(plan.features && plan.features.length > 0
                     ? plan.features
                     : ["400 GB Storage", "Unlimited Photos & Videos", "Exclusive Support"]
                   ).map((feature) => (
-                    <li key={feature} className="text-sm text-gray-600">
+                    <li key={feature} className="text-sm text-muted-foreground">
                       {feature}
                     </li>
                   ))}
                 </ul>
                 {plan.footnote ? (
-                  <p className="mt-6 text-center text-xs text-gray-500 sm:mt-8">
+                  <p className="mt-6 text-center text-xs text-muted-foreground sm:mt-8">
                     {plan.footnote}
                   </p>
                 ) : null}

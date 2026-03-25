@@ -78,7 +78,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
   );
 
   return (
-    <footer className="rounded-t-2xl bg-gray-100 sm:rounded-t-3xl">
+    <footer className="rounded-t-2xl bg-muted sm:rounded-t-3xl">
       <Container as="div" className="pt-12 sm:pt-14 lg:pt-16">
         {/* Top footer: 5 columns */}
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:gap-8 lg:grid-cols-5 lg:gap-10">
@@ -88,9 +88,9 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
                 <Zap className="size-5" />
               </span>
-              <span className="text-lg font-semibold text-[#0f172a]">{brand}</span>
+              <span className="text-lg font-semibold text-foreground dark:text-white">{brand}</span>
             </Link>
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-muted-foreground">
               {description}
             </p>
             <div className="mt-5 flex gap-3" aria-label="Social links">
@@ -98,7 +98,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
                 <a
                   key={label}
                   href={href}
-                  className="flex size-9 items-center justify-center rounded-full bg-gray-200/80 text-gray-600 transition-colors hover:bg-gray-300 hover:text-gray-900"
+                  className="flex size-9 items-center justify-center rounded-full bg-muted-foreground/15 text-muted-foreground transition-colors hover:bg-muted-foreground/25 hover:text-foreground"
                   aria-label={label}
                 >
                   <Icon className="size-4" />
@@ -109,7 +109,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
 
           {/* Column 2: Quick Links */}
           <nav aria-labelledby="footer-quick-links">
-            <h3 id="footer-quick-links" className="text-sm font-semibold uppercase tracking-wider text-[#0f172a]">
+            <h3 id="footer-quick-links" className="text-sm font-semibold uppercase tracking-wider text-foreground">
               Quick Links
             </h3>
             <ul className="mt-4 flex flex-col gap-3">
@@ -117,7 +117,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
                 <li key={href + label}>
                   <Link
                     href={href}
-                    className="inline-flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-gray-900"
+                    className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {label}
                     {badge && (
@@ -133,7 +133,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
 
           {/* Column 3: Services */}
           <nav aria-labelledby="footer-services">
-            <h3 id="footer-services" className="text-sm font-semibold uppercase tracking-wider text-[#0f172a]">
+            <h3 id="footer-services" className="text-sm font-semibold uppercase tracking-wider text-foreground">
               Services
             </h3>
             <ul className="mt-4 flex flex-col gap-3">
@@ -141,7 +141,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
                 <li key={label}>
                   <Link
                     href={href}
-                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {label}
                   </Link>
@@ -152,7 +152,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
 
           {/* Column 4: Support */}
           <nav aria-labelledby="footer-support">
-            <h3 id="footer-support" className="text-sm font-semibold uppercase tracking-wider text-[#0f172a]">
+            <h3 id="footer-support" className="text-sm font-semibold uppercase tracking-wider text-foreground">
               Support
             </h3>
             <ul className="mt-4 flex flex-col gap-3">
@@ -160,7 +160,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
                 <li key={label + href}>
                   <Link
                     href={href}
-                    className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {label}
                   </Link>
@@ -171,18 +171,18 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
 
           {/* Column 5: Newsletter */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 id="footer-newsletter" className="text-sm font-semibold uppercase tracking-wider text-[#0f172a]">
+            <h3 id="footer-newsletter" className="text-sm font-semibold uppercase tracking-wider text-foreground">
               Newsletter
             </h3>
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-muted-foreground">
               Subscribe to receive future updates
             </p>
-            <div className="mt-4 flex gap-0 overflow-hidden rounded-full border border-gray-200 bg-white shadow-sm">
+            <div className="mt-4 flex gap-0 overflow-hidden rounded-full border border-border bg-card shadow-sm">
               <input
                 type="email"
                 placeholder="Email address"
                 aria-label="Email for newsletter"
-                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none sm:px-5"
+                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none sm:px-5"
               />
               <button
                 type="button"
@@ -196,30 +196,30 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
         </div>
 
         {/* Bottom footer */}
-        <div className="mt-12 border-t border-gray-200/80 py-6 sm:mt-14 lg:mt-16">
+        <div className="mt-12 border-t border-border py-6 sm:mt-14 lg:mt-16">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <nav aria-label="Footer legal and locale">
-              <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm text-gray-600">
+              <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
                 <li>
-                  <Link href="#" className="transition-colors hover:text-gray-900">
+                  <Link href="#" className="transition-colors hover:text-foreground">
                     English
                   </Link>
                 </li>
                 <li>
-                  <Link href={privacyHref} className="transition-colors hover:text-gray-900">
+                  <Link href={privacyHref} className="transition-colors hover:text-foreground">
                     Privacy Policy
                   </Link>
                 </li>
                 {v.featuresHighlights === true && (
                   <li>
-                    <Link href="/#support" className="transition-colors hover:text-gray-900">
+                    <Link href="/#support" className="transition-colors hover:text-foreground">
                       Support
                     </Link>
                   </li>
                 )}
               </ul>
             </nav>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} {brand}. All rights reserved
             </p>
           </div>

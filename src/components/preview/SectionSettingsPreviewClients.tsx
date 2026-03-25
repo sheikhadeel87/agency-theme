@@ -120,19 +120,19 @@ export function PricingSectionPreviewClient({ siteSettings, dynamicPages }: Shel
   return (
     <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
       <section
-        className="relative overflow-hidden bg-[#fafafa] py-16 sm:py-20 lg:py-24"
+        className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
         aria-labelledby="pricing-section-preview-heading"
       >
         <Container as="div" className="relative">
           <header className="mx-auto max-w-2xl text-center">
             <h2
               id="pricing-section-preview-heading"
-              className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl"
+              className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl"
             >
               {data.sectionTitle || "We Offer Great Affordable Premium Prices."}
             </h2>
             {data.sectionDescription ? (
-              <p className="mt-4 text-gray-600 sm:mt-6 sm:text-lg">{data.sectionDescription}</p>
+              <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">{data.sectionDescription}</p>
             ) : null}
           </header>
           <p className="mx-auto mt-10 max-w-lg text-center text-sm text-gray-500">

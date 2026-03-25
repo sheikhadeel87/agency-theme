@@ -55,7 +55,7 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
 
   if (state === "pending") {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-gray-600">
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Loading preview…
       </div>
     );
@@ -79,7 +79,7 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
 
   return (
     <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-background">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div">
             <Link
@@ -91,16 +91,16 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
 
             <div className="mx-auto w-full max-w-3xl">
               <header className="mb-8">
-                <h1 className="text-3xl font-semibold leading-tight text-[#0f172a] sm:text-4xl lg:text-5xl">
+                <h1 className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl lg:text-5xl">
                   {project.title?.trim() || "Untitled Project"}
                 </h1>
                 {project.client?.trim() && (
-                  <p className="mt-2 text-lg text-gray-600">Client: {project.client}</p>
+                  <p className="mt-2 text-lg text-muted-foreground">Client: {project.client}</p>
                 )}
                 {categories.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {categories.map((c) => (
-                      <span key={c} className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                      <span key={c} className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground">
                         {c}
                       </span>
                     ))}
@@ -108,7 +108,7 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
                 )}
               </header>
 
-              <div className="relative mb-10 h-[min(32vh,260px)] w-full overflow-hidden rounded-2xl bg-gray-100 sm:h-[min(36vh,300px)] sm:rounded-3xl md:h-[min(38vh,340px)]">
+              <div className="relative mb-10 h-[min(32vh,260px)] w-full overflow-hidden rounded-2xl bg-muted sm:h-[min(36vh,300px)] sm:rounded-3xl md:h-[min(38vh,340px)]">
                 <Image
                   src={heroImageSrc}
                   alt={project.title || "Project"}
@@ -121,16 +121,16 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
               </div>
 
               {project.shortDescription?.trim() && (
-                <p className="mb-8 text-lg text-gray-600">{project.shortDescription}</p>
+                <p className="mb-8 text-lg text-muted-foreground">{project.shortDescription}</p>
               )}
             </div>
 
             {full && (
-              <div className="prose prose-gray mx-auto mb-10 max-w-3xl">
+              <div className="prose prose-neutral mx-auto mb-10 max-w-3xl dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400">
                 {looksLikeHtml(full) ? (
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: full }} />
+                  <div className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: full }} />
                 ) : (
-                  <div className="whitespace-pre-wrap text-gray-700">{full}</div>
+                  <div className="whitespace-pre-wrap text-muted-foreground">{full}</div>
                 )}
               </div>
             )}
@@ -138,12 +138,12 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
             <div className="mx-auto max-w-3xl">
               {tech.length > 0 && (
                 <div className="mb-10">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Technology</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Technology</h2>
                   <ul className="mt-2 flex flex-wrap gap-2">
                     {tech.map((t) => (
                       <li
                         key={t}
-                        className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm"
+                        className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-foreground"
                       >
                         {t}
                       </li>
@@ -167,10 +167,10 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
 
               {gallery.length > 0 && (
                 <section className="pb-4">
-                  <h2 className="mb-6 text-xl font-semibold text-[#0f172a]">Gallery</h2>
+                  <h2 className="mb-6 text-xl font-semibold text-foreground">Gallery</h2>
                   <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {gallery.map((url, i) => (
-                      <li key={i} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
+                      <li key={i} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
                         <Image
                           src={url}
                           alt={`Gallery ${i + 1}`}

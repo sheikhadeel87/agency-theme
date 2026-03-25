@@ -1,11 +1,11 @@
 "use client";
 
 import { Menu, Search } from "lucide-react";
+import { ThemeToggle } from "@/components/theme";
 import { AdminLogoutButton } from "./AdminLogoutButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 
 interface AdminTopbarProps {
   title: string;
@@ -30,6 +30,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
         {title}
       </h2>
       <div className="flex flex-1 items-center justify-end gap-2">
+        <ThemeToggle />
         <div className="hidden max-w-md flex-1 sm:block">
           <label htmlFor="admin-search" className="sr-only">
             Search

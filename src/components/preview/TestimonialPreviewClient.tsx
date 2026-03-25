@@ -80,7 +80,7 @@ export function TestimonialPreviewClient({ siteSettings, dynamicPages }: Shell) 
       <section className="bg-[#fafafa] py-16 sm:py-20 lg:py-24" aria-label="Testimonial preview">
         <Container as="div">
           <header className="mx-auto max-w-2xl text-center">
-            <h1 className="text-2xl font-semibold leading-tight text-[#0f172a] sm:text-3xl lg:text-4xl">
+            <h1 className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl">
               Client&apos;s Testimonials
             </h1>
           </header>

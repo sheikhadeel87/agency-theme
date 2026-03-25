@@ -47,18 +47,18 @@ export default async function TermsConditionsPage() {
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
       />
-      <main className="bg-white py-16 sm:py-20 lg:py-24">
+      <main className="bg-background py-16 sm:py-20 lg:py-24">
         <Container>
           <div className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-semibold text-[#0f172a] sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-semibold text-foreground sm:text-4xl lg:text-5xl">
               Terms & Conditions
             </h1>
 
-            <p className="mt-4 text-gray-600">Last updated: {lastUpdated}</p>
+            <p className="mt-4 text-muted-foreground">Last updated: {lastUpdated}</p>
 
             {customHtml ? (
               <div
-                className="prose prose-gray mt-10 max-w-none prose-p:text-gray-700 prose-headings:text-[#0f172a] prose-a:text-blue-600 prose-ul:list-disc prose-ol:list-decimal"
+                className="prose prose-neutral mt-10 max-w-none dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-ul:list-disc prose-ol:list-decimal"
                 dangerouslySetInnerHTML={{ __html: customHtml }}
               />
             ) : (
