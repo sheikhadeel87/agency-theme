@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist_Mono, Montserrat } from "next/font/google";
 import { ThemeProvider } from "@/components/theme";
+import { TrackPageVisit } from "@/components/analytics/TrackPageVisit";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -31,7 +33,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={montserrat.variable} suppressHydrationWarning>
       <body className={`${geistMono.variable} antialiased`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <Suspense fallback={null}>
+            <TrackPageVisit />
+          </Suspense>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

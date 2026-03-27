@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { SiteSettingsData } from "@/lib/admin-data";
-import { sendContactMessage } from "@/lib/actions/contact-form-actions";
 
 const DEFAULT_MAP_EMBED =
   "https://maps.google.com/maps?q=Lahore%20Pakistan&t=&z=13&ie=UTF8&iwloc=&output=embed";
@@ -14,7 +13,7 @@ export type ContactSectionProps = {
 };
 
 export function ContactSection({ siteSettings }: ContactSectionProps) {
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
 
@@ -32,22 +31,45 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
         ? "grid-cols-1 sm:grid-cols-2 sm:max-w-3xl sm:mx-auto"
         : "grid-cols-1 sm:grid-cols-3";
 
-  function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
     setFormSuccess(false);
     const form = e.currentTarget;
-    const formData = new FormData(form);
+    const fd = new FormData(form);
 
-    startTransition(async () => {
-      const result = await sendContactMessage(formData);
-      if (result.error) {
-        setFormError(result.error);
+    const payload = {
+      fullName: String(fd.get("fullName") ?? "").trim(),
+      email: String(fd.get("email") ?? "").trim(),
+      phone: String(fd.get("phone") ?? "").trim(),
+      subject: String(fd.get("subject") ?? "").trim(),
+      message: String(fd.get("message") ?? "").trim(),
+    };
+
+    setPending(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+      };
+
+      if (!res.ok || !data.ok) {
+        setFormError(data.error || "Something went wrong. Please try again.");
         return;
       }
+
       setFormSuccess(true);
       form.reset();
-    });
+    } catch {
+      setFormError("Network error. Please check your connection and try again.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -162,7 +184,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                   <span className="text-sm font-medium text-foreground">Full name</span>
                   <input
                     type="text"
-                    name="name"
+                    name="fullName"
                     required
                     autoComplete="name"
                     placeholder="M.Adeel"
@@ -228,8 +250,8 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                 </p>
               )}
               {formSuccess && (
-                <p className="text-sm text-green-700" role="status">
-                  Thanks — your message was sent. We&apos;ll get back to you soon.
+                <p className="text-sm text-green-600 dark:text-green-400" role="status">
+                  Thanks — your message was received. We&apos;ll get back to you soon.
                 </p>
               )}
 

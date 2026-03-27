@@ -16,7 +16,19 @@ export function cmsEnabled(value: unknown): boolean {
 export type DashboardModule = {
   title: string;
   href: string;
-  icon: "Settings" | "Home" | "Briefcase" | "ImageIcon" | "Users" | "FileText" | "FileStack" | "Scale" | "MapPin" | "DollarSign";
+  icon:
+    | "Settings"
+    | "Home"
+    | "Briefcase"
+    | "ImageIcon"
+    | "Users"
+    | "FileText"
+    | "FileStack"
+    | "Scale"
+    | "MapPin"
+    | "DollarSign"
+    | "Inbox"
+    | "BarChart3";
 };
 
 export type ServiceItem = {
@@ -242,6 +254,7 @@ export type LegalPageContentData = {
 /** Dashboard: list of admin modules (no DB yet) */
 export async function getDashboardModules(): Promise<DashboardModule[]> {
   return [
+    { title: "Analytics", href: "/admin/analytics", icon: "BarChart3" },
     { title: "Site Settings", href: "/admin/site-settings", icon: "Settings" },
     { title: "Homepage", href: "/admin/homepage", icon: "Home" },
     { title: "Services", href: "/admin/services", icon: "Briefcase" },
@@ -249,6 +262,7 @@ export async function getDashboardModules(): Promise<DashboardModule[]> {
     { title: "Team", href: "/admin/team", icon: "Users" },
     { title: "Blog", href: "/admin/blog", icon: "FileText" },
     { title: "Contact & Map", href: "/admin/contact", icon: "MapPin" },
+    { title: "Contact messages", href: "/admin/contact-messages", icon: "Inbox" },
     { title: "Pricing", href: "/admin/pricing", icon: "DollarSign" },
     { title: "Pages", href: "/admin/pages", icon: "FileStack" },
     { title: "Legal", href: "/admin/legal", icon: "Scale" },

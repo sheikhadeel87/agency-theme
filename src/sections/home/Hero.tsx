@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { TrackedContactLink } from "@/components/analytics/TrackedContactLink";
 import { Container } from "@/components/ui/Container";
 import type { HeroData } from "@/lib/admin-data";
 
@@ -25,6 +26,8 @@ export function Hero({ heroData }: HeroProps) {
   const phoneText = heroData?.phoneText?.trim() || DEFAULTS.phoneText;
   const badgeText = heroData?.badgeText?.trim() || DEFAULTS.badgeText;
   const showPhoneBlock = phoneText || badgeText;
+  const ctaIsContact = ctaLink.toLowerCase().includes("#contact");
+  const CtaComp = ctaIsContact ? TrackedContactLink : Link;
 
   return (
     <section
@@ -45,12 +48,12 @@ export function Hero({ heroData }: HeroProps) {
               {description}
             </p>
             <div className="mt-8 flex flex-col gap-6 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-8">
-              <Link
+              <CtaComp
                 href={ctaLink}
                 className="inline-flex w-fit rounded-full bg-blue-600 px-6 py-3.5 text-base font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 {ctaText}
-              </Link>
+              </CtaComp>
               {showPhoneBlock && (
                 <div className="border-l-2 border-border pl-5 sm:pl-6">
                   {phoneText && (
