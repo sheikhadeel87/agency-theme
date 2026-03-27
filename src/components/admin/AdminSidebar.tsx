@@ -8,9 +8,14 @@ import { cn } from "@/lib/utils";
 interface AdminSidebarProps {
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
+  newContactMessageCount?: number;
 }
 
-export function AdminSidebar({ mobileOpen, setMobileOpen }: AdminSidebarProps) {
+export function AdminSidebar({
+  mobileOpen,
+  setMobileOpen,
+  newContactMessageCount = 0,
+}: AdminSidebarProps) {
   return (
     <>
       {/* Desktop: fixed sidebar */}

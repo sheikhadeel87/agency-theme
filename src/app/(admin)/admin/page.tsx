@@ -9,6 +9,8 @@ import {
   Scale,
   MapPin,
   DollarSign,
+  Inbox,
+  BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
@@ -25,6 +27,8 @@ const iconMap: Record<string, LucideIcon> = {
   Scale,
   MapPin,
   DollarSign,
+  Inbox,
+  BarChart3,
 };
 
 export default async function AdminDashboardPage() {

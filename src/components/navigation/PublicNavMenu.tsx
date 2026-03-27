@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { publicNavEntryKey, type PublicNavEntry } from "@/lib/navigation";
+import { FUNNEL_EVENTS, trackEvent } from "@/lib/track-event";
 import { cn } from "@/lib/utils";
+
+function isContactHashHref(href: string): boolean {
+  return href.toLowerCase().includes("#contact");
+}
 
 const navListClass =
   "flex flex-col gap-1 px-4 py-4 md:flex-row md:items-center md:gap-8 md:px-0 md:py-0";
@@ -78,7 +83,14 @@ export function PublicNavMenu({
           if (entry.type === "link") {
             return (
               <li key={key}>
-                <Link href={entry.href} className={navLinkClass} onClick={handleActivate}>
+                <Link
+                  href={entry.href}
+                  className={navLinkClass}
+                  onClick={() => {
+                    if (isContactHashHref(entry.href)) trackEvent(FUNNEL_EVENTS.clickContact);
+                    handleActivate();
+                  }}
+                >
                   {entry.label}
                 </Link>
               </li>
@@ -113,6 +125,7 @@ export function PublicNavMenu({
                         role="menuitem"
                         className={dropdownItemClass}
                         onClick={() => {
+                          if (isContactHashHref(item.href)) trackEvent(FUNNEL_EVENTS.clickContact);
                           setOpenDropdownIndex(null);
                           handleActivate();
                         }}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Zap, Facebook, Twitter, Linkedin, Instagram, SendHorizontal } from "lucide-react";
+import { TrackedContactLink } from "@/components/analytics/TrackedContactLink";
 import { Container } from "@/components/ui/Container";
 import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
 
@@ -156,16 +157,24 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
               Support
             </h3>
             <ul className="mt-4 flex flex-col gap-3">
-              {support.map(({ label, href }) => (
-                <li key={label + href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
+              {support.map(({ label, href }) => {
+                const linkClass =
+                  "text-sm text-muted-foreground transition-colors hover:text-foreground";
+                const isContact = href.toLowerCase().includes("#contact");
+                return (
+                  <li key={label + href}>
+                    {isContact ? (
+                      <TrackedContactLink href={href} className={linkClass}>
+                        {label}
+                      </TrackedContactLink>
+                    ) : (
+                      <Link href={href} className={linkClass}>
+                        {label}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
