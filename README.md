@@ -63,3 +63,17 @@ Open [http://localhost:3000](http://localhost:3000).
 | `src/models/` | Mongoose schemas |
 | `src/lib/` | DB connection, server actions, helpers, navigation |
 | `src/middleware.ts` | Protects `/admin` routes |
+
+## Newsletter API
+
+`POST /api/newsletter/subscribe` — JSON body `{ "email": "user@example.com" }`. Validates email, deduplicates by email, rate-limits by client IP (8 requests / 15 min / IP, in-memory). Responses are JSON with `success` and `message`; HTTP **201** (new), **409** (already subscribed), **400** (validation), **429** (rate limit), **500** (server).
+
+```bash
+curl -s -X POST http://localhost:3000/api/newsletter/subscribe \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com"}'
+```
+
+Implementation: `src/models/Newsletter.ts`, `src/controllers/newsletter-controller.ts` (`subscribeNewsletter`, `checkNewsletterSubscription`), `src/app/api/newsletter/subscribe/route.ts`, optional **`GET /api/newsletter/check?email=`** (debounced in the footer for “already subscribed” UX; rate-limited separately).
+
+For a standalone **Express** app, reuse the same Mongoose model and validation logic from the controller, or forward requests to this Next route with `fetch`.

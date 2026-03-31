@@ -10,6 +10,7 @@ import {
   MapPin,
   DollarSign,
   Inbox,
+  Mail,
   BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -28,6 +29,7 @@ const iconMap: Record<string, LucideIcon> = {
   MapPin,
   DollarSign,
   Inbox,
+  Mail,
   BarChart3,
 };
 

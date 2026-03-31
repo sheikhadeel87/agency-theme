@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Zap, Facebook, Twitter, Linkedin, Instagram, SendHorizontal } from "lucide-react";
+import { Zap, Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 import { TrackedContactLink } from "@/components/analytics/TrackedContactLink";
+import { NewsletterSubscribe } from "@/components/layout/NewsletterSubscribe";
 import { Container } from "@/components/ui/Container";
 import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
 
@@ -186,21 +187,7 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
             <p className="mt-4 text-sm text-muted-foreground">
               Subscribe to receive future updates
             </p>
-            <div className="mt-4 flex gap-0 overflow-hidden rounded-full border border-border bg-card shadow-sm">
-              <input
-                type="email"
-                placeholder="Email address"
-                aria-label="Email for newsletter"
-                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none sm:px-5"
-              />
-              <button
-                type="button"
-                className="flex shrink-0 items-center justify-center bg-blue-600 px-4 text-white transition-colors hover:bg-blue-700 sm:px-5"
-                aria-label="Subscribe"
-              >
-                <SendHorizontal className="size-5" />
-              </button>
-            </div>
+            <NewsletterSubscribe />
           </div>
         </div>
 
