@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import { dbConnect } from "@/lib/db";
+import { looksLikeHtml, stripHtmlToText } from "@/lib/html-to-text";
+import { createMailTransporter, getMailFromUser } from "@/lib/mail-transport";
 import { getClientIp } from "@/lib/geo-ip";
+import { normalizeNewsletterEmail } from "@/lib/newsletter-email";
+import { newsletterSubscribeEmailMiddleware } from "@/lib/newsletter-subscribe-email-middleware";
 import { isNewsletterCheckRateLimited, isNewsletterSubscribeRateLimited } from "@/lib/newsletter-rate-limit";
 import { Newsletter } from "@/models/Newsletter";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type SubscribeNewsletterSuccess = {
   status: 201;
@@ -17,7 +19,7 @@ export type SubscribeNewsletterDuplicate = {
 };
 
 export type SubscribeNewsletterError = {
-  status: 400 | 429 | 500;
+  status: 400 | 429 | 500 | 503;
   body: { success: false; message: string };
 };
 
@@ -30,16 +32,8 @@ function clientKeyFromRequest(request: Request): string {
   return getClientIp(request.headers) ?? "unknown";
 }
 
-function normalizeEmail(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const email = raw.trim().toLowerCase();
-  if (!email || email.length > 320) return null;
-  if (!EMAIL_RE.test(email)) return null;
-  return email;
-}
-
 /**
- * Validates email, applies rate limit, persists new subscriber or reports duplicate.
+ * Validates email (regex + length), applies rate limit, persists new subscriber or reports duplicate.
  */
 export async function subscribeNewsletter(request: Request): Promise<SubscribeNewsletterResult> {
   const key = clientKeyFromRequest(request);
@@ -61,11 +55,21 @@ export async function subscribeNewsletter(request: Request): Promise<SubscribeNe
   }
 
   const body = payload as { email?: unknown };
-  const email = normalizeEmail(body?.email);
+  const email = normalizeNewsletterEmail(body?.email);
   if (!email) {
     return {
       status: 400,
-      body: { success: false, message: "A valid email address is required." },
+      body: { success: false, message: "Invalid email" },
+    };
+  }
+
+  const domainCheck = await newsletterSubscribeEmailMiddleware(email);
+  if (!domainCheck.ok) {
+    const status: SubscribeNewsletterError["status"] =
+      domainCheck.httpStatus === 503 ? 503 : 400;
+    return {
+      status,
+      body: { success: false, message: domainCheck.message },
     };
   }
 
@@ -85,6 +89,12 @@ export async function subscribeNewsletter(request: Request): Promise<SubscribeNe
       body: { success: true, message: "You are subscribed. Thank you!" },
     };
   } catch (e: unknown) {
+    if (e instanceof mongoose.Error.ValidationError) {
+      return {
+        status: 400,
+        body: { success: false, message: "Invalid email" },
+      };
+    }
     const code = e && typeof e === "object" && "code" in e ? (e as { code?: number }).code : undefined;
     if (code === 11000) {
       return {
@@ -115,9 +125,9 @@ export async function checkNewsletterSubscription(request: Request): Promise<Che
   }
 
   const url = new URL(request.url);
-  const email = normalizeEmail(url.searchParams.get("email"));
+  const email = normalizeNewsletterEmail(url.searchParams.get("email"));
   if (!email) {
-    return { status: 400, body: { success: false, message: "Invalid or missing email." } };
+    return { status: 400, body: { success: false, message: "Invalid email" } };
   }
 
   try {
@@ -171,4 +181,130 @@ export async function deleteNewsletterSubscriberForAdmin(
     console.error("deleteNewsletterSubscriberForAdmin:", e);
     return { ok: false, message: "Could not delete subscriber." };
   }
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Strip scripts / inline handlers from admin HTML before emailing. */
+function sanitizeNewsletterHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+}
+
+/**
+ * Sends one message per subscriber (sequential). Invalid addresses are skipped and counted as failed.
+ * If `explicitEmails` is omitted, uses every address in the Newsletter collection.
+ * If provided, only sends to those that exist in the DB (prevents arbitrary recipients).
+ */
+export async function sendNewsletterBroadcast(
+  subjectRaw: string,
+  messageRaw: string,
+  explicitEmails: string[] | undefined
+): Promise<{ ok: true; sent: number; failed: number } | { ok: false; message: string }> {
+  const subject = subjectRaw.trim();
+  const rawMessage = messageRaw.trim();
+  if (!subject || !rawMessage) {
+    return { ok: false, message: "Subject and message are required." };
+  }
+  if (subject.length > 300) {
+    return { ok: false, message: "Subject is too long." };
+  }
+  if (rawMessage.length > 50_000) {
+    return { ok: false, message: "Message is too long." };
+  }
+
+  const textBody = looksLikeHtml(rawMessage) ? stripHtmlToText(rawMessage) : rawMessage;
+  if (!textBody) {
+    return { ok: false, message: "Message cannot be empty." };
+  }
+
+  const smtpUser = getMailFromUser();
+  const transporter = createMailTransporter();
+  if (!smtpUser || !transporter) {
+    return { ok: false, message: "Email (SMTP) is not configured." };
+  }
+
+  await dbConnect();
+
+  let rawList: string[];
+  if (explicitEmails === undefined) {
+    const docs = await Newsletter.find({}).select("email").lean();
+    rawList = docs.map((d) => d.email);
+    if (rawList.length === 0) {
+      return { ok: false, message: "No subscribers to send to." };
+    }
+  } else {
+    if (explicitEmails.length === 0) {
+      return {
+        ok: false,
+        message: "Select at least one subscriber, or omit the list to send to everyone.",
+      };
+    }
+    const normalized = [
+      ...new Set(
+        explicitEmails
+          .map((e) => normalizeNewsletterEmail(e))
+          .filter((e): e is string => e !== null)
+      ),
+    ];
+    if (normalized.length === 0) {
+      return { ok: false, message: "No valid email addresses in selection." };
+    }
+    const inDb = await Newsletter.find({ email: { $in: normalized } })
+      .select("email")
+      .lean();
+    const allowed = new Set(inDb.map((d) => d.email));
+    rawList = normalized.filter((e) => allowed.has(e));
+    if (rawList.length === 0) {
+      return { ok: false, message: "None of the selected addresses are subscribed." };
+    }
+  }
+
+  const recipients: string[] = [];
+  let failedCount = 0;
+  const seen = new Set<string>();
+  for (const raw of rawList) {
+    const addr = normalizeNewsletterEmail(raw);
+    if (!addr) {
+      failedCount++;
+      continue;
+    }
+    if (seen.has(addr)) continue;
+    seen.add(addr);
+    recipients.push(addr);
+  }
+
+  if (recipients.length === 0) {
+    return { ok: false, message: "No valid recipients to send to." };
+  }
+
+  const html = looksLikeHtml(rawMessage)
+    ? `<div style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;font-size:15px;color:#1f2937;">${sanitizeNewsletterHtml(rawMessage)}</div>`
+    : `<pre style="font-family:system-ui,sans-serif;white-space:pre-wrap">${escapeHtml(rawMessage)}</pre>`;
+
+  let successCount = 0;
+  for (const to of recipients) {
+    try {
+      await transporter.sendMail({
+        from: `"Newsletter" <${smtpUser}>`,
+        to,
+        subject,
+        text: textBody,
+        html,
+      });
+      successCount++;
+    } catch (e) {
+      failedCount++;
+      console.error("sendNewsletterBroadcast:", to, e);
+    }
+  }
+
+  return { ok: true, sent: successCount, failed: failedCount };
 }

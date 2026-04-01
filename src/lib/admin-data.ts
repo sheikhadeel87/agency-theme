@@ -29,6 +29,7 @@ export type DashboardModule = {
     | "DollarSign"
     | "Inbox"
     | "Mail"
+    | "Send"
     | "BarChart3";
 };
 
@@ -265,6 +266,7 @@ export async function getDashboardModules(): Promise<DashboardModule[]> {
     { title: "Contact & Map", href: "/admin/contact", icon: "MapPin" },
     { title: "Contact messages", href: "/admin/contact-messages", icon: "Inbox" },
     { title: "Newsletter", href: "/admin/newsletter", icon: "Mail" },
+    { title: "Send newsletter", href: "/admin/newsletter/send", icon: "Send" },
     { title: "Pricing", href: "/admin/pricing", icon: "DollarSign" },
     { title: "Pages", href: "/admin/pages", icon: "FileStack" },
     { title: "Legal", href: "/admin/legal", icon: "Scale" },
