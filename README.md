@@ -64,9 +64,19 @@ Open [http://localhost:3000](http://localhost:3000).
 | `src/lib/` | DB connection, server actions, helpers, navigation |
 | `src/middleware.ts` | Protects `/admin` routes |
 
-## Newsletter API
+## Newsletter
 
-`POST /api/newsletter/subscribe` — JSON body `{ "email": "user@example.com" }`. Validates email, deduplicates by email, rate-limits by client IP (8 requests / 15 min / IP, in-memory). Responses are JSON with `success` and `message`; HTTP **201** (new), **409** (already subscribed), **400** (validation), **429** (rate limit), **500** (server).
+### Public subscribe API
+
+`POST /api/newsletter/subscribe` — JSON body `{ "email": "user@example.com" }`.
+
+**Validation (before saving to MongoDB):**
+
+- **Format:** `validator.isEmail` via `normalizeNewsletterEmail` in `src/lib/newsletter-email.ts` (same rule as the Mongoose schema validator on `Newsletter`).
+- **Disposable domains:** Blocked using the `disposable-email-domains` package (`src/lib/newsletter-subscribe-email-middleware.ts`).
+- **DNS:** `dns.resolveMx` (Node `dns.promises`) — the domain must have MX records or the request fails with a clear error (no row inserted). Transient DNS issues may return **503** with a retry message.
+
+Then: duplicate check, persist, rate limit by client IP (8 requests / 15 min / IP, in-memory). Responses are JSON with `success` and `message`; HTTP **201** (new), **409** (already subscribed), **400** (validation / disposable / no MX), **429** (rate limit), **503** (could not verify domain), **500** (server).
 
 ```bash
 curl -s -X POST http://localhost:3000/api/newsletter/subscribe \
@@ -74,6 +84,27 @@ curl -s -X POST http://localhost:3000/api/newsletter/subscribe \
   -d '{"email":"you@example.com"}'
 ```
 
-Implementation: `src/models/Newsletter.ts`, `src/controllers/newsletter-controller.ts` (`subscribeNewsletter`, `checkNewsletterSubscription`), `src/app/api/newsletter/subscribe/route.ts`, optional **`GET /api/newsletter/check?email=`** (debounced in the footer for “already subscribed” UX; rate-limited separately).
+**Optional:** `GET /api/newsletter/check?email=` — debounced in the footer for “already subscribed” UX; rate-limited separately.
 
-For a standalone **Express** app, reuse the same Mongoose model and validation logic from the controller, or forward requests to this Next route with `fetch`.
+### Admin (after login)
+
+| Area | Route / API |
+| ---- | ----------- |
+| Subscribers table | `/admin/newsletter` — `GET /api/admin/newsletter`, `DELETE /api/admin/newsletter/:id` (session or Bearer session token) |
+| Send newsletter | `/admin/newsletter/send` — `POST /api/newsletter/send` with JSON `{ subject, message, emails?: string[] }`. Sends with the shared SMTP transporter (`src/lib/mail-transport.ts`); one recipient per `sendMail`; response `{ success, sent, failed }` (SMTP failures and skipped-invalid counts; **bounces** from the provider later are not included). |
+
+### Files
+
+| Path | Role |
+| ---- | ---- |
+| `src/lib/newsletter-email.ts` | Format + length normalization |
+| `src/lib/newsletter-subscribe-email-middleware.ts` | Disposable list + `resolveMx` |
+| `src/controllers/newsletter-controller.ts` | Subscribe, check, admin list/delete, broadcast send |
+| `src/models/Newsletter.ts` | Email field + validation |
+| `src/app/api/newsletter/subscribe/route.ts` | Public subscribe |
+| `src/app/api/newsletter/check/route.ts` | Public check |
+| `src/app/api/newsletter/send/route.ts` | Admin send |
+| `src/app/api/admin/newsletter/` | Admin list + delete |
+
+**Note:** Regex alone cannot detect bad domains (e.g. no MX). Bounces after SMTP accepts are handled by your mail provider, not in-app counters.
+

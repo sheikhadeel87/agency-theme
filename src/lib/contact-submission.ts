@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
 import { dbConnect } from "@/lib/db";
+import { createMailTransporter, getMailFromUser } from "@/lib/mail-transport";
 import { FUNNEL_EVENTS } from "@/lib/track-event";
 import { AnalyticsEvent } from "@/models/AnalyticsEvent";
 import { ContactMessage } from "@/models/ContactMessage";
@@ -53,10 +53,10 @@ async function sendAdminNotification(
   payload: ContactSubmissionPayload,
   docId: string
 ): Promise<{ sent: boolean; error?: string }> {
-  const smtpUser = process.env.EMAIL_USER?.trim();
-  const smtpPass = process.env.EMAIL_PASS?.replace(/\s/g, "") ?? "";
+  const smtpUser = getMailFromUser();
+  const transporter = createMailTransporter();
 
-  if (!smtpUser || !smtpPass) {
+  if (!smtpUser || !transporter) {
     console.error(
       "contact submission: missing EMAIL_USER or EMAIL_PASS — message saved as",
       docId
@@ -66,10 +66,6 @@ async function sendAdminNotification(
 
   const to =
     process.env.CONTACT_NOTIFICATION_EMAIL?.trim() || DEFAULT_CONTACT_TO;
-
-  const host = process.env.SMTP_HOST?.trim() || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const secure = process.env.SMTP_SECURE === "false" ? false : port === 465;
 
   const { fullName, email, phone, subject, message } = payload;
 
@@ -91,13 +87,6 @@ async function sendAdminNotification(
     : `[Contact] Message from ${fullName}`;
 
   try {
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: { user: smtpUser, pass: smtpPass },
-    });
-
     await transporter.sendMail({
       from: `"Website contact" <${smtpUser}>`,
       to,

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { normalizeNewsletterEmail } from "@/lib/newsletter-email";
 
 export interface INewsletter {
   email: string;
@@ -14,6 +15,10 @@ const newsletterSchema = new mongoose.Schema<INewsletter>(
       lowercase: true,
       trim: true,
       maxlength: 320,
+      validate: {
+        validator: (v: string) => normalizeNewsletterEmail(v) !== null,
+        message: "Invalid email",
+      },
     },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
