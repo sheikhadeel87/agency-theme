@@ -106,5 +106,5 @@ curl -s -X POST http://localhost:3000/api/newsletter/subscribe \
 | `src/app/api/newsletter/send/route.ts` | Admin send |
 | `src/app/api/admin/newsletter/` | Admin list + delete |
 
-**Note:** Regex alone cannot detect bad domains (e.g. no MX). Bounces after SMTP accepts are handled by your mail provider, not in-app counters.
+
 

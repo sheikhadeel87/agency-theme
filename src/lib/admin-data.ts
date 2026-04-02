@@ -30,7 +30,8 @@ export type DashboardModule = {
     | "Inbox"
     | "Mail"
     | "Send"
-    | "BarChart3";
+    | "BarChart3"
+    | "Eye";
 };
 
 export type ServiceItem = {
@@ -257,6 +258,7 @@ export type LegalPageContentData = {
 export async function getDashboardModules(): Promise<DashboardModule[]> {
   return [
     { title: "Analytics", href: "/admin/analytics", icon: "BarChart3" },
+    { title: "Page visibility", href: "/admin/page-visibility", icon: "Eye" },
     { title: "Site Settings", href: "/admin/site-settings", icon: "Settings" },
     { title: "Homepage", href: "/admin/homepage", icon: "Home" },
     { title: "Services", href: "/admin/services", icon: "Briefcase" },
@@ -1266,6 +1268,11 @@ export async function getNavSectionVisibility(): Promise<NavSectionVisibility> {
 export async function isBlogSectionEnabled(): Promise<boolean> {
   const s = await getSiteSettings();
   return cmsEnabled(s?.blogSectionEnabled);
+}
+
+export async function isTeamSectionEnabled(): Promise<boolean> {
+  const t = await getTeamSettings();
+  return cmsEnabled(t.isEnabled);
 }
 
 export async function isPortfolioSectionEnabled(): Promise<boolean> {

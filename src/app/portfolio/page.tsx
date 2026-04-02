@@ -40,6 +40,7 @@ export default async function PortfolioArchivePage() {
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-muted">
         <div className="border-b border-border bg-background py-8 sm:py-10">

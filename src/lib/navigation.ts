@@ -37,7 +37,7 @@ export function getDefaultNavigation(): NavItem[] {
       order: 6,
       appendDynamicPages: true,
       children: [
-        navChild("Team", "/#team", 1),
+        navChild("Team", "/team", 1),
         navChild("Services", "/#services", 2),
         navChild("Portfolio", "/portfolio", 3),
         navChild("Blog", "/blog", 4),
@@ -136,6 +136,25 @@ function fixLegacyBlogHrefs(items: NavItem[]): NavItem[] {
   }));
 }
 
+/** Public nav “Team” should open the `/team` archive, not only `/#team` on the homepage. */
+function fixTeamHref(href: string): string {
+  const t = href.trim();
+  if (t === "/team" || t.startsWith("/team/")) return href;
+  if (t === "/#team" || t === "#team" || t === "team") return "/team";
+  return href;
+}
+
+function fixLegacyTeamHrefs(items: NavItem[]): NavItem[] {
+  return items.map((item) => ({
+    ...item,
+    href: fixTeamHref(item.href),
+    children: item.children?.map((c) => ({
+      ...c,
+      href: fixTeamHref(c.href),
+    })),
+  }));
+}
+
 function fixLegacyPortfolioListingHref(href: string): string {
   const t = href.trim();
   if (t === "/#portfolio" || t === "#portfolio") return "/portfolio";
@@ -154,7 +173,7 @@ function fixLegacyPortfolioListingHrefs(items: NavItem[]): NavItem[] {
 }
 
 function applyLegacyNavHrefFixes(items: NavItem[]): NavItem[] {
-  return fixLegacyBlogHrefs(fixLegacyPortfolioListingHrefs(items));
+  return fixLegacyTeamHrefs(fixLegacyBlogHrefs(fixLegacyPortfolioListingHrefs(items)));
 }
 
 function coerceNavChild(row: unknown, index: number): NavChildItem | null {

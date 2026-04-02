@@ -6,7 +6,7 @@ import { Zap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { SiteNavbar } from "@/components/layout/SiteNavbar";
 import { ThemeToggle } from "@/components/theme";
-import type { SiteSettingsData } from "@/lib/admin-data";
+import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
 
 function brandText(siteSettings: SiteSettingsData | null | undefined): string {
   if (!siteSettings) return "Nexora";
@@ -18,9 +18,11 @@ export type HeaderProps = {
   siteSettings?: SiteSettingsData | null;
   /** Passed through to `SiteNavbar` for `appendDynamicPages` dropdown items. */
   dynamicPages?: { title: string; slug: string }[];
+  /** When set, main nav hides links to disabled homepage sections (same rules as footer). */
+  navVisibility?: NavSectionVisibility;
 };
 
-export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
+export function Header({ siteSettings, dynamicPages = [], navVisibility }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const brand = brandText(siteSettings);
 
@@ -42,6 +44,7 @@ export function Header({ siteSettings, dynamicPages = [] }: HeaderProps) {
             <SiteNavbar
               dynamicPages={dynamicPages}
               fallbackNavigation={siteSettings?.navigation}
+              navVisibility={navVisibility}
               onNavigate={() => setMobileMenuOpen(false)}
               className={`absolute left-0 right-0 top-full border-b border-border bg-background md:static md:border-0 md:bg-transparent ${
                 mobileMenuOpen ? "block" : "hidden md:block"

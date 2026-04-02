@@ -13,6 +13,7 @@ import {
   Mail,
   Send,
   BarChart3,
+  Eye,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
@@ -33,6 +34,7 @@ const iconMap: Record<string, LucideIcon> = {
   Mail,
   Send,
   BarChart3,
+  Eye,
 };
 
 export default async function AdminDashboardPage() {

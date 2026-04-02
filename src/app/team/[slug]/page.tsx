@@ -11,6 +11,7 @@ import {
   getPublishedPages,
   getNavSectionVisibility,
 } from "@/lib/admin-data";
+import { HOMEPAGE_TEAM_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { hasMeaningfulHtmlContent } from "@/lib/html-utils";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
@@ -60,15 +61,16 @@ export default async function TeamMemberProfilePage({
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-muted">
         <article className="py-16 sm:py-20 lg:py-24">
           <Container as="div" className="max-w-3xl">
             <Link
-              href="/#team"
+              href={HOMEPAGE_TEAM_SECTION_HREF}
               className="mb-8 inline-block text-sm font-medium text-blue-600 hover:underline"
             >
-              ← Back to team
+              ← Back to team section
             </Link>
 
             <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:rounded-3xl">
