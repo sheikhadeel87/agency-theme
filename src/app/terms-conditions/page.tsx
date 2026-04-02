@@ -46,6 +46,7 @@ export default async function TermsConditionsPage() {
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="bg-background py-16 sm:py-20 lg:py-24">
         <Container>

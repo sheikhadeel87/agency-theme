@@ -21,6 +21,7 @@ const RESERVED_SLUGS = new Set([
   "privacy-policy",
   "terms-conditions",
   "api",
+  "team",
 ]);
 
 export async function generateMetadata({
@@ -63,6 +64,7 @@ export default async function DynamicPageRoute({
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-background py-16 sm:py-20 lg:py-24">
         <Container>

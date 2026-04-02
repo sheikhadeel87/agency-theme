@@ -175,6 +175,7 @@ export async function setHomepageSectionLiveEnabled(
     try {
       revalidatePath("/");
       revalidatePath("/admin/site-settings");
+      revalidatePath("/admin/page-visibility");
       if (module === "services") revalidatePath("/admin/services");
       if (module === "portfolio") revalidatePath("/admin/portfolio");
       if (module === "blog") {

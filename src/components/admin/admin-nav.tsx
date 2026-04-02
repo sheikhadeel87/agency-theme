@@ -21,6 +21,7 @@ import {
   Inbox,
   Mail,
   Send,
+  Eye,
 } from "lucide-react";
 import { getNewContactMessageCountAction } from "@/lib/actions/contact-message-actions";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ export const adminNavItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Site Settings", href: "/admin/site-settings", icon: Settings },
+  { label: "Page visibility", href: "/admin/page-visibility", icon: Eye },
   { label: "Homepage", href: "/admin/homepage", icon: Home },
   { label: "Why Choose Us", href: "/admin/why-choose-us", icon: ThumbsUp },
   { label: "Services", href: "/admin/services", icon: Briefcase },

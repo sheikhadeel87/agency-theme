@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { SiteSettingsData } from "@/lib/admin-data";
 
 const DEFAULT_MAP_EMBED =
   "https://maps.google.com/maps?q=Lahore%20Pakistan&t=&z=13&ie=UTF8&iwloc=&output=embed";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 export type ContactSectionProps = {
   siteSettings?: SiteSettingsData | null;
@@ -16,6 +19,9 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
   const [pending, setPending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
+  const turnstileEnabled = Boolean(TURNSTILE_SITE_KEY);
 
   const mapSrc =
     siteSettings?.mapEmbedUrl?.trim() || DEFAULT_MAP_EMBED;
@@ -44,7 +50,13 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
       phone: String(fd.get("phone") ?? "").trim(),
       subject: String(fd.get("subject") ?? "").trim(),
       message: String(fd.get("message") ?? "").trim(),
+      ...(turnstileEnabled && turnstileToken ? { turnstileToken } : {}),
     };
+
+    if (turnstileEnabled && !turnstileToken) {
+      setFormError("Please complete the security check.");
+      return;
+    }
 
     setPending(true);
     try {
@@ -60,11 +72,17 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
 
       if (!res.ok || !data.ok) {
         setFormError(data.error || "Something went wrong. Please try again.");
+        if (turnstileEnabled) {
+          setTurnstileToken(null);
+          turnstileRef.current?.reset();
+        }
         return;
       }
 
       setFormSuccess(true);
       form.reset();
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     } catch {
       setFormError("Network error. Please check your connection and try again.");
     } finally {
@@ -255,10 +273,20 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                 </p>
               )}
 
+              {turnstileEnabled ? (
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={setTurnstileToken}
+                  onExpire={() => setTurnstileToken(null)}
+                  onError={() => setTurnstileToken(null)}
+                />
+              ) : null}
+
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={pending}
+                  disabled={pending || (turnstileEnabled && !turnstileToken)}
                   className="inline-flex rounded-full bg-blue-600 px-8 py-3.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60"
                 >
                   {pending ? "Sending…" : "Send Message"}

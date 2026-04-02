@@ -44,6 +44,7 @@ export default async function PricingPage() {
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main>
         <PricingSection settings={settings} plans={plans} />

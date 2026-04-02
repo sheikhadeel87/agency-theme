@@ -75,6 +75,7 @@ export default async function BlogPostPage({
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main className="min-h-screen bg-background">
         <article className="py-16 sm:py-20 lg:py-24">

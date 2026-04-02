@@ -80,6 +80,7 @@ export default async function Home() {
       <Header
         siteSettings={siteSettings}
         dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
+        navVisibility={navVisibility}
       />
       <main>
         {show.hero === true ? <Hero heroData={hero} /> : null}
