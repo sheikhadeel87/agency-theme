@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { TeamSettings } from "@/models/TeamSettings";
 import { TeamMember } from "@/models/TeamMember";
@@ -68,6 +69,11 @@ export async function saveTeamSettings(
       isEnabled: bool(formData, "isEnabled"),
     };
     await TeamSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
+    await recordAdminAudit({
+      action: "UPDATE_TEAM_SECTION",
+      resource: "team-settings",
+      metadata: { title: payload.sectionTitle },
+    });
     try {
       revalidatePath("/");
       revalidatePath("/admin/team");
@@ -144,8 +150,20 @@ export async function saveTeamMember(
     };
     if (id) {
       await TeamMember.findByIdAndUpdate(id, { $set: payload }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_TEAM_MEMBER",
+        resource: "team-member",
+        resourceId: id,
+        metadata: { title: payload.name, slug: payload.slug },
+      });
     } else {
-      await TeamMember.create(payload);
+      const created = await TeamMember.create(payload);
+      await recordAdminAudit({
+        action: "CREATE_TEAM_MEMBER",
+        resource: "team-member",
+        resourceId: String(created._id),
+        metadata: { title: payload.name, slug: payload.slug },
+      });
     }
     try {
       revalidatePath("/");
@@ -169,7 +187,16 @@ export async function deleteTeamMember(id: string): Promise<DeleteTeamMemberStat
     await dbConnect();
     const { isValidObjectId } = await import("mongoose");
     if (!id || !isValidObjectId(id)) return { error: "Invalid member id." };
+    const existing = await TeamMember.findById(id).lean();
+    const name = existing ? String((existing as { name?: string }).name ?? "") : "";
+    const slug = existing ? String((existing as { slug?: string }).slug ?? "") : "";
     await TeamMember.findByIdAndDelete(id);
+    await recordAdminAudit({
+      action: "DELETE_TEAM_MEMBER",
+      resource: "team-member",
+      resourceId: id,
+      metadata: { title: name || undefined, slug: slug || undefined },
+    });
     try {
       revalidatePath("/");
       revalidatePath("/admin/team");

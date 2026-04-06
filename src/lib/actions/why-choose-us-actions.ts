@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { WhyChooseUsSettings } from "@/models/WhyChooseUsSettings";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
@@ -88,6 +89,11 @@ export async function saveWhyChooseUsSettings(
     };
 
     await WhyChooseUsSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
+    await recordAdminAudit({
+      action: "UPDATE_WHY_CHOOSE_US_SECTION",
+      resource: "why-choose-us",
+      metadata: { title: payload.sectionTitle },
+    });
     try {
       revalidatePath("/");
       revalidatePath("/admin/homepage");

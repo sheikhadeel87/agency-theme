@@ -39,18 +39,20 @@ export function PortfolioPreviewClient({ siteSettings, dynamicPages }: Shell) {
   const [project, setProject] = useState<Payload | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
-    if (!raw) {
-      setState("empty");
-      return;
-    }
-    try {
-      const p = JSON.parse(raw) as Payload;
-      setProject(p);
-      setState("ready");
-    } catch {
-      setState("empty");
-    }
+    queueMicrotask(() => {
+      const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
+      if (!raw) {
+        setState("empty");
+        return;
+      }
+      try {
+        const p = JSON.parse(raw) as Payload;
+        setProject(p);
+        setState("ready");
+      } catch {
+        setState("empty");
+      }
+    });
   }, []);
 
   if (state === "pending") {

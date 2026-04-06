@@ -45,18 +45,20 @@ export function TestimonialPreviewClient({ siteSettings, dynamicPages }: Shell) 
   const [item, setItem] = useState<TestimonialItem | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
-    if (!raw) {
-      setState("empty");
-      return;
-    }
-    const parsed = parseItem(raw);
-    if (!parsed) {
-      setState("empty");
-      return;
-    }
-    setItem(parsed);
-    setState("ready");
+    queueMicrotask(() => {
+      const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
+      if (!raw) {
+        setState("empty");
+        return;
+      }
+      const parsed = parseItem(raw);
+      if (!parsed) {
+        setState("empty");
+        return;
+      }
+      setItem(parsed);
+      setState("ready");
+    });
   }, []);
 
   if (state === "pending") {

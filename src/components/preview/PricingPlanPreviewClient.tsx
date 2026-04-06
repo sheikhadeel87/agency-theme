@@ -26,22 +26,24 @@ export function PricingPlanPreviewClient({ siteSettings, dynamicPages }: Shell) 
   const [payload, setPayload] = useState<Payload | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
-    if (!raw) {
-      setState("empty");
-      return;
-    }
-    try {
-      const p = JSON.parse(raw) as Payload;
-      if (!p?.plan) {
+    queueMicrotask(() => {
+      const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
+      if (!raw) {
         setState("empty");
         return;
       }
-      setPayload(p);
-      setState("ready");
-    } catch {
-      setState("empty");
-    }
+      try {
+        const p = JSON.parse(raw) as Payload;
+        if (!p?.plan) {
+          setState("empty");
+          return;
+        }
+        setPayload(p);
+        setState("ready");
+      } catch {
+        setState("empty");
+      }
+    });
   }, []);
 
   if (state === "pending") {

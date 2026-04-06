@@ -19,22 +19,24 @@ export function SiteSettingsPreviewClient({ siteSettings, dynamicPages }: Shell)
   const [draft, setDraft] = useState<SiteSettingsData | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
-    if (!raw) {
-      setState("empty");
-      return;
-    }
-    try {
-      const p = JSON.parse(raw) as Partial<SiteSettingsData>;
-      setDraft({
-        ...siteSettings,
-        ...p,
-        socialLinks: { ...siteSettings.socialLinks, ...p.socialLinks },
-      });
-      setState("ready");
-    } catch {
-      setState("empty");
-    }
+    queueMicrotask(() => {
+      const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
+      if (!raw) {
+        setState("empty");
+        return;
+      }
+      try {
+        const p = JSON.parse(raw) as Partial<SiteSettingsData>;
+        setDraft({
+          ...siteSettings,
+          ...p,
+          socialLinks: { ...siteSettings.socialLinks, ...p.socialLinks },
+        });
+        setState("ready");
+      } catch {
+        setState("empty");
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- merge once with shell from server
   }, []);
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Hero } from "@/models/Hero";
 
@@ -36,6 +37,12 @@ export async function saveHero(formData: FormData): Promise<SaveHeroState> {
       { $set: payload },
       { upsert: true, new: true }
     );
+
+    await recordAdminAudit({
+      action: "UPDATE_HERO",
+      resource: "hero",
+      metadata: { title: payload.heading || "Hero" },
+    });
 
     try {
       revalidatePath("/");

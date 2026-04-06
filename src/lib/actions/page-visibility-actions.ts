@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { dbConnect } from "@/lib/db";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { setHomepageSectionLiveEnabled } from "@/lib/actions/site-settings-actions";
+import { dbConnect } from "@/lib/db";
 import { Hero } from "@/models/Hero";
 import { WhyChooseUsSettings } from "@/models/WhyChooseUsSettings";
 import { TeamSettings } from "@/models/TeamSettings";
@@ -81,6 +82,12 @@ export async function setLiveSectionVisibility(
     } catch (e) {
       console.warn("revalidatePath after setLiveSectionVisibility:", e);
     }
+    await recordAdminAudit({
+      action: "UPDATE_PAGE_VISIBILITY",
+      resource: "page-visibility",
+      resourceId: section,
+      metadata: { enabled },
+    });
     return { success: true };
   } catch (e) {
     console.error("setLiveSectionVisibility error:", e);

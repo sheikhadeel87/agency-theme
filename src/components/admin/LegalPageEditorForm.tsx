@@ -66,9 +66,9 @@ export function LegalPageEditorForm({
             </h3>
             <p className="mb-4 text-sm text-muted-foreground">
               This HTML is shown on{" "}
-              <a href={publicPath} className="font-medium text-primary underline-offset-4 hover:underline">
+              <Link href={publicPath} className="font-medium text-primary underline-offset-4 hover:underline">
                 {publicPath}
-              </a>
+              </Link>
               . Leave empty to use the built-in default copy on the live site.
             </p>
             <div className="space-y-4">

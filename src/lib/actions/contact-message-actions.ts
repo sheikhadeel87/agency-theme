@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { requireAdminSession } from "@/lib/require-admin";
 import {
@@ -35,6 +36,11 @@ export async function deleteContactMessage(id: string): Promise<ContactMessageAc
     if (!res) return { error: "Message not found." };
     revalidatePath("/admin/contact-messages");
     revalidatePath("/admin", "layout");
+    await recordAdminAudit({
+      action: "DELETE_CONTACT_MESSAGE",
+      resource: "contact-message",
+      resourceId: id,
+    });
     return { success: true };
   } catch (e) {
     if (e instanceof Error && e.message === "Unauthorized") {
@@ -64,6 +70,12 @@ export async function updateContactMessageStatus(
     if (!res) return { error: "Message not found." };
     revalidatePath("/admin/contact-messages");
     revalidatePath("/admin", "layout");
+    await recordAdminAudit({
+      action: "UPDATE_CONTACT_MESSAGE_STATUS",
+      resource: "contact-message",
+      resourceId: id,
+      metadata: { status },
+    });
     return { success: true };
   } catch (e) {
     if (e instanceof Error && e.message === "Unauthorized") {

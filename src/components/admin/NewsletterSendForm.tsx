@@ -251,7 +251,6 @@ export function NewsletterSendForm() {
             <BlogEditor
               defaultValue=""
               htmlGetterRef={messageHtmlRef}
-              immediatelyRender
               placeholder="Write your update…"
             />
           </div>

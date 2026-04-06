@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Props = {
   initialQ: string;
   initialStatus: string;
@@ -46,12 +48,12 @@ export function ContactMessagesFilters({ initialQ, initialStatus }: Props) {
         >
           Apply
         </button>
-        <a
+        <Link
           href="/admin/contact-messages"
           className="inline-flex h-9 items-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted"
         >
           Reset
-        </a>
+        </Link>
       </div>
     </form>
   );

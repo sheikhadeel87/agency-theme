@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,12 +43,6 @@ export function TeamMemberForm({ initialData }: Props) {
   }, []);
 
   const data = initialData ?? defaultValues;
-
-  useEffect(() => {
-    const b = initialData?.bio ?? "";
-    setBio(b);
-    bioLatestRef.current = b;
-  }, [initialData?._id, initialData?.bio]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -164,7 +158,6 @@ export function TeamMemberForm({ initialData }: Props) {
                   defaultValue={data.bio}
                   onContentChange={setBioFromEditor}
                   htmlGetterRef={bioHtmlGetterRef}
-                  immediatelyRender
                   placeholder="Write a short bio for this team member..."
                 />
               </div>

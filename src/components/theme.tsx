@@ -16,7 +16,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    queueMicrotask(() => setMounted(true));
+  }, []);
   if (!mounted) return <span className="inline-block size-8 shrink-0" aria-hidden />;
   const dark = resolvedTheme === "dark";
   return (

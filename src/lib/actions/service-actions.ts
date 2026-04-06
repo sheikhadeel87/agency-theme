@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Service } from "@/models/Service";
 import type { ServiceStatus } from "@/models/Service";
@@ -34,7 +35,7 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
     await dbConnect();
 
     const id = str(formData, "_id");
-    let title = str(formData, "title");
+    const title = str(formData, "title");
     let slug = str(formData, "slug");
     if (!slug && title) slug = slugify(title);
     if (!slug) slug = `service-${Date.now()}`;
@@ -73,10 +74,23 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
       metaKeywords: str(formData, "metaKeywords"),
     };
 
-    if (id) {
+    const { isValidObjectId } = await import("mongoose");
+    if (id && isValidObjectId(id)) {
       await Service.findByIdAndUpdate(id, { $set: payload }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_SERVICE",
+        resource: "service",
+        resourceId: id,
+        metadata: { title: payload.title, slug: payload.slug },
+      });
     } else {
-      await Service.create(payload);
+      const created = await Service.create(payload);
+      await recordAdminAudit({
+        action: "CREATE_SERVICE",
+        resource: "service",
+        resourceId: String(created._id),
+        metadata: { title: payload.title, slug: payload.slug },
+      });
     }
 
     try {
@@ -99,7 +113,16 @@ export async function deleteService(id: string): Promise<{ success?: boolean; er
     await dbConnect();
     const { isValidObjectId } = await import("mongoose");
     if (!id || !isValidObjectId(id)) return { error: "Invalid service id." };
+    const existing = await Service.findById(id).lean();
+    const title = existing ? String((existing as { title?: string }).title ?? "") : "";
+    const slug = existing ? String((existing as { slug?: string }).slug ?? "") : "";
     await Service.findByIdAndDelete(id);
+    await recordAdminAudit({
+      action: "DELETE_SERVICE",
+      resource: "service",
+      resourceId: id,
+      metadata: { title: title || undefined, slug: slug || undefined },
+    });
     return { success: true };
   } catch (e) {
     console.error("deleteService error:", e);

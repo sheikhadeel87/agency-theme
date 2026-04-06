@@ -22,6 +22,8 @@ import {
   Mail,
   Send,
   Eye,
+  History,
+  Shield,
 } from "lucide-react";
 import { getNewContactMessageCountAction } from "@/lib/actions/contact-message-actions";
 import { cn } from "@/lib/utils";
@@ -39,6 +41,8 @@ export const adminNavItems = [
   { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote },
   { label: "Contact & Map", href: "/admin/contact", icon: MapPin },
   { label: "Contact messages", href: "/admin/contact-messages", icon: Inbox },
+  { label: "Admins", href: "/admin/admins", icon: Shield },
+  { label: "Audit logs", href: "/admin/audit-logs", icon: History },
   { label: "Newsletter", href: "/admin/newsletter", icon: Mail },
   { label: "Send newsletter", href: "/admin/newsletter/send", icon: Send },
   { label: "Pricing", href: "/admin/pricing", icon: DollarSign },

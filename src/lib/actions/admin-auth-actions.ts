@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { validateAdminDbLogin } from "@/lib/admin-db-auth";
 import {
   ADMIN_SESSION_COOKIE,
   adminSessionCookieOptions,
@@ -18,11 +19,18 @@ export async function adminLogin(
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  if (!validateAdminCredentials(username, password)) {
+  let dbUser: Awaited<ReturnType<typeof validateAdminDbLogin>> = null;
+  try {
+    dbUser = await validateAdminDbLogin(username, password);
+  } catch {
+    dbUser = null;
+  }
+  const envOk = validateAdminCredentials(username, password);
+  if (!dbUser && !envOk) {
     return { error: "Invalid username or password." };
   }
 
-  const token = await createAdminSessionToken();
+  const token = await createAdminSessionToken(dbUser?.id ?? null);
   (await cookies()).set(ADMIN_SESSION_COOKIE, token, adminSessionCookieOptions);
   redirect("/admin");
 }
