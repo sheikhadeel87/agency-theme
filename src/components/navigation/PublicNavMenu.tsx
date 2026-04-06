@@ -51,7 +51,7 @@ export function PublicNavMenu({
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    setOpenDropdownIndex(null);
+    queueMicrotask(() => setOpenDropdownIndex(null));
   }, [entries]);
 
   useEffect(() => {

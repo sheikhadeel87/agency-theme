@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Portfolio } from "@/models/Portfolio";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
@@ -84,10 +85,23 @@ export async function savePortfolio(
       featuredOnHomepage: bool(formData, "featuredOnHomepage"),
     };
 
-    if (id) {
+    const { isValidObjectId } = await import("mongoose");
+    if (id && isValidObjectId(id)) {
       await Portfolio.findByIdAndUpdate(id, { $set: payload }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_PORTFOLIO",
+        resource: "portfolio",
+        resourceId: id,
+        metadata: { title: payload.title, slug: payload.slug },
+      });
     } else {
-      await Portfolio.create(payload);
+      const created = await Portfolio.create(payload);
+      await recordAdminAudit({
+        action: "CREATE_PORTFOLIO",
+        resource: "portfolio",
+        resourceId: String(created._id),
+        metadata: { title: payload.title, slug: payload.slug },
+      });
     }
 
     try {

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Blog } from "@/models/Blog";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
@@ -40,7 +41,7 @@ export async function saveBlog(formData: FormData): Promise<SaveBlogState> {
     const id = str(formData, "_id");
     const is_published = bool(formData, "is_published");
     const is_featured = bool(formData, "is_featured");
-    let title = str(formData, "title");
+    const title = str(formData, "title");
     let slug = str(formData, "slug");
     if (!slug && title) slug = slugify(title);
     if (!slug) slug = `post-${Date.now()}`;
@@ -91,10 +92,22 @@ export async function saveBlog(formData: FormData): Promise<SaveBlogState> {
         ? (wasPublished ? (existing as { publishedAt?: Date }).publishedAt ?? new Date() : new Date())
         : null;
       await Blog.findByIdAndUpdate(id, { $set: { ...base, publishedAt } }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_BLOG",
+        resource: "blog",
+        resourceId: id,
+        metadata: { title: base.title, slug: base.slug },
+      });
     } else {
-      await Blog.create({
+      const created = await Blog.create({
         ...base,
         publishedAt: is_published ? new Date() : null,
+      });
+      await recordAdminAudit({
+        action: "CREATE_BLOG",
+        resource: "blog",
+        resourceId: String(created._id),
+        metadata: { title: base.title, slug: base.slug },
       });
     }
 
@@ -121,6 +134,9 @@ export async function deleteBlog(id: string): Promise<DeleteBlogState> {
     if (!id || !isValidObjectId(id)) {
       return { error: "Invalid post id." };
     }
+    const existing = await Blog.findById(id).lean();
+    const title = existing ? String((existing as { title?: string }).title ?? "") : "";
+    const slug = existing ? String((existing as { slug?: string }).slug ?? "") : "";
     await Blog.findByIdAndDelete(id);
     try {
       revalidatePath("/");
@@ -129,6 +145,12 @@ export async function deleteBlog(id: string): Promise<DeleteBlogState> {
     } catch (revalErr) {
       console.warn("revalidatePath after deleteBlog:", revalErr);
     }
+    await recordAdminAudit({
+      action: "DELETE_BLOG",
+      resource: "blog",
+      resourceId: id,
+      metadata: { title: title || undefined, slug: slug || undefined },
+    });
     return { success: true };
   } catch (e) {
     console.error("deleteBlog error:", e);

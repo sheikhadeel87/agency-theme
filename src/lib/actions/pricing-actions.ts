@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { PricingSettings } from "@/models/PricingSettings";
 import { PricingPlan } from "@/models/PricingPlan";
@@ -50,6 +51,11 @@ export async function savePricingSettings(
       isEnabled: bool(formData, "isEnabled"),
     };
     await PricingSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
+    await recordAdminAudit({
+      action: "UPDATE_PRICING_SECTION",
+      resource: "pricing-settings",
+      metadata: { title: payload.sectionTitle },
+    });
     try {
       revalidatePath("/admin/pricing");
       revalidatePath("/");
@@ -100,12 +106,24 @@ export async function savePricingPlan(formData: FormData): Promise<SavePricingPl
 
     if (id && isValidObjectId(id)) {
       await PricingPlan.findByIdAndUpdate(id, { $set: payload }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_PRICING_PLAN",
+        resource: "pricing-plan",
+        resourceId: id,
+        metadata: { title: payload.name },
+      });
     } else {
       const maxOrder = await PricingPlan.findOne().sort({ order: -1 }).select("order").lean();
       const order = (maxOrder && typeof (maxOrder as { order?: number }).order === "number")
         ? (maxOrder as { order: number }).order + 1
         : 0;
-      await PricingPlan.create({ ...payload, order });
+      const created = await PricingPlan.create({ ...payload, order });
+      await recordAdminAudit({
+        action: "CREATE_PRICING_PLAN",
+        resource: "pricing-plan",
+        resourceId: String(created._id),
+        metadata: { title: payload.name },
+      });
     }
 
     try {
@@ -130,7 +148,15 @@ export async function deletePricingPlan(id: string): Promise<DeletePricingPlanSt
     await dbConnect();
     const { isValidObjectId } = await import("mongoose");
     if (!id || !isValidObjectId(id)) return { error: "Invalid plan id." };
+    const existing = await PricingPlan.findById(id).lean();
+    const planName = existing ? String((existing as { name?: string }).name ?? "") : "";
     await PricingPlan.findByIdAndDelete(id);
+    await recordAdminAudit({
+      action: "DELETE_PRICING_PLAN",
+      resource: "pricing-plan",
+      resourceId: id,
+      metadata: { title: planName || undefined },
+    });
     try {
       revalidatePath("/admin/pricing");
       revalidatePath("/");

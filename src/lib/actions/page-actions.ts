@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Page } from "@/models/Page";
 
@@ -30,7 +31,7 @@ export async function savePage(formData: FormData): Promise<SavePageState> {
     await dbConnect();
 
     const id = str(formData, "_id");
-    let title = str(formData, "title");
+    const title = str(formData, "title");
     let slug = str(formData, "slug");
     if (!slug && title) slug = slugify(title);
     if (!slug) slug = `page-${Date.now()}`;
@@ -52,8 +53,20 @@ export async function savePage(formData: FormData): Promise<SavePageState> {
     const { isValidObjectId } = await import("mongoose");
     if (id && isValidObjectId(id)) {
       await Page.findByIdAndUpdate(id, { $set: payload }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_PAGE",
+        resource: "page",
+        resourceId: id,
+        metadata: { title: payload.title, slug },
+      });
     } else {
-      await Page.create(payload);
+      const created = await Page.create(payload);
+      await recordAdminAudit({
+        action: "CREATE_PAGE",
+        resource: "page",
+        resourceId: String(created._id),
+        metadata: { title: payload.title, slug },
+      });
     }
 
     try {
@@ -77,6 +90,9 @@ export async function deletePage(id: string): Promise<DeletePageState> {
     await dbConnect();
     const { isValidObjectId } = await import("mongoose");
     if (!id || !isValidObjectId(id)) return { error: "Invalid page id." };
+    const existing = await Page.findById(id).lean();
+    const title = existing ? String((existing as { title?: string }).title ?? "") : "";
+    const slug = existing ? String((existing as { slug?: string }).slug ?? "") : "";
     await Page.findByIdAndDelete(id);
     try {
       revalidatePath("/admin/pages");
@@ -84,6 +100,12 @@ export async function deletePage(id: string): Promise<DeletePageState> {
     } catch (e) {
       console.warn("revalidatePath after deletePage:", e);
     }
+    await recordAdminAudit({
+      action: "DELETE_PAGE",
+      resource: "page",
+      resourceId: id,
+      metadata: { title: title || undefined, slug: slug || undefined },
+    });
     return { success: true };
   } catch (e) {
     console.error("deletePage error:", e);

@@ -8,7 +8,7 @@ import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import CharacterCount from "@tiptap/extension-character-count";
-import { useEffect, useCallback, type MutableRefObject } from "react";
+import { useEffect, useCallback, type MutableRefObject, type ReactNode } from "react";
 import {
   Bold,
   Italic,
@@ -31,19 +31,42 @@ type Props = {
   /** When set, always holds a function that returns the latest HTML (for reliable form submit). */
   htmlGetterRef?: MutableRefObject<(() => string) | null>;
   onEditorReady?: (ready: boolean) => void;
-  /** Admin client forms: true so TipTap mounts immediately (helps bio save on first submit). */
-  immediatelyRender?: boolean;
   placeholder?: string;
 };
+
+function ToolbarButton({
+  onClick,
+  active,
+  title,
+  children,
+}: {
+  onClick: () => void;
+  active?: boolean;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`flex h-8 w-8 items-center justify-center rounded transition-colors ${
+        active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function BlogEditor({
   defaultValue = "",
   onContentChange,
   htmlGetterRef,
   onEditorReady,
-  immediatelyRender = false,
   placeholder = "Write your story...",
 }: Props) {
+  /** Next.js SSR: TipTap requires `false` here; `true` throws at runtime. */
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -71,7 +94,7 @@ export function BlogEditor({
           "min-h-[280px] w-full px-4 py-4 text-sm leading-relaxed outline-none prose prose-sm prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 max-w-none",
       },
     },
-    immediatelyRender,
+    immediatelyRender: false,
   });
 
   const setLink = useCallback(() => {
@@ -102,29 +125,6 @@ export function BlogEditor({
   }, [editor, onContentChange, htmlGetterRef, onEditorReady]);
 
   if (!editor) return null;
-
-  const ToolbarButton = ({
-    onClick,
-    active,
-    title,
-    children,
-  }: {
-    onClick: () => void;
-    active?: boolean;
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`flex h-8 w-8 items-center justify-center rounded transition-colors ${
-        active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      }`}
-    >
-      {children}
-    </button>
-  );
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">

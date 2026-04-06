@@ -24,18 +24,20 @@ export function CmsPagePreviewClient({ siteSettings, dynamicPages }: Shell) {
   const [page, setPage] = useState<Payload | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
-    if (!raw) {
-      setState("empty");
-      return;
-    }
-    try {
-      const p = JSON.parse(raw) as Payload;
-      setPage(p);
-      setState("ready");
-    } catch {
-      setState("empty");
-    }
+    queueMicrotask(() => {
+      const raw = localStorage.getItem(adminPreviewStorageKey(TYPE));
+      if (!raw) {
+        setState("empty");
+        return;
+      }
+      try {
+        const p = JSON.parse(raw) as Payload;
+        setPage(p);
+        setState("ready");
+      } catch {
+        setState("empty");
+      }
+    });
   }, []);
 
   if (state === "pending") {

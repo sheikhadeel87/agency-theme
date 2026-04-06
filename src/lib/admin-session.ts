@@ -1,6 +1,6 @@
 /**
- * Simple signed cookie session for /admin (no DB users).
- * Uses Web Crypto HMAC so verification works in Edge middleware and Node server actions.
+ * Signed cookie session for /admin (Web Crypto HMAC; works in Edge middleware + Node).
+ * Payload is `<expMs>` or `<expMs>|<mongoActorId>` when logged in via DB admin.
  */
 
 export const ADMIN_SESSION_COOKIE = "admin_session";
@@ -55,12 +55,22 @@ function timingSafeEqualHex(a: string, b: string): boolean {
   return out === 0;
 }
 
-/** Create cookie value: `<expMs>.<hexSig>` */
-export async function createAdminSessionToken(): Promise<string> {
+/** Create cookie value: `<payload>.<hexSig>` where payload is `exp` or `exp|actorObjectId`. */
+export async function createAdminSessionToken(actorId?: string | null): Promise<string> {
   const exp = Date.now() + SESSION_MAX_AGE_SEC * 1000;
-  const payload = String(exp);
+  const id = actorId?.trim();
+  const payload =
+    id && /^[a-fA-F0-9]{24}$/.test(id) ? `${exp}|${id}` : String(exp);
   const sig = await hmacSha256Hex(payload, getSessionSecret());
   return `${payload}.${sig}`;
+}
+
+function decodeSessionPayloadSegment(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 export async function verifyAdminSessionToken(
@@ -68,14 +78,43 @@ export async function verifyAdminSessionToken(
 ): Promise<boolean> {
   if (!token || !token.includes(".")) return false;
   const dot = token.lastIndexOf(".");
-  const payload = token.slice(0, dot);
+  const payload = decodeSessionPayloadSegment(token.slice(0, dot));
   const sig = token.slice(dot + 1);
-  if (!/^\d+$/.test(payload) || !/^[0-9a-f]+$/i.test(sig)) return false;
+  if (!/^[0-9a-f]+$/i.test(sig)) return false;
+
+  let expMs: string;
+  if (payload.includes("|")) {
+    const pipe = payload.indexOf("|");
+    expMs = payload.slice(0, pipe);
+    const oid = payload.slice(pipe + 1);
+    if (!/^\d+$/.test(expMs) || !/^[a-fA-F0-9]{24}$/.test(oid)) return false;
+  } else {
+    if (!/^\d+$/.test(payload)) return false;
+    expMs = payload;
+  }
+
   const expected = await hmacSha256Hex(payload, getSessionSecret());
   if (!timingSafeEqualHex(expected.toLowerCase(), sig.toLowerCase()))
     return false;
-  if (Number(payload) < Date.now()) return false;
+  if (Number(expMs) < Date.now()) return false;
   return true;
+}
+
+/** Mongo ObjectId from session when token was issued for a DB admin; otherwise null (env-only login). */
+export async function getAdminActorIdFromToken(
+  token: string | undefined
+): Promise<string | null> {
+  if (!token || !(await verifyAdminSessionToken(token))) return null;
+
+  const dot = token.lastIndexOf(".");
+  const payload = decodeSessionPayloadSegment(token.slice(0, dot));
+
+  const pipe = payload.indexOf("|");
+  if (pipe === -1) return null;
+
+  const id = payload.slice(pipe + 1);
+
+  return /^[a-fA-F0-9]{24}$/.test(id) ? id : null;
 }
 
 export const adminSessionCookieOptions = {

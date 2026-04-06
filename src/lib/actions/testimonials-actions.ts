@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { TestimonialsSettings } from "@/models/TestimonialsSettings";
 import { Testimonial } from "@/models/Testimonial";
@@ -37,6 +38,11 @@ export async function saveTestimonialsSettings(
       isEnabled: bool(formData, "isEnabled"),
     };
     await TestimonialsSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
+    await recordAdminAudit({
+      action: "UPDATE_TESTIMONIALS_SECTION",
+      resource: "testimonials-settings",
+      metadata: { title: payload.sectionTitle },
+    });
     try {
       revalidatePath("/admin/testimonials");
       revalidatePath("/");
@@ -94,8 +100,20 @@ export async function saveTestimonial(formData: FormData): Promise<SaveTestimoni
     };
     if (id) {
       await Testimonial.findByIdAndUpdate(id, { $set: payload }, { new: true });
+      await recordAdminAudit({
+        action: "UPDATE_TESTIMONIAL",
+        resource: "testimonial",
+        resourceId: id,
+        metadata: { title: payload.authorName },
+      });
     } else {
-      await Testimonial.create(payload);
+      const created = await Testimonial.create(payload);
+      await recordAdminAudit({
+        action: "CREATE_TESTIMONIAL",
+        resource: "testimonial",
+        resourceId: String(created._id),
+        metadata: { title: payload.authorName },
+      });
     }
     try {
       revalidatePath("/admin/testimonials");
@@ -118,7 +136,17 @@ export async function deleteTestimonial(id: string): Promise<DeleteTestimonialSt
     await dbConnect();
     const { isValidObjectId } = await import("mongoose");
     if (!id || !isValidObjectId(id)) return { error: "Invalid testimonial id." };
+    const existing = await Testimonial.findById(id).lean();
+    const authorName = existing
+      ? String((existing as { authorName?: string }).authorName ?? "")
+      : "";
     await Testimonial.findByIdAndDelete(id);
+    await recordAdminAudit({
+      action: "DELETE_TESTIMONIAL",
+      resource: "testimonial",
+      resourceId: id,
+      metadata: { title: authorName || undefined },
+    });
     try {
       revalidatePath("/admin/testimonials");
       revalidatePath("/");

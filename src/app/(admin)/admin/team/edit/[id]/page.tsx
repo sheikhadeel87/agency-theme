@@ -32,7 +32,7 @@ export default async function EditTeamMemberPage({
         </Link>
       </AdminPageHeader>
       <div className="rounded-xl border border-border bg-card p-6 ring-1 ring-foreground/10">
-        <TeamMemberForm initialData={member} />
+        <TeamMemberForm key={member._id} initialData={member} />
       </div>
     </div>
   );

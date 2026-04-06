@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { SiteSettings } from "@/models/SiteSettings";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
@@ -101,6 +102,11 @@ export async function saveSiteSettings(
     } catch (e) {
       console.warn("revalidatePath after saveSiteSettings:", e);
     }
+    await recordAdminAudit({
+      action: "UPDATE_SITE_SETTINGS",
+      resource: "site-settings",
+      metadata: { siteName: payload.siteName },
+    });
     return { success: true };
   } catch (e) {
     console.error("saveSiteSettings error:", e);
@@ -141,6 +147,11 @@ export async function saveContactSettings(
     } catch (revalErr) {
       console.warn("revalidatePath after saveContactSettings:", revalErr);
     }
+    await recordAdminAudit({
+      action: "UPDATE_CONTACT_SETTINGS",
+      resource: "site-settings",
+      metadata: { fields: ["contactEmail", "phone", "address", "mapEmbedUrl"] },
+    });
     return { success: true };
   } catch (e) {
     console.error("saveContactSettings error:", e);
@@ -185,6 +196,12 @@ export async function setHomepageSectionLiveEnabled(
     } catch (e) {
       console.warn("revalidatePath after setHomepageSectionLiveEnabled:", e);
     }
+    await recordAdminAudit({
+      action: "UPDATE_HOMEPAGE_SECTION_LIVE",
+      resource: "site-settings",
+      resourceId: module,
+      metadata: { enabled },
+    });
     return { success: true };
   } catch (e) {
     console.error("setHomepageSectionLiveEnabled error:", e);

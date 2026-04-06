@@ -25,19 +25,21 @@ function usePreviewPayload<T>(type: string): { pending: boolean; empty: boolean;
   const [data, setData] = useState<T | null>(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem(adminPreviewStorageKey(type));
-    if (!raw) {
-      setEmpty(true);
+    queueMicrotask(() => {
+      const raw = localStorage.getItem(adminPreviewStorageKey(type));
+      if (!raw) {
+        setEmpty(true);
+        setPending(false);
+        return;
+      }
+      try {
+        setData(JSON.parse(raw) as T);
+        setEmpty(false);
+      } catch {
+        setEmpty(true);
+      }
       setPending(false);
-      return;
-    }
-    try {
-      setData(JSON.parse(raw) as T);
-      setEmpty(false);
-    } catch {
-      setEmpty(true);
-    }
-    setPending(false);
+    });
   }, [type]);
 
   return { pending, empty, data };

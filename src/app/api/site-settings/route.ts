@@ -3,6 +3,8 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { dbConnect } from "@/lib/db";
 import { SiteSettings } from "@/models/SiteSettings";
+import { logAdminAction } from "@/lib/audit-log";
+import { getAdminActorIdFromRequest } from "@/lib/get-admin-actor";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
 import {
   getDefaultNavigation,
@@ -86,6 +88,17 @@ export async function PUT(request: Request) {
       revalidatePath("/portfolio");
     } catch (revalErr) {
       console.warn("revalidatePath after PUT /api/site-settings:", revalErr);
+    }
+
+    const actorId = await getAdminActorIdFromRequest(request);
+    if (actorId) {
+      await logAdminAction({
+        actorId,
+        action: "UPDATE_NAVIGATION",
+        resource: "site-settings",
+        request,
+        metadata: { itemCount: navigation.length },
+      });
     }
 
     return NextResponse.json({ success: true, navigation });
