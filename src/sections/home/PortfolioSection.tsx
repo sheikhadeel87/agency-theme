@@ -13,7 +13,7 @@ export function PortfolioSection({ projects, categories }: PortfolioSectionProps
   return (
     <section
       id="portfolio"
-      className="relative overflow-hidden bg-background py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="portfolio-heading"
     >
       <div

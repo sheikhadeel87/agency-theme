@@ -39,7 +39,7 @@ export function ServicesSection({ services }: ServicesSectionProps) {
   return (
     <section
       id="services"
-      className="bg-background py-16 sm:py-20 lg:py-24"
+      className="bg-muted py-16 sm:py-20 lg:py-24"
       aria-labelledby="services-heading"
     >
       <Container as="div">

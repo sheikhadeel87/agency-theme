@@ -19,6 +19,23 @@ export type RecentVisitRow = {
   createdAt: Date;
 };
 
+export type AnalyticsKpiMetrics = {
+  visits: number;
+  messages: number;
+  /** messages ÷ visits × 100; null if visits === 0 */
+  conversion: number | null;
+};
+
+/** KPI compare: same filters; previous = equal-length UTC window ending day before current `from`. */
+export type AnalyticsKpiCompare = {
+  current: AnalyticsKpiMetrics;
+  previous: AnalyticsKpiMetrics;
+  visitsChangePercent: number;
+  messagesChangePercent: number;
+  /** Relative % change of conversion rate; null if either period has no rate. */
+  conversionChangePercent: number | null;
+};
+
 export type AnalyticsSnapshot = {
   totalVisits: number;
   topPages: TopRow[];
@@ -28,6 +45,7 @@ export type AnalyticsSnapshot = {
   totalContactMessages: number;
   /** contact messages ÷ total visits × 100; null if there are no visits. */
   conversionRatePercent: number | null;
+  kpiCompare: AnalyticsKpiCompare;
   /** One row per calendar day (UTC) in the selected range, including zeros. */
   dailyVisits: DailyVisitRow[];
   /** Funnel event counts in the selected date range. */
@@ -129,6 +147,71 @@ function utcDaysInclusive(fromIso: string, toIso: string): string[] {
     cur = addUtcDays(cur, 1);
   }
   return out;
+}
+
+/** Inclusive day count for [from, to] (UTC). */
+function utcRangeDayCount(fromIso: string, toIso: string): number {
+  return utcDaysInclusive(fromIso, toIso).length;
+}
+
+/**
+ * Previous period with same duration as [from, to], non-overlapping, immediately before.
+ * rangeDays = inclusive span; prevTo = day before `from`; prevFrom = prevTo − (rangeDays − 1).
+ */
+function previousPeriodFromTo(fromIso: string, toIso: string): { from: string; to: string } {
+  const rangeDays = utcRangeDayCount(fromIso, toIso);
+  const prevTo = addUtcDays(fromIso, -1);
+  const prevFrom = addUtcDays(prevTo, -(rangeDays - 1));
+  return { from: prevFrom, to: prevTo };
+}
+
+function kpiConversionRate(visits: number, messages: number): number | null {
+  if (visits === 0) return null;
+  return (messages / visits) * 100;
+}
+
+/** % change; if previous === 0 → 100 when current > 0 else 0. */
+export function kpiCountChangePercent(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+}
+
+export function kpiConversionChangePercent(
+  current: number | null,
+  previous: number | null
+): number | null {
+  if (current === null || previous === null) return null;
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+}
+
+/** Filtered visits + date-scoped messages + conversion for one range (assumes db already connected). */
+async function queryAnalyticsKpiMetrics(opts: {
+  from: string;
+  to: string;
+  country: string;
+  device: string;
+  source: string;
+}): Promise<AnalyticsKpiMetrics> {
+  const pv = pageVisitMatch(opts);
+  const time = visitCreatedAtRange(opts.from, opts.to);
+  const [visits, messages] = await Promise.all([
+    PageVisit.countDocuments(pv),
+    ContactMessage.countDocuments(time),
+  ]);
+  return { visits, messages, conversion: kpiConversionRate(visits, messages) };
+}
+
+/** Same as snapshot KPI logic; standalone for reuse (e.g. API). */
+export async function getAnalyticsKpiMetricsForRange(opts: {
+  from: string;
+  to: string;
+  country: string;
+  device: string;
+  source: string;
+}): Promise<AnalyticsKpiMetrics> {
+  await dbConnect();
+  return queryAnalyticsKpiMetrics(opts);
 }
 
 /** Human-readable range for UI (UTC calendar days). */
@@ -429,6 +512,7 @@ export async function getAnalyticsSnapshot(opts: {
   const { from, to, country, device, source } = opts;
   const pv = pageVisitMatch({ from, to, country, device, source });
   const time = visitCreatedAtRange(from, to);
+  const { from: prevFrom, to: prevTo } = previousPeriodFromTo(from, to);
 
   const [
     totalVisits,
@@ -437,6 +521,7 @@ export async function getAnalyticsSnapshot(opts: {
     devicesRaw,
     trafficSourcesRaw,
     totalContactMessages,
+    previousKpi,
     dailyVisits,
     funnelVisits,
     funnelClickContact,
@@ -471,6 +556,7 @@ export async function getAnalyticsSnapshot(opts: {
       { $sort: { count: -1 } },
     ]),
     ContactMessage.countDocuments(time),
+    queryAnalyticsKpiMetrics({ from: prevFrom, to: prevTo, country, device, source }),
     getDailyVisitsInRange(from, to, country, device, source),
     AnalyticsEvent.countDocuments({ name: FUNNEL_EVENTS.visitHomepage, ...time }),
     AnalyticsEvent.countDocuments({ name: FUNNEL_EVENTS.clickContact, ...time }),
@@ -480,8 +566,23 @@ export async function getAnalyticsSnapshot(opts: {
   const mapRows = (rows: { _id: string; count: number }[]): TopRow[] =>
     rows.map((r) => ({ label: r._id || "—", count: r.count }));
 
-  const conversionRatePercent =
-    totalVisits === 0 ? null : (totalContactMessages / totalVisits) * 100;
+  const conversionRatePercent = kpiConversionRate(totalVisits, totalContactMessages);
+
+  const currentKpi: AnalyticsKpiMetrics = {
+    visits: totalVisits,
+    messages: totalContactMessages,
+    conversion: conversionRatePercent,
+  };
+  const kpiCompare: AnalyticsKpiCompare = {
+    current: currentKpi,
+    previous: previousKpi,
+    visitsChangePercent: kpiCountChangePercent(currentKpi.visits, previousKpi.visits),
+    messagesChangePercent: kpiCountChangePercent(currentKpi.messages, previousKpi.messages),
+    conversionChangePercent: kpiConversionChangePercent(
+      currentKpi.conversion,
+      previousKpi.conversion
+    ),
+  };
 
   const topPages = mapRows(topPagesRaw);
   const funnel = {
@@ -508,6 +609,7 @@ export async function getAnalyticsSnapshot(opts: {
     })),
     totalContactMessages,
     conversionRatePercent,
+    kpiCompare,
     dailyVisits,
     funnel,
     insights: insightNotes(totalVisits, topPages, funnel),
