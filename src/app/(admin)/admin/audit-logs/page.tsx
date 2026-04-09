@@ -89,7 +89,7 @@ export default async function AdminAuditLogsPage({
                       {row.action}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{row.resource}</TableCell>
-                    <TableCell className="max-w-md text-sm text-muted-foreground">
+                    <TableCell className="min-w-0 max-w-md whitespace-normal break-words text-sm text-muted-foreground">
                       {row.description}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
