@@ -31,6 +31,30 @@ export const dynamic = "force-dynamic";
 const filterSelectClass =
   "h-9 min-w-[6.5rem] max-w-[10rem] rounded-lg border border-input bg-background px-2 text-sm text-foreground";
 
+function KpiPercentDelta({ value, digits }: { value: number | null; digits?: number }) {
+  if (value === null) {
+    return <p className="mt-1 text-sm text-muted-foreground">—</p>;
+  }
+  const flat = value === 0;
+  const up = value > 0;
+  const arrow = flat ? "→" : up ? "↑" : "↓";
+  const cls = flat
+    ? "text-muted-foreground"
+    : up
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-red-600 dark:text-red-400";
+  const d =
+    digits ??
+    (Math.abs(value) >= 10 ? 0 : 1);
+  const sign = value > 0 ? "+" : "";
+  return (
+    <p className={cn("mt-1 text-sm font-medium tabular-nums", cls)}>
+      {arrow} {sign}
+      {value.toFixed(d)}%
+    </p>
+  );
+}
+
 function recentActivityPageWindow(totalPages: number, page: number): number[] {
   const start = Math.max(1, Math.min(page - 2, totalPages - 4));
   const end = Math.min(totalPages, start + 4);
@@ -318,6 +342,7 @@ export default async function AdminAnalyticsPage({
           <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground">
             {data.totalVisits.toLocaleString()}
           </p>
+          <KpiPercentDelta value={data.kpiCompare.visitsChangePercent} />
         </div>
         <div className="rounded-xl border border-border bg-card p-6 ring-1 ring-foreground/10">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -326,6 +351,7 @@ export default async function AdminAnalyticsPage({
           <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground">
             {data.totalContactMessages.toLocaleString()}
           </p>
+          <KpiPercentDelta value={data.kpiCompare.messagesChangePercent} />
           <Link
             href="/admin/contact-messages"
             className="mt-3 inline-block text-sm text-primary hover:underline"
@@ -340,6 +366,7 @@ export default async function AdminAnalyticsPage({
           <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground">
             {data.conversionRatePercent === null ? "—" : `${data.conversionRatePercent.toFixed(2)}%`}
           </p>
+          <KpiPercentDelta value={data.kpiCompare.conversionChangePercent} digits={1} />
           <p className="mt-2 text-xs text-muted-foreground">
             Messages ÷ filtered visits
             {visitFiltersActive ? " (messages unfiltered)" : ""}.

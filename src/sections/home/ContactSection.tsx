@@ -93,7 +93,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      className="relative overflow-hidden bg-muted py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24"
       aria-labelledby="contact-heading"
     >
       <Container as="div" className="relative">

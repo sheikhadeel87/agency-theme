@@ -11,7 +11,7 @@ export function TestimonialsSection({ settings, testimonials }: Props) {
   return (
     <section
       id="testimonials"
-      className="bg-muted py-16 sm:py-20 lg:py-24"
+      className="bg-white py-16 sm:py-20 lg:py-24"
       aria-labelledby="testimonials-heading"
     >
       <Container as="div">
