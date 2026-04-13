@@ -5,7 +5,7 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { PricingSettings } from "@/models/PricingSettings";
 import { PricingPlan } from "@/models/PricingPlan";
-import { PRICING_MAX_AMOUNT } from "@/lib/pricing-display";
+import { PRICING_MAX_AMOUNT, PRICING_SECTION_FIELD_MAX_LENGTH } from "@/lib/pricing-display";
 import {
   finalizeMetaKeywordsStorage,
   tidyOneLine,
@@ -46,8 +46,11 @@ export async function savePricingSettings(
 ): Promise<SavePricingSettingsState> {
   try {
     await dbConnect();
-    const sectionTitle = str(formData, "sectionTitle");
-    const sectionDescription = str(formData, "sectionDescription");
+    const sectionTitle = str(formData, "sectionTitle").slice(0, PRICING_SECTION_FIELD_MAX_LENGTH);
+    const sectionDescription = str(formData, "sectionDescription").slice(
+      0,
+      PRICING_SECTION_FIELD_MAX_LENGTH
+    );
     const metaTitle = str(formData, "metaTitle");
     const metaDescription = str(formData, "metaDescription");
     const displayTitle = sectionTitle || "We Offer Great Affordable Premium Prices.";

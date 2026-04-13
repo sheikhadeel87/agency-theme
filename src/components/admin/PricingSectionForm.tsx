@@ -1,13 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import { savePricingSettings } from "@/lib/actions/pricing-actions";
 import type { PricingSettingsData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
+import { PRICING_SECTION_FIELD_MAX_LENGTH } from "@/lib/pricing-display";
+import { cn } from "@/lib/utils";
 import { Eye, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
@@ -21,7 +23,23 @@ export function PricingSectionForm({ initialData }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [sectionEnabled, setSectionEnabled] = useState(initialData.isEnabled !== false);
+  const [sectionTitle, setSectionTitle] = useState(
+    initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
+  );
+  const [sectionDescription, setSectionDescription] = useState(
+    initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
+  );
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    setSectionTitle(initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH));
+    setSectionDescription(
+      initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
+    );
+  }, [initialData.sectionTitle, initialData.sectionDescription]);
+
+  const titleAtCap = sectionTitle.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
+  const descAtCap = sectionDescription.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,8 +64,8 @@ export function PricingSectionForm({ initialData }: Props) {
     if (!form) return;
     const fd = new FormData(form);
     openAdminPreview("pricing-section", {
-      sectionTitle: String(fd.get("sectionTitle") ?? ""),
-      sectionDescription: String(fd.get("sectionDescription") ?? ""),
+      sectionTitle: sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH),
+      sectionDescription: sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH),
       metaTitle: String(fd.get("metaTitle") ?? ""),
       metaDescription: String(fd.get("metaDescription") ?? ""),
       metaKeywords: String(fd.get("metaKeywords") ?? ""),
@@ -90,10 +108,23 @@ export function PricingSectionForm({ initialData }: Props) {
               <Input
                 id="sectionTitle"
                 name="sectionTitle"
+                value={sectionTitle}
+                maxLength={PRICING_SECTION_FIELD_MAX_LENGTH}
+                onChange={(e) =>
+                  setSectionTitle(e.target.value.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH))
+                }
                 placeholder="e.g. We Offer Great Affordable Premium Prices."
-                defaultValue={initialData.sectionTitle}
-                className="h-11 text-base"
+                className={cn("h-11 text-base", titleAtCap && "border-amber-500/60")}
               />
+              <p
+                className={cn(
+                  "mt-1 text-[10px] tabular-nums text-muted-foreground",
+                  titleAtCap && "font-medium text-amber-800 dark:text-amber-200"
+                )}
+              >
+                {sectionTitle.length} / {PRICING_SECTION_FIELD_MAX_LENGTH} characters
+                {titleAtCap ? " — maximum length" : ""}
+              </p>
             </div>
             <div>
               <label
@@ -105,11 +136,27 @@ export function PricingSectionForm({ initialData }: Props) {
               <textarea
                 id="sectionDescription"
                 name="sectionDescription"
+                value={sectionDescription}
+                maxLength={PRICING_SECTION_FIELD_MAX_LENGTH}
+                onChange={(e) =>
+                  setSectionDescription(e.target.value.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH))
+                }
                 placeholder="Short intro for the pricing block"
-                defaultValue={initialData.sectionDescription}
                 rows={4}
-                className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
+                className={cn(
+                  "w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50",
+                  descAtCap && "border-amber-500/60"
+                )}
               />
+              <p
+                className={cn(
+                  "mt-1 text-[10px] tabular-nums text-muted-foreground",
+                  descAtCap && "font-medium text-amber-800 dark:text-amber-200"
+                )}
+              >
+                {sectionDescription.length} / {PRICING_SECTION_FIELD_MAX_LENGTH} characters
+                {descAtCap ? " — maximum length" : ""}
+              </p>
             </div>
           </div>
         </div>
