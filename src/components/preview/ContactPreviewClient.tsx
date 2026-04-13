@@ -12,7 +12,12 @@ const TYPE = "contact";
 type PartialContact = Partial<
   Pick<
     SiteSettingsData,
-    "contactEmail" | "phone" | "address" | "mapEmbedUrl"
+    | "contactEmail"
+    | "phone"
+    | "address"
+    | "mapEmbedUrl"
+    | "contactSectionTitle"
+    | "contactSectionDescription"
   >
 >;
 
@@ -64,6 +69,9 @@ export function ContactPreviewClient({ siteSettings, dynamicPages }: Shell) {
     phone: patch.phone ?? siteSettings.phone,
     address: patch.address ?? siteSettings.address,
     mapEmbedUrl: patch.mapEmbedUrl ?? siteSettings.mapEmbedUrl,
+    contactSectionTitle: patch.contactSectionTitle ?? siteSettings.contactSectionTitle,
+    contactSectionDescription:
+      patch.contactSectionDescription ?? siteSettings.contactSectionDescription,
   };
 
   return (

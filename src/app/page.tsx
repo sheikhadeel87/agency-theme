@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/sections/home/Hero";
@@ -10,28 +11,21 @@ import { PortfolioSection } from "@/sections/home/PortfolioSection";
 import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
 import { BlogSection } from "@/sections/home/BlogSection";
 import { ContactSection } from "@/sections/home/ContactSection";
-import {
-  getHomepageServices,
-  getSiteSettings,
-  getHeroData,
-  getHomepagePortfolioProjects,
-  portfolioCategoriesFromProjects,
-  getHomepageBlogPosts,
-  getTeamSettings,
-  getHomepageTeamMembers,
-  getWhyChooseUsSettings,
-  getTestimonialsSettings,
-  getTestimonials,
-  getPricingSettings,
-  getHomepagePricingPlans,
-  getPublishedPages,
-  buildNavSectionVisibility,
-} from "@/lib/admin-data";
+import { buildNavSectionVisibility, getHomepageViewBundle, getSiteSettings } from "@/lib/admin-data";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteSettings();
+  const name = site?.siteName?.trim() || site?.logoText?.trim() || "Agency Theme";
+  const title = `${name} | Digital agency, web design & development`;
+  const description = `${name} delivers modern websites, branding, and digital experiences. Explore services, portfolio, pricing, blog, and team.`;
+  return buildPublicMetadata({ title, description });
+}
+
 export default async function Home() {
-  const [
+  const {
     services,
     siteSettings,
     hero,
@@ -45,23 +39,8 @@ export default async function Home() {
     pricingSettings,
     pricingPlans,
     dynamicPages,
-  ] = await Promise.all([
-    getHomepageServices(),
-    getSiteSettings(),
-    getHeroData(),
-    getHomepagePortfolioProjects(),
-    getHomepageBlogPosts(),
-    getTeamSettings(),
-    getHomepageTeamMembers(),
-    getWhyChooseUsSettings(),
-    getTestimonialsSettings(),
-    getTestimonials(),
-    getPricingSettings(),
-    getHomepagePricingPlans(),
-    getPublishedPages(),
-  ]);
-
-  const portfolioCategories = portfolioCategoriesFromProjects(portfolio);
+    portfolioCategories,
+  } = await getHomepageViewBundle();
 
   const navVisibility = buildNavSectionVisibility({
     siteSettings,
@@ -72,16 +51,11 @@ export default async function Home() {
     testimonials: testimonialsSettings,
   });
 
-  /** Homepage blocks: only mount when the matching `navVisibility.*` is strictly true (section enabled on live site). */
   const show = navVisibility;
 
   return (
     <>
-      <Header
-        siteSettings={siteSettings}
-        dynamicPages={dynamicPages.map((p) => ({ title: p.title, slug: p.slug }))}
-        navVisibility={navVisibility}
-      />
+      <Header siteSettings={siteSettings} dynamicPages={dynamicPages} navVisibility={navVisibility} />
       <main>
         {show.hero === true ? <Hero heroData={hero} /> : null}
         {show.featuresHighlights === true ? <FeaturesHighlights /> : null}

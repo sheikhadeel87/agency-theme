@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlogEditor } from "@/components/admin/BlogEditor";
+import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import { saveLegalPage } from "@/lib/actions/legal-actions";
 import { cn } from "@/lib/utils";
 import { Send } from "lucide-react";
@@ -49,8 +51,10 @@ export function LegalPageEditorForm({
     setSaving(false);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success(`${pageTitle} saved.`);
     router.refresh();
   }
 
@@ -99,45 +103,13 @@ export function LegalPageEditorForm({
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">SEO</h3>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="metaTitle" className="mb-1 block text-xs font-medium text-foreground">
-                  Meta title
-                </label>
-                <Input
-                  id="metaTitle"
-                  name="metaTitle"
-                  placeholder={`Defaults to “${pageTitle}”`}
-                  defaultValue={initialMetaTitle}
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="metaDescription" className="mb-1 block text-xs font-medium text-foreground">
-                  Meta description
-                </label>
-                <textarea
-                  id="metaDescription"
-                  name="metaDescription"
-                  rows={3}
-                  placeholder="Keep under 160 characters."
-                  defaultValue={initialMetaDescription}
-                  className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-                />
-              </div>
-              <div>
-                <label htmlFor="metaKeywords" className="mb-1 block text-xs font-medium text-foreground">
-                  Meta keywords
-                </label>
-                <Input
-                  id="metaKeywords"
-                  name="metaKeywords"
-                  placeholder="keyword1, keyword2"
-                  defaultValue={initialMetaKeywords}
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
+            <SeoMetaInputs
+              metaTitleDefault={initialMetaTitle}
+              metaDescriptionDefault={initialMetaDescription}
+              metaKeywordsDefault={initialMetaKeywords}
+              titlePlaceholder={`Defaults to “${pageTitle}”`}
+              descriptionPlaceholder="Keep under 160 characters."
+            />
           </div>
         </div>
       </div>

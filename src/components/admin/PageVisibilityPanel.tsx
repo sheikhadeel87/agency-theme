@@ -7,6 +7,7 @@ import {
   type LiveSectionId,
 } from "@/lib/actions/page-visibility-actions";
 import { Toggle } from "@/components/ui/toggle";
+import { toast } from "sonner";
 import type { NavSectionVisibility } from "@/lib/admin-data";
 
 const ROWS: { id: LiveSectionId; title: string; description: string }[] = [
@@ -57,8 +58,10 @@ export function PageVisibilityPanel({ initial }: { initial: Initial }) {
     setPendingId(null);
     if (result.error) {
       setErrors((e) => ({ ...e, [id]: result.error! }));
+      toast.error(result.error);
       return;
     }
+    toast.success("Homepage visibility updated.");
     setState((s) => ({ ...s, [id]: next }));
     router.refresh();
   }

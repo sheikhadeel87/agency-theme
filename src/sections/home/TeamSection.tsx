@@ -13,7 +13,7 @@ export function TeamSection({ settings, members }: Props) {
   return (
     <section
       id="team"
-      className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-background py-16 sm:py-20 lg:py-24"
       aria-labelledby="team-heading"
     >
       {/* Subtle radial/curved pattern in top area */}

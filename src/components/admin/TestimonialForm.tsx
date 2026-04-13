@@ -15,6 +15,7 @@ import {
   TESTIMONIAL_QUOTE_MAX_WORDS,
 } from "@/lib/testimonial-quote";
 import { Eye, ImageUp, Send, X } from "lucide-react";
+import { toast } from "sonner";
 
 const defaultValues: Omit<TestimonialItem, "_id"> = {
   quote: "",
@@ -56,14 +57,18 @@ export function TestimonialForm({ initialData }: Props) {
     const formData = new FormData(form);
     const quote = String(formData.get("quote") ?? "");
     if (quoteExceedsWordLimit(quote)) {
-      setError(`Quote must be ${TESTIMONIAL_QUOTE_MAX_WORDS} words or fewer.`);
+      const msg = `Quote must be ${TESTIMONIAL_QUOTE_MAX_WORDS} words or fewer.`;
+      setError(msg);
+      toast.error(msg);
       return;
     }
     const result = await saveTestimonial(formData);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Testimonial saved.");
     router.push("/admin/testimonials");
     router.refresh();
   }

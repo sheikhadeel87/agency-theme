@@ -2,6 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateOptionalMetaFields,
+} from "@/lib/seo-metadata";
 import { LegalPageContent } from "@/models/LegalPageContent";
 
 export type SaveLegalPageState = { success?: boolean; error?: string };
@@ -23,6 +28,12 @@ export async function saveLegalPage(formData: FormData): Promise<SaveLegalPageSt
   try {
     await dbConnect();
 
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const metaKeywords = str(formData, "metaKeywords");
+    const optErr = validateOptionalMetaFields(metaTitle, metaDescription);
+    if (optErr) return { error: optErr };
+
     if (kind === "privacy") {
       await LegalPageContent.findOneAndUpdate(
         {},
@@ -30,9 +41,9 @@ export async function saveLegalPage(formData: FormData): Promise<SaveLegalPageSt
           $set: {
             privacyPolicyHtml: str(formData, "content"),
             privacyLastUpdated: str(formData, "lastUpdated").trim(),
-            privacyMetaTitle: str(formData, "metaTitle").trim(),
-            privacyMetaDescription: str(formData, "metaDescription").trim(),
-            privacyMetaKeywords: str(formData, "metaKeywords").trim(),
+            privacyMetaTitle: tidyOneLine(metaTitle),
+            privacyMetaDescription: tidyOneLine(metaDescription),
+            privacyMetaKeywords: finalizeMetaKeywordsStorage(metaKeywords),
           },
         },
         { upsert: true, new: true }
@@ -44,9 +55,9 @@ export async function saveLegalPage(formData: FormData): Promise<SaveLegalPageSt
           $set: {
             termsConditionsHtml: rawStr(formData, "content"),
             termsLastUpdated: str(formData, "lastUpdated").trim(),
-            termsMetaTitle: str(formData, "metaTitle").trim(),
-            termsMetaDescription: str(formData, "metaDescription").trim(),
-            termsMetaKeywords: str(formData, "metaKeywords").trim(),
+            termsMetaTitle: tidyOneLine(metaTitle),
+            termsMetaDescription: tidyOneLine(metaDescription),
+            termsMetaKeywords: finalizeMetaKeywordsStorage(metaKeywords),
           },
         },
         { upsert: true, new: true }

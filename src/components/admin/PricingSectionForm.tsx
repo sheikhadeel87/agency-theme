@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import { savePricingSettings } from "@/lib/actions/pricing-actions";
 import type { PricingSettingsData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
+import { PRICING_SECTION_FIELD_MAX_LENGTH } from "@/lib/pricing-display";
+import { cn } from "@/lib/utils";
 import { Eye, Search, Send } from "lucide-react";
+import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
 
 type Props = {
@@ -19,7 +23,23 @@ export function PricingSectionForm({ initialData }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [sectionEnabled, setSectionEnabled] = useState(initialData.isEnabled !== false);
+  const [sectionTitle, setSectionTitle] = useState(
+    initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
+  );
+  const [sectionDescription, setSectionDescription] = useState(
+    initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
+  );
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    setSectionTitle(initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH));
+    setSectionDescription(
+      initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
+    );
+  }, [initialData.sectionTitle, initialData.sectionDescription]);
+
+  const titleAtCap = sectionTitle.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
+  const descAtCap = sectionDescription.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,8 +52,10 @@ export function PricingSectionForm({ initialData }: Props) {
     setSaving(false);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Pricing section saved.");
     router.refresh();
   }
 
@@ -42,8 +64,8 @@ export function PricingSectionForm({ initialData }: Props) {
     if (!form) return;
     const fd = new FormData(form);
     openAdminPreview("pricing-section", {
-      sectionTitle: String(fd.get("sectionTitle") ?? ""),
-      sectionDescription: String(fd.get("sectionDescription") ?? ""),
+      sectionTitle: sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH),
+      sectionDescription: sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH),
       metaTitle: String(fd.get("metaTitle") ?? ""),
       metaDescription: String(fd.get("metaDescription") ?? ""),
       metaKeywords: String(fd.get("metaKeywords") ?? ""),
@@ -86,10 +108,23 @@ export function PricingSectionForm({ initialData }: Props) {
               <Input
                 id="sectionTitle"
                 name="sectionTitle"
+                value={sectionTitle}
+                maxLength={PRICING_SECTION_FIELD_MAX_LENGTH}
+                onChange={(e) =>
+                  setSectionTitle(e.target.value.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH))
+                }
                 placeholder="e.g. We Offer Great Affordable Premium Prices."
-                defaultValue={initialData.sectionTitle}
-                className="h-11 text-base"
+                className={cn("h-11 text-base", titleAtCap && "border-amber-500/60")}
               />
+              <p
+                className={cn(
+                  "mt-1 text-[10px] tabular-nums text-muted-foreground",
+                  titleAtCap && "font-medium text-amber-800 dark:text-amber-200"
+                )}
+              >
+                {sectionTitle.length} / {PRICING_SECTION_FIELD_MAX_LENGTH} characters
+                {titleAtCap ? " — maximum length" : ""}
+              </p>
             </div>
             <div>
               <label
@@ -101,11 +136,27 @@ export function PricingSectionForm({ initialData }: Props) {
               <textarea
                 id="sectionDescription"
                 name="sectionDescription"
+                value={sectionDescription}
+                maxLength={PRICING_SECTION_FIELD_MAX_LENGTH}
+                onChange={(e) =>
+                  setSectionDescription(e.target.value.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH))
+                }
                 placeholder="Short intro for the pricing block"
-                defaultValue={initialData.sectionDescription}
                 rows={4}
-                className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
+                className={cn(
+                  "w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50",
+                  descAtCap && "border-amber-500/60"
+                )}
               />
+              <p
+                className={cn(
+                  "mt-1 text-[10px] tabular-nums text-muted-foreground",
+                  descAtCap && "font-medium text-amber-800 dark:text-amber-200"
+                )}
+              >
+                {sectionDescription.length} / {PRICING_SECTION_FIELD_MAX_LENGTH} characters
+                {descAtCap ? " — maximum length" : ""}
+              </p>
             </div>
           </div>
         </div>
@@ -116,48 +167,13 @@ export function PricingSectionForm({ initialData }: Props) {
             <Search className="size-4" />
             SEO
           </h3>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="metaTitle" className="mb-1 block text-xs font-medium text-foreground">
-                Meta title
-              </label>
-              <Input
-                id="metaTitle"
-                name="metaTitle"
-                placeholder="Defaults to section title"
-                defaultValue={initialData.metaTitle}
-                className="h-9 text-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="metaDescription"
-                className="mb-1 block text-xs font-medium text-foreground"
-              >
-                Meta description
-              </label>
-              <textarea
-                id="metaDescription"
-                name="metaDescription"
-                placeholder="Keep under 160 characters."
-                defaultValue={initialData.metaDescription}
-                rows={3}
-                className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-              />
-            </div>
-            <div>
-              <label htmlFor="metaKeywords" className="mb-1 block text-xs font-medium text-foreground">
-                Meta keywords
-              </label>
-              <Input
-                id="metaKeywords"
-                name="metaKeywords"
-                placeholder="keyword1, keyword2, keyword3"
-                defaultValue={initialData.metaKeywords}
-                className="h-9 text-sm"
-              />
-            </div>
-          </div>
+          <SeoMetaInputs
+            metaTitleDefault={initialData.metaTitle}
+            metaDescriptionDefault={initialData.metaDescription}
+            metaKeywordsDefault={initialData.metaKeywords}
+            titlePlaceholder="Defaults to section title"
+            descriptionPlaceholder="Keep under 160 characters."
+          />
         </div>
 
         {error && (

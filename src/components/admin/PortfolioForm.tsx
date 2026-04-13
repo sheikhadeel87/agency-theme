@@ -1,16 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { savePortfolio } from "@/lib/actions/portfolio-actions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
+import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import type { PortfolioProject } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
+import {
+  BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS,
+  PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS,
+  clampPlainTextToMaxWords,
+  countWordsFromHtml,
+  countWordsFromPlainText,
+} from "@/lib/word-count";
 import { Eye, ImageUp, Search, Send, X } from "lucide-react";
+import { toast } from "sonner";
 
 const defaultValues: Omit<PortfolioProject, "_id"> = {
   title: "",
@@ -37,6 +46,9 @@ type Props = {
 export function PortfolioForm({ initialData }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [shortDescription, setShortDescription] = useState(
+    initialData?.shortDescription ?? defaultValues.shortDescription
+  );
   const [fullDescription, setFullDescription] = useState(
     initialData?.fullDescription ?? defaultValues.fullDescription
   );
@@ -68,12 +80,29 @@ export function PortfolioForm({ initialData }: Props) {
     setError(null);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set("shortDescription", shortDescription);
     formData.set("fullDescription", fullDescription);
+    const sw = countWordsFromPlainText(shortDescription);
+    const fw = countWordsFromHtml(fullDescription);
+    if (sw > PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS) {
+      const msg = `Short description must be at most ${PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS} words (currently ${sw}).`;
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (fw > BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS) {
+      const msg = `Full description must be at most ${BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words (currently ${fw}).`;
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
     const result = await savePortfolio(formData);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Project saved.");
     router.push("/admin/portfolio");
     router.refresh();
   }
@@ -95,13 +124,28 @@ export function PortfolioForm({ initialData }: Props) {
   async function handlePreview() {
     const form = formRef.current;
     if (!form) return;
+    const sw = countWordsFromPlainText(shortDescription);
+    const fw = countWordsFromHtml(fullDescription);
+    if (sw > PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS) {
+      setError(
+        `Short description must be at most ${PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS} words (currently ${sw}).`
+      );
+      return;
+    }
+    if (fw > BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS) {
+      setError(
+        `Full description must be at most ${BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words (currently ${fw}).`
+      );
+      return;
+    }
+    setError(null);
     const fd = new FormData(form);
     const file = fileInputRef.current?.files?.[0];
     const imageUrl = await resolvePreviewImageUrl(file, imagePreview, data.imageUrl);
     const galleryRaw = String(fd.get("galleryImages") ?? "");
     openAdminPreview("portfolio", {
       title: String(fd.get("title") ?? ""),
-      shortDescription: String(fd.get("shortDescription") ?? ""),
+      shortDescription,
       fullDescription,
       client: String(fd.get("client") ?? ""),
       categories: splitComma(String(fd.get("categories") ?? "")),
@@ -148,23 +192,43 @@ export function PortfolioForm({ initialData }: Props) {
                 >
                   Short description
                 </label>
+                <p className="mb-1.5 text-xs text-muted-foreground">
+                  Maximum {PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS} words.
+                </p>
                 <textarea
                   id="shortDescription"
                   name="shortDescription"
+                  value={shortDescription}
+                  onChange={(e) =>
+                    setShortDescription(
+                      clampPlainTextToMaxWords(
+                        e.target.value,
+                        PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS
+                      )
+                    )
+                  }
                   placeholder="Brief summary"
-                  defaultValue={data.shortDescription}
                   rows={3}
                   className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
                 />
+                <p className="mt-1 text-[10px] tabular-nums text-muted-foreground">
+                  {countWordsFromPlainText(shortDescription)} /{" "}
+                  {PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS} words
+                </p>
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
                   Full description
                 </label>
+                <p className="mb-1.5 text-xs text-muted-foreground">
+                  Maximum {BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words (toolbar counter).
+                </p>
                 <BlogEditor
                   defaultValue={data.fullDescription}
                   onContentChange={setFullDescription}
                   placeholder="Full project description..."
+                  statsMode="words"
+                  maxWords={BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS}
                 />
               </div>
               <div>
@@ -356,54 +420,13 @@ export function PortfolioForm({ initialData }: Props) {
               <Search className="size-4" />
               SEO
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="metaTitle"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta title
-                </label>
-                <Input
-                  id="metaTitle"
-                  name="metaTitle"
-                  placeholder="Defaults to project title"
-                  defaultValue={data.metaTitle ?? data.title}
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="metaDescription"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta description
-                </label>
-                <textarea
-                  id="metaDescription"
-                  name="metaDescription"
-                  placeholder="Defaults to short description. Keep under 160 characters."
-                  defaultValue={data.metaDescription ?? data.shortDescription}
-                  rows={3}
-                  className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="metaKeywords"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta keywords
-                </label>
-                <Input
-                  id="metaKeywords"
-                  name="metaKeywords"
-                  placeholder="keyword1, keyword2, keyword3"
-                  defaultValue={data.metaKeywords}
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
+            <SeoMetaInputs
+              metaTitleDefault={data.metaTitle ?? data.title}
+              metaDescriptionDefault={data.metaDescription ?? data.shortDescription}
+              metaKeywordsDefault={data.metaKeywords}
+              titlePlaceholder="Defaults to project title"
+              descriptionPlaceholder="Defaults to short description. Up to 160 characters."
+            />
           </div>
         </div>
       </div>

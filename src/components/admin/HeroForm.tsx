@@ -1,14 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveHero } from "@/lib/actions/hero-actions";
 import type { HeroData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
 import { Eye } from "lucide-react";
+import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
+import {
+  HERO_DESCRIPTION_MAX_LENGTH,
+  HERO_HEADING_MAX_LENGTH,
+} from "@/lib/hero-field-limits";
 
 const defaultValues: Omit<HeroData, "_id"> = {
   heading: "",
@@ -78,6 +83,15 @@ export function HeroForm({ initialData }: Props) {
 
   const data = initialData ?? defaultValues;
   const [heroEnabled, setHeroEnabled] = useState(data.isEnabled !== false);
+  const [heading, setHeading] = useState(data.heading.slice(0, HERO_HEADING_MAX_LENGTH));
+  const [description, setDescription] = useState(
+    data.description.slice(0, HERO_DESCRIPTION_MAX_LENGTH)
+  );
+
+  useEffect(() => {
+    setHeading(data.heading.slice(0, HERO_HEADING_MAX_LENGTH));
+    setDescription(data.description.slice(0, HERO_DESCRIPTION_MAX_LENGTH));
+  }, [data.heading, data.description]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -88,8 +102,10 @@ export function HeroForm({ initialData }: Props) {
     const result = await saveHero(formData);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Hero saved.");
     router.push("/admin/homepage");
     router.refresh();
   }
@@ -113,21 +129,43 @@ export function HeroForm({ initialData }: Props) {
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          label="Heading"
-          id="heading"
-          name="heading"
-          placeholder="We specialize in UI/UX, Web Development..."
-          defaultValue={data.heading}
-        />
-        <Field
-          label="Description"
-          id="description"
-          name="description"
-          placeholder="We help brands grow with strategy..."
-          defaultValue={data.description}
-          rows={3}
-        />
+        <div>
+          <label htmlFor="heading" className="mb-1 block text-sm font-medium text-foreground">
+            Heading
+          </label>
+          <Input
+            id="heading"
+            name="heading"
+            value={heading}
+            maxLength={HERO_HEADING_MAX_LENGTH}
+            onChange={(e) => setHeading(e.target.value.slice(0, HERO_HEADING_MAX_LENGTH))}
+            placeholder="We specialize in UI/UX, Web Development..."
+            className="max-w-md"
+          />
+          <p className="mt-1 text-[10px] tabular-nums text-muted-foreground">
+            {heading.length} / {HERO_HEADING_MAX_LENGTH} characters
+          </p>
+        </div>
+        <div>
+          <label htmlFor="description" className="mb-1 block text-sm font-medium text-foreground">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            value={description}
+            maxLength={HERO_DESCRIPTION_MAX_LENGTH}
+            onChange={(e) =>
+              setDescription(e.target.value.slice(0, HERO_DESCRIPTION_MAX_LENGTH))
+            }
+            placeholder="We help brands grow with strategy..."
+            rows={3}
+            className="w-full max-w-md rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+          <p className="mt-1 text-[10px] tabular-nums text-muted-foreground">
+            {description.length} / {HERO_DESCRIPTION_MAX_LENGTH} characters
+          </p>
+        </div>
         <Field
           label="CTA text"
           id="ctaText"

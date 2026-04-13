@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
+import { validateHeroHeadingAndDescription } from "@/lib/hero-field-limits";
 import { Hero } from "@/models/Hero";
 
 export type SaveHeroState = {
@@ -22,9 +23,14 @@ export async function saveHero(formData: FormData): Promise<SaveHeroState> {
   try {
     await dbConnect();
 
+    const heading = str(formData, "heading");
+    const description = str(formData, "description");
+    const heroErr = validateHeroHeadingAndDescription(heading, description);
+    if (heroErr) return { error: heroErr };
+
     const payload = {
-      heading: str(formData, "heading"),
-      description: str(formData, "description"),
+      heading,
+      description,
       ctaText: str(formData, "ctaText"),
       ctaLink: str(formData, "ctaLink"),
       badgeText: str(formData, "badgeText"),

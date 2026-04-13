@@ -6,11 +6,17 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveService } from "@/lib/actions/service-actions";
+import {
+  countWordsFromHtml,
+  SERVICE_DESCRIPTION_MAX_WORDS,
+} from "@/lib/word-count";
 import { BlogEditor } from "@/components/admin/BlogEditor";
+import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import type { ServiceItem } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
 import { Eye, ImageUp, Search, Send, X } from "lucide-react";
+import { toast } from "sonner";
 
 const defaultValues: Omit<ServiceItem, "_id"> = {
   title: "",
@@ -55,11 +61,20 @@ export function ServiceForm({ initialData }: Props) {
     const form = e.currentTarget;
     const formData = new FormData(form);
     formData.set("description", description);
+    const words = countWordsFromHtml(description);
+    if (words > SERVICE_DESCRIPTION_MAX_WORDS) {
+      const msg = `Description must be at most ${SERVICE_DESCRIPTION_MAX_WORDS} words (currently ${words}).`;
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
     const result = await saveService(formData);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Service saved.");
     router.push("/admin/services");
     router.refresh();
   }
@@ -110,10 +125,15 @@ export function ServiceForm({ initialData }: Props) {
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
                   Description
                 </label>
+                <p className="mb-1.5 text-xs text-muted-foreground">
+                  Maximum {SERVICE_DESCRIPTION_MAX_WORDS} words (shown in the editor toolbar).
+                </p>
                 <BlogEditor
                   defaultValue={data.description}
                   onContentChange={setDescription}
                   placeholder="Describe the service..."
+                  statsMode="words"
+                  maxWords={SERVICE_DESCRIPTION_MAX_WORDS}
                 />
               </div>
             </div>
@@ -238,54 +258,13 @@ export function ServiceForm({ initialData }: Props) {
               <Search className="size-4" />
               SEO
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="metaTitle"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta title
-                </label>
-                <Input
-                  id="metaTitle"
-                  name="metaTitle"
-                  placeholder="Defaults to service title"
-                  defaultValue={data.metaTitle}
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="metaDescription"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta description
-                </label>
-                <textarea
-                  id="metaDescription"
-                  name="metaDescription"
-                  placeholder="Defaults to description. Keep under 160 characters for best results."
-                  defaultValue={data.metaDescription}
-                  rows={3}
-                  className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="metaKeywords"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta keywords
-                </label>
-                <Input
-                  id="metaKeywords"
-                  name="metaKeywords"
-                  placeholder="keyword1, keyword2, keyword3"
-                  defaultValue={data.metaKeywords}
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
+            <SeoMetaInputs
+              metaTitleDefault={data.metaTitle}
+              metaDescriptionDefault={data.metaDescription}
+              metaKeywordsDefault={data.metaKeywords}
+              titlePlaceholder="Defaults to service title"
+              descriptionPlaceholder="Defaults to description. Up to 160 characters."
+            />
           </div>
         </div>
       </div>

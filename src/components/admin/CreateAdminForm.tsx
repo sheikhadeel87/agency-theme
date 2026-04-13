@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createAdminUser } from "@/lib/actions/admin-user-actions";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
 export function CreateAdminForm() {
@@ -18,8 +19,10 @@ export function CreateAdminForm() {
       const res = await createAdminUser(formData);
       if (res.error) {
         setError(res.error);
+        toast.error(res.error);
         return;
       }
+      toast.success("Admin user created.");
       router.push("/admin/admins");
       router.refresh();
     } finally {

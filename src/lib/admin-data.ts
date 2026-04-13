@@ -4,9 +4,17 @@
  */
 
 import { sanitizePlanPrice } from "@/lib/pricing-display";
+import type { FooterColumn } from "@/lib/footer-links";
+import { mapDocFooterColumns } from "@/lib/footer-links";
 import type { NavItem } from "@/lib/navigation";
+import {
+  buildNavSectionVisibility,
+  type NavSectionVisibility,
+} from "@/lib/nav-section-visibility";
 
 export type { NavChildItem, NavItem, PublicNavEntry } from "@/lib/navigation";
+export type { NavSectionVisibility };
+export { buildNavSectionVisibility };
 
 /** Missing or non-false counts as enabled (legacy documents without the field). */
 export function cmsEnabled(value: unknown): boolean {
@@ -188,6 +196,8 @@ export type SettingsSection = {
 
 export type SiteSettingsData = {
   _id: string;
+  /** Persisted footer columns; empty array means “use defaults” on the public site until first save. */
+  footerColumns: FooterColumn[];
   siteName: string;
   logoText: string;
   logoUrl: string;
@@ -196,6 +206,8 @@ export type SiteSettingsData = {
   phone: string;
   address: string;
   mapEmbedUrl: string;
+  contactSectionTitle: string;
+  contactSectionDescription: string;
   footerText: string;
   privacyPolicyUrl: string;
   termsUrl: string;
@@ -212,6 +224,8 @@ export type SiteSettingsData = {
   featuresHighlightsSectionEnabled: boolean;
   navigation: NavItem[];
 };
+
+export type { FooterColumn } from "@/lib/footer-links";
 
 export type HeroData = {
   _id: string;
@@ -1132,7 +1146,8 @@ export function getSiteSettingsSections(): SettingsSection[] {
     { title: "Branding", description: "Manage logo, favicon, and site name.", actionHref: "/admin/site-settings/edit" },
     { title: "Contact Info", description: "Manage email, phone, and address shown on the site.", actionHref: "/admin/site-settings/edit" },
     { title: "Social Links", description: "Manage social media profiles displayed on the website.", actionHref: "/admin/site-settings/edit" },
-    { title: "Footer & Legal", description: "Manage footer text, newsletter, and legal page links.", actionHref: "/admin/site-settings/edit" },
+    { title: "Footer & Legal", description: "Footer blurb, newsletter, and custom legal URLs in Site Settings edit.", actionHref: "/admin/site-settings/edit" },
+    { title: "Footer links", description: "Column titles, link labels, URLs, order, and tie-ins to page visibility.", actionHref: "/admin/site-settings/footer" },
     { title: "Navigation", description: "Drag-and-drop menu, labels, links, and dropdowns for the site header.", actionHref: "/admin/site-settings/navigation" },
   ];
 }
@@ -1157,6 +1172,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData | null> {
 
   return {
     _id: String(doc._id),
+    footerColumns: mapDocFooterColumns(d.footerColumns),
     siteName: doc.siteName ?? "",
     logoText: doc.logoText ?? "",
     logoUrl: doc.logoUrl ?? "",
@@ -1165,6 +1181,8 @@ export async function getSiteSettings(): Promise<SiteSettingsData | null> {
     phone: doc.phone ?? "",
     address: doc.address ?? "",
     mapEmbedUrl: doc.mapEmbedUrl ?? "",
+    contactSectionTitle: doc.contactSectionTitle ?? "",
+    contactSectionDescription: doc.contactSectionDescription ?? "",
     footerText: doc.footerText ?? "",
     privacyPolicyUrl: doc.privacyPolicyUrl ?? "",
     termsUrl: doc.termsUrl ?? "",
@@ -1206,45 +1224,57 @@ export async function getHeroData(): Promise<HeroData | null> {
   };
 }
 
-export type NavSectionVisibility = {
-  hero: boolean;
-  featuresHighlights: boolean;
-  whyChooseUs: boolean;
-  team: boolean;
-  services: boolean;
-  pricing: boolean;
-  portfolio: boolean;
-  testimonials: boolean;
-  blog: boolean;
-  contact: boolean;
-};
+/** Homepage sections + nav payload — used by `/` and site-settings preview only. */
+export async function getHomepageViewBundle() {
+  const [
+    services,
+    siteSettings,
+    hero,
+    portfolio,
+    blogPosts,
+    teamSettings,
+    teamMembers,
+    whyChooseUsSettings,
+    testimonialsSettings,
+    testimonials,
+    pricingSettings,
+    pricingPlans,
+    dynamicPages,
+  ] = await Promise.all([
+    getHomepageServices(),
+    getSiteSettings(),
+    getHeroData(),
+    getHomepagePortfolioProjects(),
+    getHomepageBlogPosts(),
+    getTeamSettings(),
+    getHomepageTeamMembers(),
+    getWhyChooseUsSettings(),
+    getTestimonialsSettings(),
+    getTestimonials(),
+    getPricingSettings(),
+    getHomepagePricingPlans(),
+    getPublishedPages(),
+  ]);
 
-/**
- * Per-flag booleans for the live homepage and main nav. Each is `true` only when that
- * block’s `isEnabled` (or site-level section flag) is allowed on the live site after
- * `cmsEnabled` normalization (`false` in DB disables; missing field stays enabled).
- */
-export function buildNavSectionVisibility(args: {
-  siteSettings: SiteSettingsData | null;
-  hero: HeroData | null;
-  teamSettings: TeamSettingsData;
-  whyChooseUs: WhyChooseUsSettingsData;
-  pricing: PricingSettingsData;
-  testimonials: TestimonialsSettingsData;
-}): NavSectionVisibility {
   return {
-    hero: !args.hero || cmsEnabled(args.hero.isEnabled),
-    featuresHighlights: cmsEnabled(args.siteSettings?.featuresHighlightsSectionEnabled),
-    whyChooseUs: cmsEnabled(args.whyChooseUs.isEnabled),
-    team: cmsEnabled(args.teamSettings.isEnabled),
-    services: cmsEnabled(args.siteSettings?.servicesSectionEnabled),
-    pricing: cmsEnabled(args.pricing.isEnabled),
-    portfolio: cmsEnabled(args.siteSettings?.portfolioSectionEnabled),
-    testimonials: cmsEnabled(args.testimonials.isEnabled),
-    blog: cmsEnabled(args.siteSettings?.blogSectionEnabled),
-    contact: cmsEnabled(args.siteSettings?.contactSectionEnabled),
+    services,
+    siteSettings,
+    hero,
+    portfolio,
+    blogPosts,
+    teamSettings,
+    teamMembers,
+    whyChooseUsSettings,
+    testimonialsSettings,
+    testimonials,
+    pricingSettings,
+    pricingPlans,
+    dynamicPages: dynamicPages.map((p) => ({ title: p.title, slug: p.slug })),
+    portfolioCategories: portfolioCategoriesFromProjects(portfolio),
   };
 }
+
+export type HomepageViewBundle = Awaited<ReturnType<typeof getHomepageViewBundle>>;
 
 export async function getNavSectionVisibility(): Promise<NavSectionVisibility> {
   const [siteSettings, hero, teamSettings, whyChooseUs, pricing, testimonials] = await Promise.all([

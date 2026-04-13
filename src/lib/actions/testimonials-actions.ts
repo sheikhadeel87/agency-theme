@@ -5,6 +5,11 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { TestimonialsSettings } from "@/models/TestimonialsSettings";
 import { Testimonial } from "@/models/Testimonial";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
 import { quoteExceedsWordLimit, TESTIMONIAL_QUOTE_MAX_WORDS } from "@/lib/testimonial-quote";
 
@@ -29,12 +34,24 @@ export async function saveTestimonialsSettings(
   try {
     await dbConnect();
     const sectionTitle = str(formData, "sectionTitle");
+    const sectionDescription = str(formData, "sectionDescription");
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const displayTitle = sectionTitle || "Client's Testimonials";
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: displayTitle,
+      fallbackDescription: sectionDescription,
+    });
+    if (seoErr) return { error: seoErr };
+
     const payload = {
-      sectionTitle: sectionTitle || "Client's Testimonials",
-      sectionDescription: str(formData, "sectionDescription"),
-      metaTitle: str(formData, "metaTitle") || sectionTitle,
-      metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
-      metaKeywords: str(formData, "metaKeywords"),
+      sectionTitle: displayTitle,
+      sectionDescription,
+      metaTitle: tidyOneLine(metaTitle) || displayTitle,
+      metaDescription: tidyOneLine(metaDescription) || sectionDescription,
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
       isEnabled: bool(formData, "isEnabled"),
     };
     await TestimonialsSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });

@@ -5,7 +5,12 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { PricingSettings } from "@/models/PricingSettings";
 import { PricingPlan } from "@/models/PricingPlan";
-import { PRICING_MAX_AMOUNT } from "@/lib/pricing-display";
+import { PRICING_MAX_AMOUNT, PRICING_SECTION_FIELD_MAX_LENGTH } from "@/lib/pricing-display";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
 
 export type SavePricingSettingsState = { success?: boolean; error?: string };
 export type SavePricingPlanState = { success?: boolean; error?: string };
@@ -41,13 +46,28 @@ export async function savePricingSettings(
 ): Promise<SavePricingSettingsState> {
   try {
     await dbConnect();
-    const sectionTitle = str(formData, "sectionTitle");
+    const sectionTitle = str(formData, "sectionTitle").slice(0, PRICING_SECTION_FIELD_MAX_LENGTH);
+    const sectionDescription = str(formData, "sectionDescription").slice(
+      0,
+      PRICING_SECTION_FIELD_MAX_LENGTH
+    );
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const displayTitle = sectionTitle || "We Offer Great Affordable Premium Prices.";
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: displayTitle,
+      fallbackDescription: sectionDescription,
+    });
+    if (seoErr) return { error: seoErr };
+
     const payload = {
-      sectionTitle: sectionTitle || "We Offer Great Affordable Premium Prices.",
-      sectionDescription: str(formData, "sectionDescription"),
-      metaTitle: str(formData, "metaTitle") || sectionTitle,
-      metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
-      metaKeywords: str(formData, "metaKeywords"),
+      sectionTitle: displayTitle,
+      sectionDescription,
+      metaTitle: tidyOneLine(metaTitle) || displayTitle,
+      metaDescription: tidyOneLine(metaDescription) || sectionDescription,
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
       isEnabled: bool(formData, "isEnabled"),
     };
     await PricingSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });

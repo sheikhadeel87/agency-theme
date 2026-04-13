@@ -9,25 +9,21 @@ import {
   getPublishedPages,
   getNavSectionVisibility,
 } from "@/lib/admin-data";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const legal = await getLegalPageContent();
   const title = legal.termsMetaTitle.trim() || "Terms & Conditions";
-  const description = legal.termsMetaDescription.trim() || undefined;
-  const rawKw = legal.termsMetaKeywords.trim();
-  const keywords = rawKw
-    ? rawKw
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean)
-    : undefined;
-  return {
+  const description =
+    legal.termsMetaDescription.trim() ||
+    "Terms governing use of our website, services, and content. Please read before using our products.";
+  return buildPublicMetadata({
     title,
     description,
-    ...(keywords?.length ? { keywords } : {}),
-  };
+    keywords: legal.termsMetaKeywords.trim() || undefined,
+  });
 }
 
 export default async function TermsConditionsPage() {

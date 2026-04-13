@@ -14,6 +14,7 @@ import {
 } from "@/lib/admin-data";
 import { HOMEPAGE_BLOG_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 const BLOG_FALLBACK_IMAGE = "/images/blog-1.png";
 
@@ -25,17 +26,19 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  if (!(await isBlogSectionEnabled())) return { title: "Not found" };
+  if (!(await isBlogSectionEnabled())) return buildPublicMetadata({ title: "Not found" });
   const post = await getBlogPostBySlug(slug);
-  if (!post || !post.is_published) return { title: "Post not found" };
-  return {
+  if (!post || !post.is_published) return buildPublicMetadata({ title: "Post not found" });
+  const description =
+    post.metaDescription ||
+    post.description ||
+    "Read this article on our blog—insights on design, development, and digital strategy.";
+  return buildPublicMetadata({
     title: post.metaTitle || post.title || "Blog",
-    description: post.metaDescription || post.description || undefined,
-    keywords: post.metaKeywords
-      ? post.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
-      : undefined,
+    description,
+    keywords: post.metaKeywords || undefined,
     openGraph: post.ogImage ? { images: [post.ogImage] } : undefined,
-  };
+  });
 }
 
 function formatDate(iso: string | null): string {

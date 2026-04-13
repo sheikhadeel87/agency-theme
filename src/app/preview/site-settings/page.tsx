@@ -1,9 +1,9 @@
 import { SiteSettingsPreviewClient } from "@/components/preview/SiteSettingsPreviewClient";
-import { loadPreviewShell } from "../_lib/load-preview-shell";
+import { getHomepageViewBundle } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const { siteSettings, dynamicPages } = await loadPreviewShell();
-  return <SiteSettingsPreviewClient siteSettings={siteSettings} dynamicPages={dynamicPages} />;
+  const data = await getHomepageViewBundle();
+  return <SiteSettingsPreviewClient {...data} />;
 }

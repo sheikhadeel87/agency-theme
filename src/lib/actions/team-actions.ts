@@ -5,6 +5,15 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { TeamSettings } from "@/models/TeamSettings";
 import { TeamMember } from "@/models/TeamMember";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
+import {
+  BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS,
+  countWordsFromHtml,
+} from "@/lib/word-count";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveTeamSettingsState = { success?: boolean; error?: string };
@@ -60,12 +69,24 @@ export async function saveTeamSettings(
   try {
     await dbConnect();
     const sectionTitle = str(formData, "sectionTitle");
+    const sectionDescription = str(formData, "sectionDescription");
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const displayTitle = sectionTitle || "Meet With Our Creative Dedicated Team";
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: displayTitle,
+      fallbackDescription: sectionDescription,
+    });
+    if (seoErr) return { error: seoErr };
+
     const payload = {
-      sectionTitle: sectionTitle || "Meet With Our Creative Dedicated Team",
-      sectionDescription: str(formData, "sectionDescription"),
-      metaTitle: str(formData, "metaTitle") || sectionTitle,
-      metaDescription: str(formData, "metaDescription") || str(formData, "sectionDescription"),
-      metaKeywords: str(formData, "metaKeywords"),
+      sectionTitle: displayTitle,
+      sectionDescription,
+      metaTitle: tidyOneLine(metaTitle) || displayTitle,
+      metaDescription: tidyOneLine(metaDescription) || sectionDescription,
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
       isEnabled: bool(formData, "isEnabled"),
     };
     await TeamSettings.findOneAndUpdate({}, { $set: payload }, { upsert: true, new: true });
@@ -138,6 +159,13 @@ export async function saveTeamMember(
       typeof bioFromClient === "string"
         ? bioFromClient
         : htmlField(formData, "bio");
+
+    const bioWords = countWordsFromHtml(bio);
+    if (bioWords > BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS) {
+      return {
+        error: `Bio must be at most ${BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words (currently ${bioWords}).`,
+      };
+    }
 
     const payload = {
       name,

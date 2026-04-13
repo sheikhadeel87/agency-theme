@@ -10,6 +10,8 @@ export type SiteNavbarProps = {
   dynamicPages?: { title: string; slug: string }[];
   fallbackNavigation?: NavItem[] | null;
   navVisibility?: NavSectionVisibility;
+  /** See `useSiteNavigationEntries` — keeps preview drafts from being replaced by GET /api/site-settings. */
+  lockNavigationToFallback?: boolean;
   onNavigate?: () => void;
   className?: string;
 };
@@ -22,6 +24,7 @@ export function SiteNavbar({
   dynamicPages = [],
   fallbackNavigation,
   navVisibility,
+  lockNavigationToFallback = false,
   onNavigate,
   className,
 }: SiteNavbarProps) {
@@ -29,6 +32,7 @@ export function SiteNavbar({
     dynamicPages,
     fallbackNavigation,
     navVisibility,
+    lockToFallback: lockNavigationToFallback,
   });
 
   return (

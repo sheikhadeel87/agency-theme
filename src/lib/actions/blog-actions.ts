@@ -4,6 +4,17 @@ import { revalidatePath } from "next/cache";
 import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Blog } from "@/models/Blog";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
+import {
+  BLOG_POST_BODY_MAX_WORDS,
+  BLOG_POST_EXCERPT_MAX_WORDS,
+  countWordsFromHtml,
+  countWordsFromPlainText,
+} from "@/lib/word-count";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveBlogState = {
@@ -70,18 +81,43 @@ export async function saveBlog(formData: FormData): Promise<SaveBlogState> {
       }
     }
 
+    const content = str(formData, "content");
+    const contentWords = countWordsFromHtml(content);
+    if (contentWords > BLOG_POST_BODY_MAX_WORDS) {
+      return {
+        error: `Post content must be at most ${BLOG_POST_BODY_MAX_WORDS} words (currently ${contentWords}).`,
+      };
+    }
+
+    const excerpt = str(formData, "description");
+    const excerptWords = countWordsFromPlainText(excerpt);
+    if (excerptWords > BLOG_POST_EXCERPT_MAX_WORDS) {
+      return {
+        error: `Excerpt must be at most ${BLOG_POST_EXCERPT_MAX_WORDS} words (currently ${excerptWords}).`,
+      };
+    }
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: title,
+      fallbackDescription: excerpt,
+    });
+    if (seoErr) return { error: seoErr };
+
     const base = {
       title,
       slug,
-      description: str(formData, "description"),
-      content: str(formData, "content"),
+      description: excerpt,
+      content,
       author: str(formData, "author"),
       imageUrl,
       is_featured,
       is_published,
-      metaTitle: str(formData, "metaTitle") || title,
-      metaDescription: str(formData, "metaDescription") || str(formData, "description"),
-      metaKeywords: str(formData, "metaKeywords"),
+      metaTitle: tidyOneLine(metaTitle) || title,
+      metaDescription: tidyOneLine(metaDescription) || excerpt,
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
       ogImage: str(formData, "ogImage") || imageUrl,
     };
 

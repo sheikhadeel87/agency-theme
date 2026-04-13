@@ -17,6 +17,7 @@ import {
 } from "@/lib/admin-data";
 import { HOMEPAGE_TEAM_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { htmlToPlainText } from "@/lib/html-utils";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 export const dynamic = "force-dynamic";
@@ -25,10 +26,19 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getTeamSettings();
   const title = settings.metaTitle?.trim() || settings.sectionTitle?.trim() || "Team";
   const description =
-    settings.metaDescription?.trim() || settings.sectionDescription?.trim() || "Meet our team.";
+    settings.metaDescription?.trim() ||
+    htmlToPlainText(settings.sectionDescription) ||
+    "Meet the people behind our agency—designers, developers, and strategists.";
   return cmsEnabled(settings.isEnabled)
-    ? { title, description }
-    : { title: "Team", description: "Meet our team." };
+    ? buildPublicMetadata({
+        title,
+        description,
+        keywords: settings.metaKeywords?.trim() || undefined,
+      })
+    : buildPublicMetadata({
+        title: "Team",
+        description: "Meet the people behind our agency—designers, developers, and strategists.",
+      });
 }
 
 export default async function TeamArchivePage() {

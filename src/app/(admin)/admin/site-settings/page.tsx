@@ -41,7 +41,19 @@ export default async function SiteSettingsPage() {
       ? `${navEnabled} visible / ${navCount} items`
       : "Default menu (not saved yet)";
 
-  const summaries = [brandingSummary, contactSummary, socialSummary, footerSummary, navigationSummary];
+  const footerLinksSummary =
+    s?.footerColumns?.length
+      ? `${s.footerColumns.length} column(s), ${s.footerColumns.reduce((n, c) => n + c.links.length, 0)} links`
+      : "Default columns (not saved yet)";
+
+  const summaries = [
+    brandingSummary,
+    contactSummary,
+    socialSummary,
+    footerSummary,
+    footerLinksSummary,
+    navigationSummary,
+  ];
 
   const sectionValues = sections.map((sec, i) => ({
     title: sec.title,

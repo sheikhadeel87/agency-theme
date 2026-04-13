@@ -104,6 +104,14 @@ export function buildAuditDescription(
         ? `${a} updated navigation (${n} items)`
         : `${a} updated navigation`;
     }
+    case "UPDATE_FOOTER_LINKS": {
+      const cols = meta?.columnCount;
+      const links = meta?.linkCount;
+      if (typeof cols === "number" && typeof links === "number") {
+        return `${a} updated footer links (${cols} columns, ${links} links)`;
+      }
+      return `${a} updated footer links`;
+    }
     case "DELETE_CONTACT_MESSAGE":
       return `${a} deleted a contact message`;
     case "UPDATE_CONTACT_MESSAGE_STATUS":

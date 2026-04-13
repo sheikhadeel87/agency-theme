@@ -1,12 +1,9 @@
-import {
-  getPublishedPages,
-  getSiteSettings,
-  type SiteSettingsData,
-} from "@/lib/admin-data";
+import { getPublishedPages, getSiteSettings, type SiteSettingsData } from "@/lib/admin-data";
 import { getDefaultNavigation } from "@/lib/navigation";
 
 const emptySiteSettings: SiteSettingsData = {
   _id: "",
+  footerColumns: [],
   siteName: "",
   logoText: "",
   logoUrl: "",
@@ -15,6 +12,8 @@ const emptySiteSettings: SiteSettingsData = {
   phone: "",
   address: "",
   mapEmbedUrl: "",
+  contactSectionTitle: "",
+  contactSectionDescription: "",
   footerText: "",
   privacyPolicyUrl: "",
   termsUrl: "",

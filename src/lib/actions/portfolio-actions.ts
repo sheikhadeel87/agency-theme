@@ -4,6 +4,17 @@ import { revalidatePath } from "next/cache";
 import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Portfolio } from "@/models/Portfolio";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
+import {
+  BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS,
+  PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS,
+  countWordsFromHtml,
+  countWordsFromPlainText,
+} from "@/lib/word-count";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SavePortfolioState = {
@@ -65,11 +76,36 @@ export async function savePortfolio(
       }
     }
 
+    const shortDescription = str(formData, "shortDescription");
+    const fullDescription = str(formData, "fullDescription");
+    const shortWords = countWordsFromPlainText(shortDescription);
+    const fullWords = countWordsFromHtml(fullDescription);
+    if (shortWords > PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS) {
+      return {
+        error: `Short description must be at most ${PORTFOLIO_SHORT_DESCRIPTION_MAX_WORDS} words (currently ${shortWords}).`,
+      };
+    }
+    if (fullWords > BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS) {
+      return {
+        error: `Full description must be at most ${BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words (currently ${fullWords}).`,
+      };
+    }
+
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: title,
+      fallbackDescription: shortDescription,
+    });
+    if (seoErr) return { error: seoErr };
+
     const payload = {
       title,
       slug,
-      shortDescription: str(formData, "shortDescription"),
-      fullDescription: str(formData, "fullDescription"),
+      shortDescription,
+      fullDescription,
       client: str(formData, "client"),
       categories: arr(formData, "categories"),
       technologyStack: arr(formData, "technologyStack"),
@@ -79,9 +115,9 @@ export async function savePortfolio(
       status: (formData.get("status")?.toString()?.trim() === "Published"
         ? "Published"
         : "Draft") as "Draft" | "Published",
-      metaTitle: str(formData, "metaTitle") || title,
-      metaDescription: str(formData, "metaDescription") || str(formData, "shortDescription"),
-      metaKeywords: str(formData, "metaKeywords"),
+      metaTitle: tidyOneLine(metaTitle) || title,
+      metaDescription: tidyOneLine(metaDescription) || shortDescription,
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
       featuredOnHomepage: bool(formData, "featuredOnHomepage"),
     };
 

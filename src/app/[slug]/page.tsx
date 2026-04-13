@@ -9,6 +9,7 @@ import {
   getPublishedPages,
   getNavSectionVisibility,
 } from "@/lib/admin-data";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -32,14 +33,12 @@ export async function generateMetadata({
   const { slug } = await params;
   if (RESERVED_SLUGS.has(slug)) return {};
   const page = await getPageBySlug(slug);
-  if (!page) return { title: "Not found" };
-  return {
+  if (!page) return buildPublicMetadata({ title: "Page not found" });
+  return buildPublicMetadata({
     title: page.metaTitle || page.title || "Page",
     description: page.metaDescription || undefined,
-    keywords: page.metaKeywords
-      ? page.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
-      : undefined,
-  };
+    keywords: page.metaKeywords || undefined,
+  });
 }
 
 export default async function DynamicPageRoute({
