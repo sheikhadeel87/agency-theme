@@ -5,11 +5,20 @@ import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import type { SiteSettingsData } from "@/lib/admin-data";
+import {
+  CONTACT_PHONE_INVALID_MESSAGE,
+  isValidContactPhone,
+  sanitizeContactPhoneInput,
+} from "@/lib/contact-phone";
 
 const DEFAULT_MAP_EMBED =
   "https://maps.google.com/maps?q=Lahore%20Pakistan&t=&z=13&ie=UTF8&iwloc=&output=embed";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+
+const DEFAULT_CONTACT_SECTION_TITLE = "Let's Stay Connected";
+const DEFAULT_CONTACT_SECTION_DESCRIPTION =
+  "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using.";
 
 export type ContactSectionProps = {
   siteSettings?: SiteSettingsData | null;
@@ -20,11 +29,16 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [phoneInput, setPhoneInput] = useState("");
   const turnstileRef = useRef<TurnstileInstance>(null);
   const turnstileEnabled = Boolean(TURNSTILE_SITE_KEY);
 
   const mapSrc =
     siteSettings?.mapEmbedUrl?.trim() || DEFAULT_MAP_EMBED;
+  const sectionTitle =
+    siteSettings?.contactSectionTitle?.trim() || DEFAULT_CONTACT_SECTION_TITLE;
+  const sectionDescription =
+    siteSettings?.contactSectionDescription?.trim() || DEFAULT_CONTACT_SECTION_DESCRIPTION;
   const email = siteSettings?.contactEmail?.trim() ?? "";
   const phone = siteSettings?.phone?.trim() ?? "";
   const address = siteSettings?.address?.trim() ?? "";
@@ -47,11 +61,16 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
     const payload = {
       fullName: String(fd.get("fullName") ?? "").trim(),
       email: String(fd.get("email") ?? "").trim(),
-      phone: String(fd.get("phone") ?? "").trim(),
+      phone: phoneInput.trim(),
       subject: String(fd.get("subject") ?? "").trim(),
       message: String(fd.get("message") ?? "").trim(),
       ...(turnstileEnabled && turnstileToken ? { turnstileToken } : {}),
     };
+
+    if (payload.phone && !isValidContactPhone(payload.phone)) {
+      setFormError(CONTACT_PHONE_INVALID_MESSAGE);
+      return;
+    }
 
     if (turnstileEnabled && !turnstileToken) {
       setFormError("Please complete the security check.");
@@ -81,6 +100,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
 
       setFormSuccess(true);
       form.reset();
+      setPhoneInput("");
       setTurnstileToken(null);
       turnstileRef.current?.reset();
     } catch {
@@ -93,7 +113,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-background py-16 sm:py-20 lg:py-24"
       aria-labelledby="contact-heading"
     >
       <Container as="div" className="relative">
@@ -102,12 +122,10 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
             id="contact-heading"
             className="text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl"
           >
-            Let&apos;s Stay Connected
+            {sectionTitle}
           </h2>
           <p className="mt-4 text-muted-foreground sm:mt-6 sm:text-lg">
-            It is a long established fact that a reader will be distracted by
-            the readable content of a page when looking at its layout. The
-            point of using.
+            {sectionDescription}
           </p>
         </header>
 
@@ -212,7 +230,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                 </label>
 
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-gray-700">Email address</span>
+                  <span className="text-sm font-medium text-foreground">Email address</span>
                   <input
                     type="email"
                     name="email"
@@ -220,7 +238,7 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                     autoComplete="email"
                     placeholder="adeel@cybernest.com"
                     disabled={pending}
-                    className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                    className="rounded-xl border border-border bg-muted/50 px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>
               </div>
@@ -232,8 +250,11 @@ export function ContactSection({ siteSettings }: ContactSectionProps) {
                     type="tel"
                     name="phone"
                     autoComplete="tel"
+                    inputMode="tel"
                     placeholder="+923004199389"
                     disabled={pending}
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(sanitizeContactPhoneInput(e.target.value))}
                     className="rounded-xl border border-border bg-muted/50 px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                 </label>

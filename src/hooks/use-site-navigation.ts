@@ -13,6 +13,11 @@ export type UseSiteNavigationOptions = {
   dynamicPages?: { title: string; slug: string }[];
   fallbackNavigation?: NavItem[] | null;
   navVisibility?: NavSectionVisibility;
+  /**
+   * When true, never calls `GET /api/site-settings` and builds nav only from `fallbackNavigation`.
+   * Use on `/preview/site-settings` when a draft exists so unsaved nav edits are not overwritten by the API.
+   */
+  lockToFallback?: boolean;
 };
 
 /**
@@ -22,6 +27,7 @@ export function useSiteNavigationEntries({
   dynamicPages = [],
   fallbackNavigation,
   navVisibility,
+  lockToFallback = false,
 }: UseSiteNavigationOptions): {
   entries: PublicNavEntry[];
   source: "api" | "fallback";
@@ -30,6 +36,7 @@ export function useSiteNavigationEntries({
   const [remoteNavigation, setRemoteNavigation] = useState<NavItem[] | undefined>(undefined);
 
   useEffect(() => {
+    if (lockToFallback) return;
     let cancelled = false;
     fetchSiteNavigation()
       .then((nav) => {
@@ -44,16 +51,30 @@ export function useSiteNavigationEntries({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lockToFallback]);
 
   const entries = useMemo(() => {
-    const sourceNav = loaded ? remoteNavigation : (fallbackNavigation ?? undefined);
+    let sourceNav: NavItem[] | undefined;
+    if (lockToFallback) {
+      sourceNav = fallbackNavigation ?? undefined;
+    } else if (!loaded) {
+      sourceNav = fallbackNavigation ?? undefined;
+    } else {
+      sourceNav = remoteNavigation ?? fallbackNavigation ?? undefined;
+    }
     const built = buildPublicNavigation(sourceNav, dynamicPages);
     const v = navVisibility ?? ALL_NAV_SECTIONS_VISIBLE;
     return filterPublicNavBySectionVisibility(built, v);
-  }, [loaded, remoteNavigation, fallbackNavigation, dynamicPages, navVisibility]);
+  }, [
+    lockToFallback,
+    loaded,
+    remoteNavigation,
+    fallbackNavigation,
+    dynamicPages,
+    navVisibility,
+  ]);
 
-  const source: "api" | "fallback" = loaded ? "api" : "fallback";
+  const source: "api" | "fallback" = lockToFallback || !loaded ? "fallback" : "api";
 
   return { entries, source };
 }

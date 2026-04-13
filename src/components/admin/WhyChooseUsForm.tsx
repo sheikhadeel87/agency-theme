@@ -7,9 +7,15 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlogEditor } from "@/components/admin/BlogEditor";
+import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import { saveWhyChooseUsSettings } from "@/lib/actions/why-choose-us-actions";
 import type { WhyChooseUsSettingsData } from "@/lib/admin-data";
+import {
+  WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS,
+  countWordsFromHtml,
+} from "@/lib/word-count";
 import { Eye, ImageUp, Search, Send, X } from "lucide-react";
+import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
 
 type Props = {
@@ -152,18 +158,36 @@ export function WhyChooseUsForm({ initialData }: Props) {
     formData.set("sectionDescription", sectionDescription);
     // Explicit values so Server Actions always persist false (empty hidden inputs are unreliable).
     formData.set("isEnabled", sectionEnabled ? "on" : "false");
+    const descWords = countWordsFromHtml(sectionDescription);
+    if (descWords > WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS) {
+      setSaving(false);
+      const msg = `Description must be at most ${WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS} words (currently ${descWords}).`;
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
     const result = await saveWhyChooseUsSettings(formData);
     setSaving(false);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Why Choose Us saved.");
     router.refresh();
   }
 
   async function handlePreview() {
     const form = formRef.current;
     if (!form) return;
+    const descWords = countWordsFromHtml(sectionDescription);
+    if (descWords > WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS) {
+      setError(
+        `Description must be at most ${WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS} words (currently ${descWords}).`
+      );
+      return;
+    }
+    setError(null);
     const fd = new FormData(form);
     const f1 = cleared1 ? undefined : ref1.current?.files?.[0];
     const f2 = cleared2 ? undefined : ref2.current?.files?.[0];
@@ -234,10 +258,15 @@ export function WhyChooseUsForm({ initialData }: Props) {
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
                   Description
                 </label>
+                <p className="mb-1.5 text-xs text-muted-foreground">
+                  Maximum {WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS} words (toolbar counter).
+                </p>
                 <BlogEditor
                   defaultValue={initialData.sectionDescription ?? ""}
                   onContentChange={setSectionDescription}
                   placeholder="Intro paragraph"
+                  statsMode="words"
+                  maxWords={WHY_CHOOSE_US_SECTION_DESCRIPTION_MAX_WORDS}
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -342,54 +371,13 @@ export function WhyChooseUsForm({ initialData }: Props) {
               <Search className="size-4" />
               SEO
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="metaTitle"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta title
-                </label>
-                <Input
-                  id="metaTitle"
-                  name="metaTitle"
-                  placeholder="Defaults to section title"
-                  defaultValue={initialData.metaTitle}
-                  className="h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="metaDescription"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta description
-                </label>
-                <textarea
-                  id="metaDescription"
-                  name="metaDescription"
-                  placeholder="Keep under 160 characters."
-                  defaultValue={initialData.metaDescription}
-                  rows={3}
-                  className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="metaKeywords"
-                  className="mb-1 block text-xs font-medium text-foreground"
-                >
-                  Meta keywords
-                </label>
-                <Input
-                  id="metaKeywords"
-                  name="metaKeywords"
-                  placeholder="keyword1, keyword2, keyword3"
-                  defaultValue={initialData.metaKeywords}
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
+            <SeoMetaInputs
+              metaTitleDefault={initialData.metaTitle}
+              metaDescriptionDefault={initialData.metaDescription}
+              metaKeywordsDefault={initialData.metaKeywords}
+              titlePlaceholder="Defaults to section title"
+              descriptionPlaceholder="Keep under 160 characters."
+            />
           </div>
         </div>
       </div>

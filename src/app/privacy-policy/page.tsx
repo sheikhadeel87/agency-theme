@@ -9,25 +9,21 @@ import {
   getPublishedPages,
   getNavSectionVisibility,
 } from "@/lib/admin-data";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const legal = await getLegalPageContent();
   const title = legal.privacyMetaTitle.trim() || "Privacy Policy";
-  const description = legal.privacyMetaDescription.trim() || undefined;
-  const rawKw = legal.privacyMetaKeywords.trim();
-  const keywords = rawKw
-    ? rawKw
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean)
-    : undefined;
-  return {
+  const description =
+    legal.privacyMetaDescription.trim() ||
+    "How we collect, use, and protect your personal information when you use our website and services.";
+  return buildPublicMetadata({
     title,
     description,
-    ...(keywords?.length ? { keywords } : {}),
-  };
+    keywords: legal.privacyMetaKeywords.trim() || undefined,
+  });
 }
 
 export default async function PrivacyPolicyPage() {

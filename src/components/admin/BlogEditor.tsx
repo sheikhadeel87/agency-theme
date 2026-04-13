@@ -9,6 +9,8 @@ import CodeBlock from "@tiptap/extension-code-block";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import CharacterCount from "@tiptap/extension-character-count";
 import { useEffect, useCallback, type MutableRefObject, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { countWordsFromPlainText } from "@/lib/word-count";
 import {
   Bold,
   Italic,
@@ -32,6 +34,8 @@ type Props = {
   htmlGetterRef?: MutableRefObject<(() => string) | null>;
   onEditorReady?: (ready: boolean) => void;
   placeholder?: string;
+  statsMode?: "characters" | "words";
+  maxWords?: number;
 };
 
 function ToolbarButton({
@@ -65,6 +69,8 @@ export function BlogEditor({
   htmlGetterRef,
   onEditorReady,
   placeholder = "Write your story...",
+  statsMode = "characters",
+  maxWords,
 }: Props) {
   /** Next.js SSR: TipTap requires `false` here; `true` throws at runtime. */
   const editor = useEditor({
@@ -125,6 +131,11 @@ export function BlogEditor({
   }, [editor, onContentChange, htmlGetterRef, onEditorReady]);
 
   if (!editor) return null;
+
+  const wordCount =
+    statsMode === "words" ? countWordsFromPlainText(editor.getText()) : 0;
+  const overWordLimit =
+    statsMode === "words" && maxWords != null && wordCount > maxWords;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -217,10 +228,19 @@ export function BlogEditor({
         <ToolbarButton onClick={setLink} active={editor.isActive("link")} title="Insert link">
           <Link2 className="size-4" />
         </ToolbarButton>
-        <span className="ml-auto px-2 text-[10px] text-muted-foreground">
-          {typeof editor.storage.characterCount?.characters === "function"
-            ? editor.storage.characterCount.characters()
-            : ""}
+        <span
+          className={cn(
+            "ml-auto px-2 text-[10px] text-muted-foreground",
+            overWordLimit && "font-medium text-destructive"
+          )}
+        >
+          {statsMode === "words"
+            ? maxWords != null
+              ? `${wordCount} / ${maxWords} words`
+              : `${wordCount} words`
+            : typeof editor.storage.characterCount?.characters === "function"
+              ? editor.storage.characterCount.characters()
+              : ""}
         </span>
       </div>
       <EditorContent editor={editor} />

@@ -13,14 +13,17 @@ import {
   isPortfolioSectionEnabled,
   portfolioCategoriesFromProjects,
 } from "@/lib/admin-data";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 import { HOMEPAGE_PORTFOLIO_SECTION_HREF } from "@/lib/homepage-section-anchors";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Portfolio",
-  description: "Explore our recent work and case studies.",
-};
+export const metadata: Metadata = buildPublicMetadata({
+  title: "Portfolio | Case studies & client projects",
+  description:
+    "Explore our recent web, brand, and product work. Filter by category and see case studies from our agency portfolio.",
+  keywords: "portfolio, case studies, web design, projects, agency work, creative",
+});
 
 export default async function PortfolioArchivePage() {
   if (!(await isPortfolioSectionEnabled())) notFound();

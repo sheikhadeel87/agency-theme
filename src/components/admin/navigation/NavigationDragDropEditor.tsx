@@ -27,6 +27,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
 import type { NavChildItem, NavItem } from "@/lib/navigation";
+import {
+  sectionVisibilitySelectOptions,
+  type NavSectionVisibility,
+} from "@/lib/nav-section-visibility";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -42,10 +46,12 @@ function SortableChildRow({
   child,
   onPatch,
   onRemove,
+  variant,
 }: {
   child: NavigationDraftChild;
   onPatch: (id: string, patch: Partial<NavChildItem>) => void;
   onRemove: (id: string) => void;
+  variant: "nav" | "footer";
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: child.id,
@@ -86,6 +92,25 @@ function SortableChildRow({
         placeholder="Href e.g. /#team"
         className="h-9 min-w-0 flex-1 font-mono text-sm"
       />
+      {variant === "footer" ? (
+        <select
+          className="h-9 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:max-w-[200px]"
+          value={child.sectionKey ?? ""}
+          onChange={(e) => {
+            const v = e.target.value;
+            onPatch(child.id, {
+              sectionKey: v ? (v as keyof NavSectionVisibility) : undefined,
+            });
+          }}
+          aria-label="Show only when section is visible"
+        >
+          {sectionVisibilitySelectOptions().map((opt) => (
+            <option key={opt.value || "always"} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ) : null}
       <div className="flex items-center gap-2 sm:ml-auto">
         <Toggle enabled={child.isEnabled} onChange={(v) => onPatch(child.id, { isEnabled: v })} />
         <Button
@@ -109,6 +134,7 @@ function SortableRootRow({
   onAddChild,
   patchChild,
   removeChild,
+  variant,
 }: {
   item: NavigationDraftItem;
   onPatch: (id: string, patch: Partial<NavigationDraftItem>) => void;
@@ -116,9 +142,12 @@ function SortableRootRow({
   onAddChild: (parentId: string) => void;
   patchChild: (parentId: string, childId: string, patch: Partial<NavChildItem>) => void;
   removeChild: (parentId: string, childId: string) => void;
+  variant: "nav" | "footer";
 }) {
   const nestedId = `nested-${item.id}`;
   const childIds = item.children?.map((c) => c.id) ?? [];
+  const isFooter = variant === "footer";
+  const showLinksBlock = isFooter || (item.children && item.children.length > 0);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -148,25 +177,34 @@ function SortableRootRow({
         >
           <GripVertical className="size-5" />
         </button>
-        <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid min-w-0 flex-1 gap-3",
+            isFooter ? "sm:grid-cols-1" : "sm:grid-cols-2"
+          )}
+        >
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Label</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {isFooter ? "Column title" : "Label"}
+            </label>
             <Input
               value={item.label}
               onChange={(e) => onPatch(item.id, { label: e.target.value })}
-              placeholder="Menu label"
+              placeholder={isFooter ? "e.g. Quick Links" : "Menu label"}
               className="h-10"
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Href</label>
-            <Input
-              value={item.href}
-              onChange={(e) => onPatch(item.id, { href: e.target.value })}
-              placeholder="/ or /#section"
-              className="h-10 font-mono text-sm"
-            />
-          </div>
+          {!isFooter ? (
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Href</label>
+              <Input
+                value={item.href}
+                onChange={(e) => onPatch(item.id, { href: e.target.value })}
+                placeholder="/ or /#section"
+                className="h-10 font-mono text-sm"
+              />
+            </div>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-4 lg:flex-col lg:items-end">
           <div className="flex items-center gap-2">
@@ -176,7 +214,7 @@ function SortableRootRow({
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => onAddChild(item.id)}>
               <Plus className="mr-1 size-3.5" />
-              Add child
+              {isFooter ? "Add link" : "Add child"}
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => onRemove(item.id)}>
               <Trash2 className="size-4 text-destructive" />
@@ -185,23 +223,28 @@ function SortableRootRow({
         </div>
       </div>
 
-      {item.children && item.children.length > 0 && (
+      {showLinksBlock ? (
         <div className="mt-4 space-y-3 border-t border-border pt-4">
-          <label className="flex items-center gap-2 text-xs font-medium text-foreground">
-            <input
-              type="checkbox"
-              checked={item.appendDynamicPages === true}
-              onChange={(e) => onPatch(item.id, { appendDynamicPages: e.target.checked })}
-              className="rounded border-input"
-            />
-            Append published CMS pages after static children
-          </label>
-          <p className="text-xs text-muted-foreground">Child links (drag to reorder)</p>
+          {!isFooter && item.children && item.children.length > 0 ? (
+            <label className="flex items-center gap-2 text-xs font-medium text-foreground">
+              <input
+                type="checkbox"
+                checked={item.appendDynamicPages === true}
+                onChange={(e) => onPatch(item.id, { appendDynamicPages: e.target.checked })}
+                className="rounded border-input"
+              />
+              Append published CMS pages after static children
+            </label>
+          ) : null}
+          <p className="text-xs text-muted-foreground">
+            {isFooter ? "Links (drag to reorder)" : "Child links (drag to reorder)"}
+          </p>
           <SortableContext id={nestedId} items={childIds} strategy={verticalListSortingStrategy}>
             <div className="space-y-2 pl-0 sm:pl-4">
-              {item.children.map((c) => (
+              {(item.children ?? []).map((c) => (
                 <SortableChildRow
                   key={c.id}
+                  variant={variant}
                   child={c}
                   onPatch={(cid, patch) => patchChild(item.id, cid, patch)}
                   onRemove={(cid) => removeChild(item.id, cid)}
@@ -210,7 +253,7 @@ function SortableRootRow({
             </div>
           </SortableContext>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -218,9 +261,15 @@ function SortableRootRow({
 export type NavigationDragDropEditorProps = {
   items: NavigationDraftItem[];
   onItemsChange: (next: NavigationDraftItem[]) => void;
+  /** `footer`: each root row is a footer column; children are links (section visibility optional). */
+  variant?: "nav" | "footer";
 };
 
-export function NavigationDragDropEditor({ items, onItemsChange }: NavigationDragDropEditorProps) {
+export function NavigationDragDropEditor({
+  items,
+  onItemsChange,
+  variant = "nav",
+}: NavigationDragDropEditorProps) {
   const rootIds = useMemo(() => items.map((i) => i.id), [items]);
 
   const sensors = useSensors(
@@ -271,13 +320,23 @@ export function NavigationDragDropEditor({ items, onItemsChange }: NavigationDra
   function addItem() {
     onItemsChange([
       ...items,
-      {
-        id: crypto.randomUUID(),
-        label: "New link",
-        href: "/",
-        isEnabled: true,
-        order: items.length + 1,
-      },
+      variant === "footer"
+        ? {
+            id: crypto.randomUUID(),
+            label: "Column",
+            href: "/",
+            isEnabled: true,
+            order: items.length + 1,
+            appendDynamicPages: false,
+            children: [],
+          }
+        : {
+            id: crypto.randomUUID(),
+            label: "New link",
+            href: "/",
+            isEnabled: true,
+            order: items.length + 1,
+          },
     ]);
   }
 
@@ -289,7 +348,7 @@ export function NavigationDragDropEditor({ items, onItemsChange }: NavigationDra
           ...(p.children ?? []),
           {
             id: crypto.randomUUID(),
-            label: "Item",
+            label: variant === "footer" ? "Link" : "Item",
             href: "/",
             isEnabled: true,
             order: (p.children?.length ?? 0) + 1,
@@ -317,10 +376,11 @@ export function NavigationDragDropEditor({ items, onItemsChange }: NavigationDra
       items.map((p) => {
         if (p.id !== parentId || !p.children) return p;
         const children = p.children.filter((c) => c.id !== childId);
+        const empty = children.length === 0;
         return {
           ...p,
-          children: children.length ? children : undefined,
-          ...(children.length ? {} : { appendDynamicPages: false }),
+          children: empty ? (variant === "footer" ? [] : undefined) : children,
+          ...(empty && variant !== "footer" ? { appendDynamicPages: false } : {}),
         };
       })
     );
@@ -334,6 +394,7 @@ export function NavigationDragDropEditor({ items, onItemsChange }: NavigationDra
             {items.map((item) => (
               <SortableRootRow
                 key={item.id}
+                variant={variant}
                 item={item}
                 onPatch={patchItem}
                 onRemove={removeItem}
@@ -348,11 +409,13 @@ export function NavigationDragDropEditor({ items, onItemsChange }: NavigationDra
 
       <Button type="button" variant="outline" onClick={addItem}>
         <Plus className="mr-1.5 size-4" />
-        Add menu item
+        {variant === "footer" ? "Add column" : "Add menu item"}
       </Button>
 
       <p className="text-xs text-muted-foreground">
-        Drag handles reorder items. Nested lists reorder only within the same dropdown. Order is 1-based when saved.
+        {variant === "footer"
+          ? "Each block is a footer column; use Add link inside a column. /privacy-policy and /terms-conditions still respect custom URLs in Site Settings → Footer & Legal."
+          : "Drag handles reorder items. Nested lists reorder only within the same dropdown. Order is 1-based when saved."}
       </p>
     </div>
   );

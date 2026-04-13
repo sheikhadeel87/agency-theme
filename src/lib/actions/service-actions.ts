@@ -5,6 +5,15 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { Service } from "@/models/Service";
 import type { ServiceStatus } from "@/models/Service";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
+import {
+  countWordsFromHtml,
+  SERVICE_DESCRIPTION_MAX_WORDS,
+} from "@/lib/word-count";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveServiceState = {
@@ -62,16 +71,34 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
       }
     }
 
+    const description = str(formData, "description");
+    const descriptionWords = countWordsFromHtml(description);
+    if (descriptionWords > SERVICE_DESCRIPTION_MAX_WORDS) {
+      return {
+        error: `Description must be at most ${SERVICE_DESCRIPTION_MAX_WORDS} words (currently ${descriptionWords}).`,
+      };
+    }
+
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: title,
+      fallbackDescription: description,
+    });
+    if (seoErr) return { error: seoErr };
+
     const payload = {
       title,
       slug,
-      description: str(formData, "description"),
+      description,
       imageUrl,
       status,
       featuredOnHomepage: bool(formData, "featuredOnHomepage"),
-      metaTitle: str(formData, "metaTitle") || title,
-      metaDescription: str(formData, "metaDescription") || str(formData, "description"),
-      metaKeywords: str(formData, "metaKeywords"),
+      metaTitle: tidyOneLine(metaTitle) || title,
+      metaDescription: tidyOneLine(metaDescription) || description,
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
     };
 
     const { isValidObjectId } = await import("mongoose");

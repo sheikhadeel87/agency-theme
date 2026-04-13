@@ -13,6 +13,7 @@ import {
   isPortfolioSectionEnabled,
 } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 const PORTFOLIO_FALLBACK_IMAGE = "/images/hero.png";
 
@@ -32,20 +33,18 @@ export async function generateMetadata({
   const project = await getPortfolioProjectBySlug(slug);
   if (!project || project.status !== "Published") return {};
   const title = project.metaTitle || project.title || "Portfolio Project";
-  const description = project.metaDescription || project.shortDescription || "";
-  const keywords = project.metaKeywords
-    ? project.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
-    : undefined;
-  return {
+  const description =
+    project.metaDescription ||
+    project.shortDescription ||
+    "Case study and project details from our portfolio.";
+  return buildPublicMetadata({
     title,
-    description: description || undefined,
-    keywords: keywords?.length ? keywords : undefined,
+    description,
+    keywords: project.metaKeywords || undefined,
     openGraph: {
-      title,
-      description: description || undefined,
       images: project.imageUrl ? [project.imageUrl] : undefined,
     },
-  };
+  });
 }
 
 export default async function PortfolioProjectPage({

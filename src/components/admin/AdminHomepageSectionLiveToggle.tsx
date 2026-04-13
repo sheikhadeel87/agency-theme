@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { setHomepageSectionLiveEnabled } from "@/lib/actions/site-settings-actions";
 import type { HomepageSectionModule } from "@/lib/actions/site-settings-actions";
 import { Toggle } from "@/components/ui/toggle";
+import { toast } from "sonner";
 
 type Props = {
   module: HomepageSectionModule;
@@ -35,8 +36,10 @@ export function AdminHomepageSectionLiveToggle({
     setPending(false);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Homepage section updated.");
     setEnabled(next);
     router.refresh();
   }

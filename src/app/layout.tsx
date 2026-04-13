@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 import { Geist_Mono, Montserrat } from "next/font/google";
 import { ThemeProvider } from "@/components/theme";
 import { TrackPageVisit } from "@/components/analytics/TrackPageVisit";
@@ -19,11 +20,13 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPublicMetadata({
   title: "Agency Theme | UI/UX, Web Development, Digital Marketing",
   description:
     "We specialize in UI/UX, Web Development, and Digital Marketing. Clean, modern solutions for growing brands.",
-};
+  keywords:
+    "web design, web development, digital marketing, UI UX, agency, branding, Next.js",
+});
 
 export default function RootLayout({
   children,

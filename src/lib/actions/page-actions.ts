@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
+import {
+  finalizeMetaKeywordsStorage,
+  tidyOneLine,
+  validateEffectiveSeoBundle,
+} from "@/lib/seo-metadata";
 import { Page } from "@/models/Page";
 
 export type SavePageState = { success?: boolean; error?: string };
@@ -38,14 +43,26 @@ export async function savePage(formData: FormData): Promise<SavePageState> {
 
     const isPublished = bool(formData, "is_published");
     const isEnabled = bool(formData, "isEnabled");
+    const content = str(formData, "content");
+    const metaTitle = str(formData, "metaTitle");
+    const metaDescription = str(formData, "metaDescription");
+    const displayTitle = title || "Untitled";
+    const seoErr = validateEffectiveSeoBundle({
+      metaTitle,
+      metaDescription,
+      fallbackTitle: displayTitle,
+      fallbackDescription: content,
+    });
+    if (seoErr) return { error: seoErr };
+
     const payload = {
-      title: title || "Untitled",
+      title: displayTitle,
       slug,
       template: str(formData, "template") || "Default",
-      content: str(formData, "content"),
-      metaTitle: str(formData, "metaTitle") || title,
-      metaDescription: str(formData, "metaDescription") || "",
-      metaKeywords: str(formData, "metaKeywords") || "",
+      content,
+      metaTitle: tidyOneLine(metaTitle) || displayTitle,
+      metaDescription: tidyOneLine(metaDescription),
+      metaKeywords: finalizeMetaKeywordsStorage(str(formData, "metaKeywords")),
       status: isPublished ? "published" : "draft",
       isEnabled,
     };

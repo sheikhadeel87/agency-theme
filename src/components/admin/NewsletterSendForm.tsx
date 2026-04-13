@@ -7,6 +7,7 @@ import { BlogEditor } from "@/components/admin/BlogEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { stripHtmlToText } from "@/lib/html-to-text";
+import { toast } from "sonner";
 
 type Subscriber = { id: string; email: string; name?: string };
 
@@ -118,7 +119,9 @@ export function NewsletterSendForm() {
       const html = messageHtmlRef.current?.() ?? "";
 
       if (!stripHtmlToText(html)) {
-        setFeedback({ kind: "err", text: "Please enter a message." });
+        const t = "Please enter a message.";
+        setFeedback({ kind: "err", text: t });
+        toast.error(t);
         setSending(false);
         return;
       }
@@ -134,10 +137,9 @@ export function NewsletterSendForm() {
           .map(([email]) => email);
 
         if (emails.length === 0) {
-          setFeedback({
-            kind: "err",
-            text: "Pick at least one subscriber, or use Send to all.",
-          });
+          const t = "Pick at least one subscriber, or use Send to all.";
+          setFeedback({ kind: "err", text: t });
+          toast.error(t);
           setSending(false);
           return;
         }
@@ -160,17 +162,24 @@ export function NewsletterSendForm() {
       };
 
       if (!res.ok || !data.success) {
-        setFeedback({ kind: "err", text: data.message ?? "Send failed." });
+        const t = data.message ?? "Send failed.";
+        setFeedback({ kind: "err", text: t });
+        toast.error(t);
         return;
       }
 
-      setFeedback({
-        kind: "ok",
-        sent: typeof data.sent === "number" ? data.sent : 0,
-        failed: typeof data.failed === "number" ? data.failed : 0,
-      });
+      const sent = typeof data.sent === "number" ? data.sent : 0;
+      const failed = typeof data.failed === "number" ? data.failed : 0;
+      setFeedback({ kind: "ok", sent, failed });
+      toast.success(
+        failed > 0
+          ? `Newsletter sent: ${sent} delivered, ${failed} failed.`
+          : `Newsletter sent to ${sent} recipient${sent === 1 ? "" : "s"}.`
+      );
     } catch {
-      setFeedback({ kind: "err", text: "Network error." });
+      const t = "Network error.";
+      setFeedback({ kind: "err", text: t });
+      toast.error(t);
     } finally {
       setSending(false);
     }

@@ -1,3 +1,7 @@
+import {
+  CONTACT_PHONE_INVALID_MESSAGE,
+  isValidContactPhone,
+} from "@/lib/contact-phone";
 import { dbConnect } from "@/lib/db";
 import { createMailTransporter, getMailFromUser } from "@/lib/mail-transport";
 import { FUNNEL_EVENTS } from "@/lib/track-event";
@@ -44,6 +48,10 @@ function validatePayload(input: ContactSubmissionPayload): string | null {
 
   if (input.phone.length > 50 || input.subject.length > 300 || message.length > 20000) {
     return "One or more fields are too long.";
+  }
+
+  if (input.phone.trim() && !isValidContactPhone(input.phone)) {
+    return CONTACT_PHONE_INVALID_MESSAGE;
   }
 
   return null;

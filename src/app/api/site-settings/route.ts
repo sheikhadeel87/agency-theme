@@ -6,6 +6,7 @@ import { SiteSettings } from "@/models/SiteSettings";
 import { logAdminAction } from "@/lib/audit-log";
 import { getAdminActorIdFromRequest } from "@/lib/get-admin-actor";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
+import { parseFooterColumnsPayload } from "@/lib/footer-links";
 import {
   getDefaultNavigation,
   navigationPersistedShapeChanged,
@@ -45,8 +46,8 @@ export async function GET() {
 }
 
 /**
- * PUT /api/site-settings — replace navigation (admin only).
- * Body: { navigation: NavItem[] }
+ * PUT /api/site-settings — admin only.
+ * Body: `{ navigation: NavItem[] }` and/or `{ footerColumns: FooterColumn[] }` (at least one).
  */
 export async function PUT(request: Request) {
   try {
@@ -62,28 +63,52 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    if (!body || typeof body !== "object" || !("navigation" in body)) {
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Expected JSON object" }, { status: 400 });
+    }
+
+    const b = body as Record<string, unknown>;
+    const hasNav = "navigation" in b;
+    const hasFooter = "footerColumns" in b;
+    if (!hasNav && !hasFooter) {
       return NextResponse.json(
-        { error: "Expected JSON object with \"navigation\" array" },
+        { error: 'Expected \"navigation\" and/or \"footerColumns\"' },
         { status: 400 }
       );
     }
 
-    const navigation = parseNavigationPayload(
-      (body as { navigation: unknown }).navigation
-    );
-
     await dbConnect();
-    await SiteSettings.findOneAndUpdate(
-      {},
-      { $set: { navigation } },
-      { upsert: true, new: true }
-    );
+    const $set: Record<string, unknown> = {};
+
+    if (hasFooter) {
+      try {
+        $set.footerColumns = parseFooterColumnsPayload(b.footerColumns);
+      } catch (e) {
+        return NextResponse.json(
+          { error: e instanceof Error ? e.message : "Invalid footer columns" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (hasNav) {
+      try {
+        $set.navigation = parseNavigationPayload(b.navigation);
+      } catch (e) {
+        return NextResponse.json(
+          { error: e instanceof Error ? e.message : "Invalid navigation" },
+          { status: 400 }
+        );
+      }
+    }
+
+    await SiteSettings.findOneAndUpdate({}, { $set }, { upsert: true, new: true });
 
     try {
       revalidatePath("/");
       revalidatePath("/admin/site-settings");
       revalidatePath("/admin/site-settings/navigation");
+      revalidatePath("/admin/site-settings/footer");
       revalidatePath("/blog");
       revalidatePath("/portfolio");
     } catch (revalErr) {
@@ -92,20 +117,39 @@ export async function PUT(request: Request) {
 
     const actorId = await getAdminActorIdFromRequest(request);
     if (actorId) {
-      await logAdminAction({
-        actorId,
-        action: "UPDATE_NAVIGATION",
-        resource: "site-settings",
-        request,
-        metadata: { itemCount: navigation.length },
-      });
+      if (hasNav && $set.navigation) {
+        await logAdminAction({
+          actorId,
+          action: "UPDATE_NAVIGATION",
+          resource: "site-settings",
+          request,
+          metadata: { itemCount: ($set.navigation as { length: number }).length },
+        });
+      }
+      if (hasFooter && $set.footerColumns) {
+        const fc = $set.footerColumns as Array<{ links: unknown[] }>;
+        await logAdminAction({
+          actorId,
+          action: "UPDATE_FOOTER_LINKS",
+          resource: "site-settings",
+          request,
+          metadata: {
+            columnCount: fc.length,
+            linkCount: fc.reduce((n, c) => n + (Array.isArray(c.links) ? c.links.length : 0), 0),
+          },
+        });
+      }
     }
 
-    return NextResponse.json({ success: true, navigation });
+    return NextResponse.json({
+      success: true,
+      ...(hasNav ? { navigation: $set.navigation } : {}),
+      ...(hasFooter ? { footerColumns: $set.footerColumns } : {}),
+    });
   } catch (e) {
     console.error("PUT /api/site-settings:", e);
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Failed to save navigation" },
+      { error: e instanceof Error ? e.message : "Failed to save site settings" },
       { status: 500 }
     );
   }

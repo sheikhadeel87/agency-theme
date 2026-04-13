@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Zap, Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 import { TrackedContactLink } from "@/components/analytics/TrackedContactLink";
+import { BrandLogoMark } from "@/components/layout/BrandLogoMark";
 import { NewsletterSubscribe } from "@/components/layout/NewsletterSubscribe";
 import { Container } from "@/components/ui/Container";
 import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
-
-type NavKey = keyof NavSectionVisibility;
+import { getDefaultFooterColumns } from "@/lib/footer-links";
 
 const ALL_VISIBLE: NavSectionVisibility = {
   hero: true,
@@ -20,20 +20,6 @@ const ALL_VISIBLE: NavSectionVisibility = {
   contact: true,
 };
 
-const quickLinksBase: Array<{ label: string; href: string; badge?: string; vis?: NavKey }> = [
-  { label: "Home", href: "/" },
-  { label: "Features", href: "/#why-choose-us", vis: "whyChooseUs" },
-  { label: "Portfolio", href: "/portfolio", vis: "portfolio" },
-  { label: "Pricing", href: "/#pricing", vis: "pricing" },
-];
-
-const servicesItems: Array<{ label: string; href: string; vis: NavKey }> = [
-  { label: "Web Development", href: "/#support", vis: "featuresHighlights" },
-  { label: "Graphics Design", href: "/#services", vis: "services" },
-  { label: "Our Blog", href: "/blog", vis: "blog" },
-  { label: "Ui/Ux Design", href: "/#services", vis: "services" },
-];
-
 function brandText(s: SiteSettingsData | null | undefined): string {
   if (!s) return "Nexora";
   return s.logoText?.trim() || s.siteName?.trim() || "Nexora";
@@ -42,6 +28,42 @@ function brandText(s: SiteSettingsData | null | undefined): string {
 function footerDescription(s: SiteSettingsData | null | undefined): string {
   if (!s?.footerText?.trim()) return "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
   return s.footerText.trim();
+}
+
+function applyLegalHrefOverrides(
+  href: string,
+  siteSettings: SiteSettingsData | null | undefined
+): string {
+  const p = siteSettings?.privacyPolicyUrl?.trim();
+  const t = siteSettings?.termsUrl?.trim();
+  const h = href.trim();
+  if (h === "/privacy-policy" && p) return p;
+  if (h === "/terms-conditions" && t) return t;
+  return href;
+}
+
+function visibleFooterLinkColumns(
+  siteSettings: SiteSettingsData | null | undefined,
+  v: NavSectionVisibility
+): { title: string; links: { label: string; href: string }[] }[] {
+  const raw =
+    siteSettings?.footerColumns && siteSettings.footerColumns.length > 0
+      ? siteSettings.footerColumns
+      : getDefaultFooterColumns();
+
+  return [...raw]
+    .sort((a, b) => a.order - b.order)
+    .map((col) => {
+      const links = [...col.links]
+        .sort((a, b) => a.order - b.order)
+        .filter((link) => !link.sectionKey || v[link.sectionKey])
+        .map((link) => ({
+          label: link.label,
+          href: applyLegalHrefOverrides(link.href, siteSettings),
+        }));
+      return { title: col.title, links };
+    })
+    .filter((col) => col.links.length > 0);
 }
 
 export type FooterProps = {
@@ -53,134 +75,87 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
   const brand = brandText(siteSettings);
   const description = footerDescription(siteSettings);
   const privacyHref = siteSettings?.privacyPolicyUrl?.trim() || "/privacy-policy";
-  const termsHref = siteSettings?.termsUrl?.trim() || "/terms-conditions";
-  const socialLinks = siteSettings?.socialLinks;
+  const sl = siteSettings?.socialLinks;
   const social = [
-    { icon: Facebook, href: socialLinks?.facebook?.trim() || "#", label: "Facebook" },
-    { icon: Twitter, href: socialLinks?.twitter?.trim() || "#", label: "Twitter" },
-    { icon: Linkedin, href: socialLinks?.linkedin?.trim() || "#", label: "LinkedIn" },
-    { icon: Instagram, href: socialLinks?.instagram?.trim() || "#", label: "Instagram" },
-  ] as const;
+    { icon: Facebook, href: (sl?.facebook ?? "").trim(), label: "Facebook" },
+    { icon: Twitter, href: (sl?.twitter ?? "").trim(), label: "Twitter" },
+    { icon: Linkedin, href: (sl?.linkedin ?? "").trim(), label: "LinkedIn" },
+    { icon: Instagram, href: (sl?.instagram ?? "").trim(), label: "Instagram" },
+  ].filter((item) => item.href.length > 0);
 
   const v = navVisibility ?? ALL_VISIBLE;
-  const quickLinks = quickLinksBase.filter(
-    (item) => item.vis === undefined || v[item.vis] === true
-  );
-  const services = servicesItems.filter((item) => v[item.vis] === true);
-
-  type SupportRow = { label: string; href: string; vis?: NavKey };
-  const supportRows: SupportRow[] = [
-    { label: "Team", href: "/#team", vis: "team" },
-    { label: "Contact Us", href: "/#contact", vis: "contact" },
-    { label: "Privacy Policy", href: privacyHref },
-    { label: "Terms & Conditions", href: termsHref },
-  ];
-  const support = supportRows.filter(
-    (row) => row.vis === undefined || v[row.vis] === true
-  );
+  const footerColumns = visibleFooterLinkColumns(siteSettings, v);
 
   return (
     <footer className="rounded-t-2xl bg-muted sm:rounded-t-3xl">
       <Container as="div" className="pt-12 sm:pt-14 lg:pt-16">
-        {/* Top footer: 5 columns */}
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:gap-8 lg:grid-cols-5 lg:gap-10">
-          {/* Column 1: Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
+        <div className="flex flex-col flex-wrap gap-10 lg:flex-row lg:items-start lg:gap-10">
+          <div className="w-full shrink-0 lg:max-w-[240px]">
             <Link href="/" className="inline-flex items-center gap-2">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
-                <Zap className="size-5" />
-              </span>
+              <BrandLogoMark siteSettings={siteSettings} />
               <span className="text-lg font-semibold text-foreground dark:text-white">{brand}</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               {description}
             </p>
-            <div className="mt-5 flex gap-3" aria-label="Social links">
-              {social.map(({ icon: Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  className="flex size-9 items-center justify-center rounded-full bg-muted-foreground/15 text-muted-foreground transition-colors hover:bg-muted-foreground/25 hover:text-foreground"
-                  aria-label={label}
-                >
-                  <Icon className="size-4" />
-                </a>
-              ))}
-            </div>
+            {social.length > 0 ? (
+              <div className="mt-5 flex gap-3" aria-label="Social links">
+                {social.map(({ icon: Icon, href, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex size-9 items-center justify-center rounded-full bg-muted-foreground/15 text-muted-foreground transition-colors hover:bg-muted-foreground/25 hover:text-foreground"
+                    aria-label={label}
+                  >
+                    <Icon className="size-4" />
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          {/* Column 2: Quick Links */}
-          <nav aria-labelledby="footer-quick-links">
-            <h3 id="footer-quick-links" className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Quick Links
-            </h3>
-            <ul className="mt-4 flex flex-col gap-3">
-              {quickLinks.map(({ label, href, badge }) => (
-                <li key={href + label}>
-                  <Link
-                    href={href}
-                    className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {label}
-                    {badge && (
-                      <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-medium text-white">
-                        {badge}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {footerColumns.map((col, i) => {
+            const headingId = `footer-col-${i}`;
+            return (
+              <nav
+                key={`${col.title}-${i}`}
+                className="min-w-[140px] flex-1"
+                aria-labelledby={headingId}
+              >
+                <h3
+                  id={headingId}
+                  className="text-sm font-semibold uppercase tracking-wider text-foreground"
+                >
+                  {col.title}
+                </h3>
+                <ul className="mt-4 flex flex-col gap-3">
+                  {col.links.map((row, j) => {
+                    const linkClass =
+                      "text-sm text-muted-foreground transition-colors hover:text-foreground";
+                    const isContact = row.href.toLowerCase().includes("#contact");
+                    const liKey = `${row.label}-${row.href}-${j}`;
+                    return (
+                      <li key={liKey}>
+                        {isContact ? (
+                          <TrackedContactLink href={row.href} className={linkClass}>
+                            {row.label}
+                          </TrackedContactLink>
+                        ) : (
+                          <Link href={row.href} className={linkClass}>
+                            {row.label}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            );
+          })}
 
-          {/* Column 3: Services */}
-          <nav aria-labelledby="footer-services">
-            <h3 id="footer-services" className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Services
-            </h3>
-            <ul className="mt-4 flex flex-col gap-3">
-              {services.map(({ label, href }) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Column 4: Support */}
-          <nav aria-labelledby="footer-support">
-            <h3 id="footer-support" className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Support
-            </h3>
-            <ul className="mt-4 flex flex-col gap-3">
-              {support.map(({ label, href }) => {
-                const linkClass =
-                  "text-sm text-muted-foreground transition-colors hover:text-foreground";
-                const isContact = href.toLowerCase().includes("#contact");
-                return (
-                  <li key={label + href}>
-                    {isContact ? (
-                      <TrackedContactLink href={href} className={linkClass}>
-                        {label}
-                      </TrackedContactLink>
-                    ) : (
-                      <Link href={href} className={linkClass}>
-                        {label}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {/* Column 5: Newsletter */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="w-full shrink-0 lg:max-w-[280px]">
             <h3 id="footer-newsletter" className="text-sm font-semibold uppercase tracking-wider text-foreground">
               Newsletter
             </h3>
@@ -191,7 +166,6 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
           </div>
         </div>
 
-        {/* Bottom footer */}
         <div className="mt-12 border-t border-border py-6 sm:mt-14 lg:mt-16">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <nav aria-label="Footer legal and locale">

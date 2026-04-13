@@ -12,16 +12,19 @@ import {
   getNavSectionVisibility,
   isBlogSectionEnabled,
 } from "@/lib/admin-data";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 import { HOMEPAGE_BLOG_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { notFound } from "next/navigation";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "Latest articles and news from our team.",
-};
+export const metadata: Metadata = buildPublicMetadata({
+  title: "Blog | Articles, guides & insights",
+  description:
+    "Read our latest articles on web development, design, and digital strategy. Practical guides and updates from the team.",
+  keywords: "blog, articles, web development, design tips, digital marketing, tutorials",
+});
 
 const BLOG_FALLBACK_IMAGE = "/images/blog-1.png";
 

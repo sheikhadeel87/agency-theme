@@ -14,6 +14,7 @@ import {
 import { HOMEPAGE_TEAM_SECTION_HREF } from "@/lib/homepage-section-anchors";
 import { hasMeaningfulHtmlContent } from "@/lib/html-utils";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 const bioHtmlClassName =
   "team-member-bio mt-6 max-w-none text-base leading-relaxed text-muted-foreground [&_p]:mt-3 [&_p]:first:mt-0 [&_p]:text-muted-foreground [&_li]:text-muted-foreground [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_ul]:my-3 [&_ul]:list-inside [&_ul]:list-disc [&_ol]:my-3 [&_ol]:list-inside [&_ol]:list-decimal [&_a]:text-blue-600 [&_a]:underline dark:[&_a]:text-blue-400";
@@ -27,14 +28,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const member = await getTeamMemberBySlugOrId(decodeURIComponent(slug));
-  if (!member) return { title: "Team member" };
-  return {
+  if (!member) return buildPublicMetadata({ title: "Team member" });
+  const description = member.role
+    ? `${member.name} — ${member.role}. View profile and bio on our team page.`
+    : `${member.name} — team member profile and bio.`;
+  return buildPublicMetadata({
     title: `${member.name} | Team`,
-    description: member.role
-      ? `${member.name} — ${member.role}`
-      : member.name,
+    description,
     openGraph: member.imageUrl ? { images: [member.imageUrl] } : undefined,
-  };
+  });
 }
 
 export default async function TeamMemberProfilePage({

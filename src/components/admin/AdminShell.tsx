@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
+import { AdminToaster } from "./AdminToaster";
 import { AdminTopbar } from "./AdminTopbar";
 
 const titleByPath: Record<string, string> = {
@@ -45,6 +46,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
   return (
     <div className="min-h-screen bg-muted/30">
+      <AdminToaster />
       <AdminSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       <div className="sm:pl-64">

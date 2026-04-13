@@ -6,11 +6,16 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BlogEditor } from "@/components/admin/BlogEditor";
+import {
+  BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS,
+  countWordsFromHtml,
+} from "@/lib/word-count";
 import { saveTeamMember } from "@/lib/actions/team-actions";
 import type { TeamMember } from "@/lib/admin-data";
 import { shouldUseUnoptimizedImage } from "@/lib/image-display";
 import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
 import { Eye, ImageUp, Send, X } from "lucide-react";
+import { toast } from "sonner";
 
 const defaultValues: Omit<TeamMember, "_id"> = {
   name: "",
@@ -69,8 +74,10 @@ export function TeamMemberForm({ initialData }: Props) {
     const result = await saveTeamMember(formData, bioHtml);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Team member saved.");
     router.push("/admin/team");
     router.refresh();
   }
@@ -82,6 +89,14 @@ export function TeamMemberForm({ initialData }: Props) {
     const file = fileInputRef.current?.files?.[0];
     const imageUrl = await resolvePreviewImageUrl(file, imagePreview, data.imageUrl);
     const bioHtml = bioHtmlGetterRef.current?.() ?? bioLatestRef.current ?? bio;
+    const bioWords = countWordsFromHtml(bioHtml);
+    if (bioWords > BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS) {
+      setError(
+        `Bio must be at most ${BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words (currently ${bioWords}).`
+      );
+      return;
+    }
+    setError(null);
     openAdminPreview("team-member", {
       name: String(fd.get("name") ?? ""),
       role: String(fd.get("role") ?? ""),
@@ -152,6 +167,7 @@ export function TeamMemberForm({ initialData }: Props) {
                 </label>
                 <p className="mb-2 text-xs text-muted-foreground">
                   Rich text shown only on the member&apos;s profile page (/team/your-slug), not on the homepage grid.
+                  Maximum {BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS} words.
                 </p>
                 <BlogEditor
                   key={initialData?._id ?? "new-member"}
@@ -159,6 +175,8 @@ export function TeamMemberForm({ initialData }: Props) {
                   onContentChange={setBioFromEditor}
                   htmlGetterRef={bioHtmlGetterRef}
                   placeholder="Write a short bio for this team member..."
+                  statsMode="words"
+                  maxWords={BIO_PORTFOLIO_BLOG_DESCRIPTION_MAX_WORDS}
                 />
               </div>
             </div>

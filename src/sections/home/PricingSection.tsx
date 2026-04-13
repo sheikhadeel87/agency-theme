@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import type { PricingSettingsData, PricingPlanItem } from "@/lib/admin-data";
 import { formatPlanPriceForDisplay, sanitizePlanPrice } from "@/lib/pricing-display";
+import { cn } from "@/lib/utils";
 
 export type PricingSectionProps = {
   settings: PricingSettingsData;
@@ -61,10 +62,19 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
     },
   ] as PricingPlanItem[];
 
+  const planCount = displayPlans.length;
+  /** Avoid `lg:grid-cols-3` with only 2 cards (they would hug the left two columns). */
+  const plansGridClass = cn(
+    "mx-auto mt-12 grid gap-6 sm:mt-16 sm:gap-8 lg:gap-8",
+    planCount <= 1 && "max-w-md grid-cols-1",
+    planCount === 2 && "max-w-4xl grid-cols-1 sm:grid-cols-2",
+    planCount >= 3 && "max-w-5xl grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+  );
+
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-background py-16 sm:py-20 lg:py-24"
       aria-labelledby="pricing-heading"
     >
       <Container as="div" className="relative">
@@ -109,7 +119,7 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
           </div>
         </header>
 
-        <ul className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 sm:mt-16 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        <ul className={plansGridClass}>
           {displayPlans.map((plan, index) => {
             const price = sanitizePlanPrice(
               billingAnnual ? plan.priceAnnual : plan.priceMonthly

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Zap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { BrandLogoMark } from "@/components/layout/BrandLogoMark";
 import { SiteNavbar } from "@/components/layout/SiteNavbar";
 import { ThemeToggle } from "@/components/theme";
 import type { NavSectionVisibility, SiteSettingsData } from "@/lib/admin-data";
@@ -20,9 +20,16 @@ export type HeaderProps = {
   dynamicPages?: { title: string; slug: string }[];
   /** When set, main nav hides links to disabled homepage sections (same rules as footer). */
   navVisibility?: NavSectionVisibility;
+  /** When true, navbar uses only `siteSettings.navigation` (no client refetch). For site-settings preview drafts. */
+  lockNavigationToFallback?: boolean;
 };
 
-export function Header({ siteSettings, dynamicPages = [], navVisibility }: HeaderProps) {
+export function Header({
+  siteSettings,
+  dynamicPages = [],
+  navVisibility,
+  lockNavigationToFallback = false,
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const brand = brandText(siteSettings);
 
@@ -34,9 +41,7 @@ export function Header({ siteSettings, dynamicPages = [], navVisibility }: Heade
             href="/"
             className="inline-flex shrink-0 items-center gap-2 text-xl font-semibold tracking-tight text-foreground"
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
-              <Zap className="size-5" />
-            </span>
+            <BrandLogoMark siteSettings={siteSettings} />
             {brand}
           </Link>
 
@@ -45,6 +50,7 @@ export function Header({ siteSettings, dynamicPages = [], navVisibility }: Heade
               dynamicPages={dynamicPages}
               fallbackNavigation={siteSettings?.navigation}
               navVisibility={navVisibility}
+              lockNavigationToFallback={lockNavigationToFallback}
               onNavigate={() => setMobileMenuOpen(false)}
               className={`absolute left-0 right-0 top-full border-b border-border bg-background md:static md:border-0 md:bg-transparent ${
                 mobileMenuOpen ? "block" : "hidden md:block"

@@ -1,8 +1,13 @@
+import { SECTION_VISIBILITY_KEY_SET } from "@/lib/nav-section-visibility";
+import type { NavSectionVisibility } from "@/lib/nav-section-visibility";
+
 export type NavChildItem = {
   label: string;
   href: string;
   isEnabled: boolean;
   order: number;
+  /** Footer columns editor: hide when this homepage section is off (Page visibility). */
+  sectionKey?: keyof NavSectionVisibility;
 };
 
 export type NavItem = {
@@ -179,12 +184,19 @@ function applyLegacyNavHrefFixes(items: NavItem[]): NavItem[] {
 function coerceNavChild(row: unknown, index: number): NavChildItem | null {
   if (!row || typeof row !== "object") return null;
   const o = row as Record<string, unknown>;
-  return {
+  const sk = o.sectionKey;
+  const sectionKey =
+    typeof sk === "string" && SECTION_VISIBILITY_KEY_SET.has(sk)
+      ? (sk as keyof NavSectionVisibility)
+      : undefined;
+  const base: NavChildItem = {
     label: String(o.label ?? ""),
     href: String(o.href ?? ""),
     isEnabled: o.isEnabled !== false,
     order: typeof o.order === "number" && Number.isFinite(o.order) ? o.order : index + 1,
   };
+  if (sectionKey) base.sectionKey = sectionKey;
+  return base;
 }
 
 function coerceNavItem(row: unknown, index: number): NavItem | null {

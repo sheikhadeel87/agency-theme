@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { SiteSettings } from "@/models/SiteSettings";
+import {
+  CONTACT_PHONE_INVALID_MESSAGE,
+  isValidContactPhone,
+} from "@/lib/contact-phone";
+import { validateSiteSocialLinks } from "@/lib/social-link-validation";
 import { saveUploadedAdminImage } from "@/lib/upload-image";
 
 export type SaveSiteSettingsState = {
@@ -63,24 +68,37 @@ export async function saveSiteSettings(
       faviconUrl = (existing as { faviconUrl: string }).faviconUrl;
     }
 
+    const socialLinks = {
+      facebook: str(formData, "facebook"),
+      twitter: str(formData, "twitter"),
+      linkedin: str(formData, "linkedin"),
+      instagram: str(formData, "instagram"),
+    };
+    const socialErr = validateSiteSocialLinks(socialLinks);
+    if (socialErr) {
+      return { error: socialErr };
+    }
+
+    const phone = str(formData, "phone");
+    if (phone && !isValidContactPhone(phone)) {
+      return { error: CONTACT_PHONE_INVALID_MESSAGE };
+    }
+
     const payload = {
       siteName: str(formData, "siteName"),
       logoText: str(formData, "logoText"),
       logoUrl,
       faviconUrl,
       contactEmail: str(formData, "contactEmail"),
-      phone: str(formData, "phone"),
+      phone,
       address: str(formData, "address"),
       mapEmbedUrl: str(formData, "mapEmbedUrl"),
+      contactSectionTitle: str(formData, "contactSectionTitle"),
+      contactSectionDescription: str(formData, "contactSectionDescription"),
       footerText: str(formData, "footerText"),
       privacyPolicyUrl: str(formData, "privacyPolicyUrl"),
       termsUrl: str(formData, "termsUrl"),
-      socialLinks: {
-        facebook: str(formData, "facebook"),
-        twitter: str(formData, "twitter"),
-        linkedin: str(formData, "linkedin"),
-        instagram: str(formData, "instagram"),
-      },
+      socialLinks,
       servicesSectionEnabled: bool(formData, "servicesSectionEnabled"),
       portfolioSectionEnabled: bool(formData, "portfolioSectionEnabled"),
       blogSectionEnabled: bool(formData, "blogSectionEnabled"),
@@ -128,11 +146,18 @@ export async function saveContactSettings(
   try {
     await dbConnect();
 
+    const phone = str(formData, "phone");
+    if (phone && !isValidContactPhone(phone)) {
+      return { error: CONTACT_PHONE_INVALID_MESSAGE };
+    }
+
     const payload = {
       contactEmail: str(formData, "contactEmail"),
-      phone: str(formData, "phone"),
+      phone,
       address: str(formData, "address"),
       mapEmbedUrl: str(formData, "mapEmbedUrl"),
+      contactSectionTitle: str(formData, "contactSectionTitle"),
+      contactSectionDescription: str(formData, "contactSectionDescription"),
     };
 
     await SiteSettings.findOneAndUpdate(
@@ -150,7 +175,16 @@ export async function saveContactSettings(
     await recordAdminAudit({
       action: "UPDATE_CONTACT_SETTINGS",
       resource: "site-settings",
-      metadata: { fields: ["contactEmail", "phone", "address", "mapEmbedUrl"] },
+      metadata: {
+        fields: [
+          "contactEmail",
+          "phone",
+          "address",
+          "mapEmbedUrl",
+          "contactSectionTitle",
+          "contactSectionDescription",
+        ],
+      },
     });
     return { success: true };
   } catch (e) {

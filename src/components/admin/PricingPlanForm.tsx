@@ -10,6 +10,7 @@ import { savePricingPlan } from "@/lib/actions/pricing-actions";
 import type { PricingPlanItem } from "@/lib/admin-data";
 import { isFormCheckboxChecked, openAdminPreview } from "@/lib/admin-preview";
 import { ArrowLeft, Eye, Send, Star } from "lucide-react";
+import { toast } from "sonner";
 
 type Props = {
   initialData?: PricingPlanItem | null;
@@ -51,8 +52,10 @@ export function PricingPlanForm({ initialData }: Props) {
     const result = await savePricingPlan(formData);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Pricing plan saved.");
     router.push("/admin/pricing");
     router.refresh();
   }

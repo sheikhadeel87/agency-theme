@@ -1,15 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveSiteSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
+import {
+  CONTACT_PHONE_INVALID_MESSAGE,
+  isValidContactPhone,
+  sanitizeContactPhoneInput,
+} from "@/lib/contact-phone";
+import { validateSiteSocialLinks } from "@/lib/social-link-validation";
 import { getDefaultNavigation } from "@/lib/navigation";
 import { Eye, ImageUp, X } from "lucide-react";
+import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
 
 const emptySocial = {
@@ -20,6 +27,7 @@ const emptySocial = {
 };
 
 const defaultValues: Omit<SiteSettingsData, "_id"> = {
+  footerColumns: [],
   siteName: "",
   logoText: "",
   logoUrl: "",
@@ -28,6 +36,8 @@ const defaultValues: Omit<SiteSettingsData, "_id"> = {
   phone: "",
   address: "",
   mapEmbedUrl: "",
+  contactSectionTitle: "",
+  contactSectionDescription: "",
   footerText: "",
   privacyPolicyUrl: "",
   termsUrl: "",
@@ -116,6 +126,11 @@ export function SiteSettingsForm({ initialData }: Props) {
     blogSectionEnabled: data.blogSectionEnabled !== false,
     contactSectionEnabled: data.contactSectionEnabled !== false,
   }));
+  const [phoneInput, setPhoneInput] = useState(data.phone ?? "");
+
+  useEffect(() => {
+    setPhoneInput(data.phone ?? "");
+  }, [data.phone]);
 
   const setHomepageFlag = <K extends keyof HomepageSectionFlags>(key: K, value: boolean) => {
     setHomepageSections((prev) => ({ ...prev, [key]: value }));
@@ -151,11 +166,20 @@ export function SiteSettingsForm({ initialData }: Props) {
     formData.set("portfolioSectionEnabled", homepageSections.portfolioSectionEnabled ? "on" : "false");
     formData.set("blogSectionEnabled", homepageSections.blogSectionEnabled ? "on" : "false");
     formData.set("contactSectionEnabled", homepageSections.contactSectionEnabled ? "on" : "false");
+    const phoneTrimmed = phoneInput.trim();
+    if (phoneTrimmed && !isValidContactPhone(phoneTrimmed)) {
+      setError(CONTACT_PHONE_INVALID_MESSAGE);
+      toast.error(CONTACT_PHONE_INVALID_MESSAGE);
+      return;
+    }
+    formData.set("phone", phoneTrimmed);
     const result = await saveSiteSettings(formData);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Site settings saved.");
     router.push("/admin/site-settings");
     router.refresh();
   }
@@ -164,6 +188,22 @@ export function SiteSettingsForm({ initialData }: Props) {
     const form = formRef.current;
     if (!form) return;
     const fd = new FormData(form);
+    const socialErr = validateSiteSocialLinks({
+      facebook: String(fd.get("facebook") ?? "").trim(),
+      twitter: String(fd.get("twitter") ?? "").trim(),
+      linkedin: String(fd.get("linkedin") ?? "").trim(),
+      instagram: String(fd.get("instagram") ?? "").trim(),
+    });
+    if (socialErr) {
+      setError(socialErr);
+      return;
+    }
+    const previewPhone = phoneInput.trim();
+    if (previewPhone && !isValidContactPhone(previewPhone)) {
+      setError(CONTACT_PHONE_INVALID_MESSAGE);
+      return;
+    }
+    setError(null);
     const logoFile = logoRef.current?.files?.[0];
     const faviconFile = faviconRef.current?.files?.[0];
     const logoUrl = await resolvePreviewImageUrl(logoFile, logoPreview, data.logoUrl);
@@ -175,9 +215,11 @@ export function SiteSettingsForm({ initialData }: Props) {
       logoUrl,
       faviconUrl,
       contactEmail: String(fd.get("contactEmail") ?? ""),
-      phone: String(fd.get("phone") ?? ""),
+      phone: previewPhone,
       address: String(fd.get("address") ?? ""),
       mapEmbedUrl: String(fd.get("mapEmbedUrl") ?? ""),
+      contactSectionTitle: String(fd.get("contactSectionTitle") ?? ""),
+      contactSectionDescription: String(fd.get("contactSectionDescription") ?? ""),
       footerText: String(fd.get("footerText") ?? ""),
       privacyPolicyUrl: String(fd.get("privacyPolicyUrl") ?? ""),
       termsUrl: String(fd.get("termsUrl") ?? ""),
@@ -304,6 +346,28 @@ export function SiteSettingsForm({ initialData }: Props) {
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-foreground">Contact</h3>
+        <p className="text-xs text-muted-foreground">
+          Homepage Contact block: heading and intro (also editable under{" "}
+          <span className="font-medium text-foreground">Contact &amp; Map</span>). Leave blank for
+          defaults.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-1">
+          <Field
+            label="Contact section heading"
+            id="contactSectionTitle"
+            name="contactSectionTitle"
+            placeholder="Let's Stay Connected"
+            defaultValue={data.contactSectionTitle}
+          />
+          <Field
+            label="Contact section description"
+            id="contactSectionDescription"
+            name="contactSectionDescription"
+            placeholder="Short intro under the heading"
+            defaultValue={data.contactSectionDescription}
+            rows={3}
+          />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Contact email"
@@ -313,13 +377,21 @@ export function SiteSettingsForm({ initialData }: Props) {
             placeholder="hello@example.com"
             defaultValue={data.contactEmail}
           />
-          <Field
-            label="Phone"
-            id="phone"
-            name="phone"
-            placeholder="+1 234 567 8900"
-            defaultValue={data.phone}
-          />
+          <div>
+            <label htmlFor="phone" className="mb-1 block text-sm font-medium text-foreground">
+              Phone
+            </label>
+            <Input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+1 234 567 8900"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(sanitizeContactPhoneInput(e.target.value))}
+              className="max-w-md"
+            />
+          </div>
           <Field
             label="Address"
             id="address"

@@ -28,7 +28,7 @@ export function TestimonialsCarousel({ testimonials }: Props) {
       <div className="relative overflow-hidden rounded-2xl bg-muted shadow-md sm:rounded-3xl lg:min-h-[372px]">
         <div className="grid grid-cols-1 items-stretch gap-8 p-6 sm:p-8 lg:grid-cols-[300px_1fr] lg:gap-10 lg:min-h-[372px] lg:p-10">
           <div className="flex min-h-0 w-full items-center justify-center self-stretch lg:min-w-[300px]">
-            <div className="relative h-0 w-full max-w-[280px] shrink-0 overflow-hidden rounded-xl bg-gray-200 pb-[100%] sm:max-w-[300px] lg:max-w-none lg:h-[300px] lg:w-[300px] lg:pb-0">
+            <div className="relative h-0 w-full max-w-[280px] shrink-0 overflow-hidden rounded-xl bg-muted pb-[100%] sm:max-w-[300px] lg:max-w-none lg:h-[300px] lg:w-[300px] lg:pb-0">
               <Image
                 src={imgSrc}
                 alt={current.authorName || "Client"}

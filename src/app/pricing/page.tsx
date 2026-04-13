@@ -11,21 +11,21 @@ import {
   isPricingSectionEnabled,
 } from "@/lib/admin-data";
 import { notFound } from "next/navigation";
+import { buildPublicMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   if (!(await isPricingSectionEnabled())) {
-    return { title: "Not found" };
+    return buildPublicMetadata({ title: "Not found" });
   }
   const settings = await getPricingSettings();
-  return {
+  return buildPublicMetadata({
     title: settings.metaTitle || settings.sectionTitle || "Pricing",
-    description: settings.metaDescription || settings.sectionDescription || undefined,
-    keywords: settings.metaKeywords
-      ? settings.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
-      : undefined,
-  };
+    description:
+      settings.metaDescription || settings.sectionDescription || "Compare plans and pricing for our services.",
+    keywords: settings.metaKeywords || undefined,
+  });
 }
 
 export default async function PricingPage() {
