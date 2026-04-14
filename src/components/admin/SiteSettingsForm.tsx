@@ -13,6 +13,10 @@ import {
   isValidContactPhone,
   sanitizeContactPhoneInput,
 } from "@/lib/contact-phone";
+import {
+  CONTACT_SECTION_DESCRIPTION_MAX_LENGTH,
+  CONTACT_SECTION_TITLE_MAX_LENGTH,
+} from "@/lib/contact-section-field-limits";
 import { validateSiteSocialLinks } from "@/lib/social-link-validation";
 import { getDefaultNavigation } from "@/lib/navigation";
 import { Eye, ImageUp, X } from "lucide-react";
@@ -62,6 +66,7 @@ function Field({
   placeholder,
   defaultValue,
   rows,
+  maxLength,
 }: {
   label: string;
   id: string;
@@ -70,6 +75,7 @@ function Field({
   placeholder?: string;
   defaultValue?: string;
   rows?: number;
+  maxLength?: number;
 }) {
   const inputClass =
     "w-full max-w-md rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -85,6 +91,7 @@ function Field({
           rows={rows}
           placeholder={placeholder}
           defaultValue={defaultValue ?? ""}
+          maxLength={maxLength}
           className={inputClass}
         />
       ) : (
@@ -94,6 +101,7 @@ function Field({
           type={type}
           placeholder={placeholder}
           defaultValue={defaultValue ?? ""}
+          maxLength={maxLength}
           className="max-w-md"
         />
       )}
@@ -359,6 +367,7 @@ export function SiteSettingsForm({ initialData }: Props) {
             name="contactSectionTitle"
             placeholder="Let's Stay Connected"
             defaultValue={data.contactSectionTitle}
+            maxLength={CONTACT_SECTION_TITLE_MAX_LENGTH}
           />
           <Field
             label="Contact section description"
@@ -367,6 +376,7 @@ export function SiteSettingsForm({ initialData }: Props) {
             placeholder="Short intro under the heading"
             defaultValue={data.contactSectionDescription}
             rows={3}
+            maxLength={CONTACT_SECTION_DESCRIPTION_MAX_LENGTH}
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
