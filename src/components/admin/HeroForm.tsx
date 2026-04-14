@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveHero } from "@/lib/actions/hero-actions";
@@ -87,11 +87,15 @@ export function HeroForm({ initialData }: Props) {
   const [description, setDescription] = useState(
     data.description.slice(0, HERO_DESCRIPTION_MAX_LENGTH)
   );
-
-  useEffect(() => {
+  const [prevHeroText, setPrevHeroText] = useState({
+    heading: data.heading,
+    description: data.description,
+  });
+  if (data.heading !== prevHeroText.heading || data.description !== prevHeroText.description) {
+    setPrevHeroText({ heading: data.heading, description: data.description });
     setHeading(data.heading.slice(0, HERO_HEADING_MAX_LENGTH));
     setDescription(data.description.slice(0, HERO_DESCRIPTION_MAX_LENGTH));
-  }, [data.heading, data.description]);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

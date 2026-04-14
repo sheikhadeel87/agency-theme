@@ -23,6 +23,8 @@ const RESERVED_SLUGS = new Set([
   "terms-conditions",
   "api",
   "team",
+  "services",
+  "contact",
 ]);
 
 export async function generateMetadata({

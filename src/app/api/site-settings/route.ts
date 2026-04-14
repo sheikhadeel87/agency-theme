@@ -111,6 +111,8 @@ export async function PUT(request: Request) {
       revalidatePath("/admin/site-settings/footer");
       revalidatePath("/blog");
       revalidatePath("/portfolio");
+      revalidatePath("/services");
+      revalidatePath("/contact");
     } catch (revalErr) {
       console.warn("revalidatePath after PUT /api/site-settings:", revalErr);
     }

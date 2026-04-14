@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   BarChart3,
   Layers,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { serviceDetailUrlSegment } from "@/lib/service-detail-path";
 
 const serviceIcons: LucideIcon[] = [
   BarChart3,
@@ -22,6 +24,7 @@ export interface ServicesSectionProps {
   services: {
     _id: string;
     title: string;
+    slug: string;
     description: string;
     status: "Draft" | "Published";
   }[];
@@ -58,29 +61,39 @@ export function ServicesSection({ services }: ServicesSectionProps) {
         </header>
 
         <ul className="mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-10 sm:mt-16 sm:gap-x-12 sm:gap-y-14 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-16">
-          {publishedServices.map(({ _id, title, description }, index) => {
+          {publishedServices.map((svc, index) => {
+            const { _id, title, description } = svc;
             const Icon = serviceIcons[index % serviceIcons.length];
+            const detailHref = `/services/${encodeURIComponent(serviceDetailUrlSegment(svc))}`;
+            const inner = (
+              <>
+                <div
+                  className="flex size-12 shrink-0 items-center justify-center text-blue-600 sm:size-14"
+                  aria-hidden
+                >
+                  <Icon className="size-6 sm:size-7" strokeWidth={1.5} />
+                </div>
+                <h2 className="mt-5 text-lg font-semibold text-foreground sm:text-xl group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                  {title}
+                </h2>
+                {description && (/<[^>]+>/.test(description) ? (
+                  <div
+                    className="prose prose-sm prose-gray mt-2 max-w-none sm:mt-3 [&_p]:my-0 [&_p]:text-muted-foreground"
+                    dangerouslySetInnerHTML={{ __html: description }}
+                  />
+                ) : (
+                  <p className="mt-2 text-muted-foreground sm:mt-3">{description}</p>
+                ))}
+              </>
+            );
             return (
               <li key={_id}>
-                <article className="flex flex-col items-start text-left">
-                  <div
-                    className="flex size-12 shrink-0 items-center justify-center text-blue-600 sm:size-14"
-                    aria-hidden
-                  >
-                    <Icon className="size-6 sm:size-7" strokeWidth={1.5} />
-                  </div>
-                  <h2 className="mt-5 text-lg font-semibold text-foreground sm:text-xl">
-                    {title}
-                  </h2>
-                  {description && (/<[^>]+>/.test(description) ? (
-                    <div
-                      className="prose prose-sm prose-gray mt-2 max-w-none sm:mt-3 [&_p]:my-0 [&_p]:text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: description }}
-                    />
-                  ) : (
-                    <p className="mt-2 text-muted-foreground sm:mt-3">{description}</p>
-                  ))}
-                </article>
+                <Link
+                  href={detailHref}
+                  className="group flex flex-col items-start text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  {inner}
+                </Link>
               </li>
             );
           })}

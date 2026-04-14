@@ -340,6 +340,52 @@ export async function getServiceById(id: string): Promise<ServiceItem | null> {
   return mapServiceDoc(doc);
 }
 
+/** Published service by URL slug (public detail page). */
+export async function getServiceBySlug(slug: string): Promise<ServiceItem | null> {
+  const s = slug?.trim();
+  if (!s) return null;
+  const { dbConnect } = await import("@/lib/db");
+  const { Service } = await import("@/models/Service");
+  await dbConnect();
+  const doc = await Service.findOne({ slug: s, status: "Published" }).lean();
+  if (!doc) return null;
+  return mapServiceDoc(doc);
+}
+
+/**
+ * Published service from a URL segment: match `slug` first, then Mongo `_id`
+ * (legacy rows may have an empty slug — homepage still links via id).
+ */
+export async function getPublishedServiceBySlugOrId(param: string): Promise<ServiceItem | null> {
+  const raw = param?.trim();
+  if (!raw) return null;
+  const { dbConnect } = await import("@/lib/db");
+  const { Service } = await import("@/models/Service");
+  const { isValidObjectId } = await import("mongoose");
+  await dbConnect();
+
+  const bySlug = await Service.findOne({ slug: raw, status: "Published" }).lean();
+  if (bySlug) return mapServiceDoc(bySlug);
+
+  if (isValidObjectId(raw)) {
+    const byId = await Service.findOne({ _id: raw, status: "Published" }).lean();
+    if (byId) return mapServiceDoc(byId);
+  }
+  return null;
+}
+
+/** All published services (newest first) for `/services` archive. */
+export async function getPublishedServices(): Promise<ServiceItem[]> {
+  const site = await getSiteSettings();
+  if (!cmsEnabled(site?.servicesSectionEnabled)) return [];
+
+  const { dbConnect } = await import("@/lib/db");
+  const { Service } = await import("@/models/Service");
+  await dbConnect();
+  const docs = await Service.find({ status: "Published" }).sort({ updatedAt: -1 }).lean();
+  return docs.map((d) => mapServiceDoc(d));
+}
+
 /**
  * Services for the homepage section: max 3 published.
  * Prefers items with featuredOnHomepage (newest first), then fills with latest published.
@@ -1308,6 +1354,16 @@ export async function isTeamSectionEnabled(): Promise<boolean> {
 export async function isPortfolioSectionEnabled(): Promise<boolean> {
   const s = await getSiteSettings();
   return cmsEnabled(s?.portfolioSectionEnabled);
+}
+
+export async function isServicesSectionEnabled(): Promise<boolean> {
+  const s = await getSiteSettings();
+  return cmsEnabled(s?.servicesSectionEnabled);
+}
+
+export async function isContactSectionEnabled(): Promise<boolean> {
+  const s = await getSiteSettings();
+  return cmsEnabled(s?.contactSectionEnabled);
 }
 
 export async function isPricingSectionEnabled(): Promise<boolean> {

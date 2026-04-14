@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { openAdminPreview, resolvePreviewImageUrl } from "@/lib/admin-preview";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -126,11 +126,12 @@ export function SiteSettingsForm({ initialData }: Props) {
     blogSectionEnabled: data.blogSectionEnabled !== false,
     contactSectionEnabled: data.contactSectionEnabled !== false,
   }));
-  const [phoneInput, setPhoneInput] = useState(data.phone ?? "");
-
-  useEffect(() => {
+  const [phoneInput, setPhoneInput] = useState(() => data.phone ?? "");
+  const [prevPhone, setPrevPhone] = useState(data.phone);
+  if (data.phone !== prevPhone) {
+    setPrevPhone(data.phone);
     setPhoneInput(data.phone ?? "");
-  }, [data.phone]);
+  }
 
   const setHomepageFlag = <K extends keyof HomepageSectionFlags>(key: K, value: boolean) => {
     setHomepageSections((prev) => ({ ...prev, [key]: value }));

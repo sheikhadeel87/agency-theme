@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
@@ -31,12 +31,23 @@ export function PricingSectionForm({ initialData }: Props) {
   );
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
+  const [prevSectionCopy, setPrevSectionCopy] = useState({
+    title: initialData.sectionTitle,
+    description: initialData.sectionDescription,
+  });
+  if (
+    initialData.sectionTitle !== prevSectionCopy.title ||
+    initialData.sectionDescription !== prevSectionCopy.description
+  ) {
+    setPrevSectionCopy({
+      title: initialData.sectionTitle,
+      description: initialData.sectionDescription,
+    });
     setSectionTitle(initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH));
     setSectionDescription(
       initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
     );
-  }, [initialData.sectionTitle, initialData.sectionDescription]);
+  }
 
   const titleAtCap = sectionTitle.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
   const descAtCap = sectionDescription.length >= PRICING_SECTION_FIELD_MAX_LENGTH;

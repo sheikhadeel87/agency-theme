@@ -43,10 +43,10 @@ export function getDefaultNavigation(): NavItem[] {
       appendDynamicPages: true,
       children: [
         navChild("Team", "/team", 1),
-        navChild("Services", "/#services", 2),
+        navChild("Services", "/services", 2),
         navChild("Portfolio", "/portfolio", 3),
         navChild("Blog", "/blog", 4),
-        navChild("Contact", "/#contact", 5),
+        navChild("Contact", "/contact", 5),
       ],
     },
   ]);
@@ -177,8 +177,31 @@ function fixLegacyPortfolioListingHrefs(items: NavItem[]): NavItem[] {
   }));
 }
 
+/** Public nav Services / Contact use full routes like Blog and Portfolio. */
+function fixServicesAndContactHref(href: string): string {
+  const t = href.trim();
+  if (t === "/services" || t.startsWith("/services/")) return href;
+  if (t === "/contact" || t.startsWith("/contact?")) return href;
+  if (t === "/#services" || t === "#services") return "/services";
+  if (t === "/#contact" || t === "#contact") return "/contact";
+  return href;
+}
+
+function fixLegacyServicesContactHrefs(items: NavItem[]): NavItem[] {
+  return items.map((item) => ({
+    ...item,
+    href: fixServicesAndContactHref(item.href),
+    children: item.children?.map((c) => ({
+      ...c,
+      href: fixServicesAndContactHref(c.href),
+    })),
+  }));
+}
+
 function applyLegacyNavHrefFixes(items: NavItem[]): NavItem[] {
-  return fixLegacyTeamHrefs(fixLegacyBlogHrefs(fixLegacyPortfolioListingHrefs(items)));
+  return fixLegacyServicesContactHrefs(
+    fixLegacyTeamHrefs(fixLegacyBlogHrefs(fixLegacyPortfolioListingHrefs(items)))
+  );
 }
 
 function coerceNavChild(row: unknown, index: number): NavChildItem | null {
@@ -316,6 +339,12 @@ export function publicNavEntryKey(entry: PublicNavEntry, index: number): string 
   return `dropdown:${entry.label}:${index}`;
 }
 
+function stripClientNavId<T extends object>(obj: T): Omit<T, "id"> {
+  const copy = { ...obj };
+  delete (copy as { id?: unknown }).id;
+  return copy as Omit<T, "id">;
+}
+
 export function serializeNavigationForSave(
   items: Array<
     Omit<NavItem, "children"> & {
@@ -324,12 +353,9 @@ export function serializeNavigationForSave(
     }
   >
 ): NavItem[] {
-  const stripped: NavItem[] = items.map((item) => {
-    const { id: _rid, children, ...rest } = item;
-    return {
-      ...rest,
-      children: children?.map(({ id: _cid, ...c }) => ({ ...c })),
-    };
-  });
+  const stripped: NavItem[] = items.map((item) => ({
+    ...stripClientNavId(item),
+    children: item.children?.map((child) => stripClientNavId(child)),
+  }));
   return parseNavigationPayload(stripped);
 }

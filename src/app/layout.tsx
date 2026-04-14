@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { buildPublicMetadata } from "@/lib/seo-metadata";
 import { getSiteSettings } from "@/lib/admin-data";
 import { Geist_Mono, Montserrat } from "next/font/google";
+import { AppTopLoader } from "@/components/layout/AppTopLoader";
 import { ThemeProvider } from "@/components/theme";
 import { TrackPageVisit } from "@/components/analytics/TrackPageVisit";
 import "./globals.css";
@@ -57,6 +58,7 @@ export default function RootLayout({
     <html lang="en" className={montserrat.variable} suppressHydrationWarning>
       <body className={`${geistMono.variable} antialiased`}>
         <ThemeProvider>
+          <AppTopLoader />
           <Suspense fallback={null}>
             <TrackPageVisit />
           </Suspense>

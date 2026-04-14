@@ -7,8 +7,9 @@ import { publicNavEntryKey, type PublicNavEntry } from "@/lib/navigation";
 import { FUNNEL_EVENTS, trackEvent } from "@/lib/track-event";
 import { cn } from "@/lib/utils";
 
-function isContactHashHref(href: string): boolean {
-  return href.toLowerCase().includes("#contact");
+function isContactHref(href: string): boolean {
+  const h = href.toLowerCase();
+  return h.includes("#contact") || h === "/contact" || h.startsWith("/contact?");
 }
 
 const navListClass =
@@ -87,7 +88,7 @@ export function PublicNavMenu({
                   href={entry.href}
                   className={navLinkClass}
                   onClick={() => {
-                    if (isContactHashHref(entry.href)) trackEvent(FUNNEL_EVENTS.clickContact);
+                    if (isContactHref(entry.href)) trackEvent(FUNNEL_EVENTS.clickContact);
                     handleActivate();
                   }}
                 >
@@ -125,7 +126,7 @@ export function PublicNavMenu({
                         role="menuitem"
                         className={dropdownItemClass}
                         onClick={() => {
-                          if (isContactHashHref(item.href)) trackEvent(FUNNEL_EVENTS.clickContact);
+                          if (isContactHref(item.href)) trackEvent(FUNNEL_EVENTS.clickContact);
                           setOpenDropdownIndex(null);
                           handleActivate();
                         }}

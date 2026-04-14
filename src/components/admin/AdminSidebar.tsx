@@ -16,6 +16,7 @@ export function AdminSidebar({
   setMobileOpen,
   newContactMessageCount = 0,
 }: AdminSidebarProps) {
+  void newContactMessageCount;
   return (
     <>
       {/* Desktop: fixed sidebar */}

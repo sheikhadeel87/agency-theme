@@ -63,6 +63,7 @@ export function ServicePreviewClient({ siteSettings, dynamicPages }: Shell) {
           {
             _id: "preview",
             title: payload.title?.trim() || "Service title",
+            slug: "",
             description: payload.description ?? "",
             status: "Published",
           },

@@ -12,3 +12,11 @@ export const HOMEPAGE_TEAM_SECTION_HREF = `/#${HOMEPAGE_TEAM_SECTION_ID}` as con
 export const HOMEPAGE_PORTFOLIO_SECTION_ID = "portfolio" as const;
 export const HOMEPAGE_PORTFOLIO_SECTION_HREF =
   `/#${HOMEPAGE_PORTFOLIO_SECTION_ID}` as const;
+
+export const HOMEPAGE_SERVICES_SECTION_ID = "services" as const;
+export const HOMEPAGE_SERVICES_SECTION_HREF =
+  `/#${HOMEPAGE_SERVICES_SECTION_ID}` as const;
+
+export const HOMEPAGE_CONTACT_SECTION_ID = "contact" as const;
+export const HOMEPAGE_CONTACT_SECTION_HREF =
+  `/#${HOMEPAGE_CONTACT_SECTION_ID}` as const;
