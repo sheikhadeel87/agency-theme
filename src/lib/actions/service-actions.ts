@@ -122,7 +122,13 @@ export async function saveService(formData: FormData): Promise<SaveServiceState>
 
     try {
       revalidatePath("/");
+      revalidatePath("/services");
       revalidatePath("/admin/services");
+      const detailSeg =
+        payload.slug?.trim() || (id && isValidObjectId(id) ? id : "");
+      if (detailSeg) {
+        revalidatePath(`/services/${encodeURIComponent(detailSeg)}`);
+      }
     } catch (e) {
       console.warn("revalidatePath after saveService:", e);
     }
@@ -150,6 +156,15 @@ export async function deleteService(id: string): Promise<{ success?: boolean; er
       resourceId: id,
       metadata: { title: title || undefined, slug: slug || undefined },
     });
+    try {
+      revalidatePath("/");
+      revalidatePath("/services");
+      const seg = slug?.trim() || id;
+      if (seg) revalidatePath(`/services/${encodeURIComponent(seg)}`);
+      revalidatePath("/admin/services");
+    } catch (e) {
+      console.warn("revalidatePath after deleteService:", e);
+    }
     return { success: true };
   } catch (e) {
     console.error("deleteService error:", e);

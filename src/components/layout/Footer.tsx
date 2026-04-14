@@ -134,7 +134,8 @@ export function Footer({ siteSettings, navVisibility }: FooterProps) {
                   {col.links.map((row, j) => {
                     const linkClass =
                       "text-sm text-muted-foreground transition-colors hover:text-foreground";
-                    const isContact = row.href.toLowerCase().includes("#contact");
+                    const h = row.href.toLowerCase();
+                    const isContact = h.includes("#contact") || h === "/contact" || h.startsWith("/contact?");
                     const liKey = `${row.label}-${row.href}-${j}`;
                     return (
                       <li key={liKey}>

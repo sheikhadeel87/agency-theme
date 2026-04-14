@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import type { PricingSettingsData, PricingPlanItem } from "@/lib/admin-data";
@@ -13,8 +12,6 @@ export type PricingSectionProps = {
 };
 
 export function PricingSection({ settings, plans }: PricingSectionProps) {
-  const [billingAnnual, setBillingAnnual] = useState(false);
-
   const displayPlans = plans.length > 0 ? plans : [
     {
       _id: "fallback",
@@ -71,6 +68,34 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
     planCount >= 3 && "max-w-5xl grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
   );
 
+  /*
+   * --- COMMENTED: monthly / annual billing toggle (not required for now) ---
+   * Paste inside <header> after section description, before </header>.
+   * Also add: import { useState } from "react";
+   * Also add: const [billingAnnual, setBillingAnnual] = useState(false);
+   *
+   * <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
+   *   <span className={`text-sm font-medium ${!billingAnnual ? "text-foreground" : "text-muted-foreground"}`}>
+   *     Bill Monthly
+   *   </span>
+   *   <button
+   *     type="button"
+   *     role="switch"
+   *     aria-checked={billingAnnual}
+   *     onClick={() => setBillingAnnual((v) => !v)}
+   *     className="relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-muted-foreground/20 px-1 transition-colors duration-300 sm:h-9 sm:w-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-background"
+   *   >
+   *     <span
+   *       className="block size-6 rounded-full bg-blue-600 shadow-sm transition-transform duration-300 ease-out sm:size-7"
+   *       style={{ transform: billingAnnual ? "translateX(calc(100% + 2px))" : "translateX(0)" }}
+   *     />
+   *   </button>
+   *   <span className={`text-sm font-medium ${billingAnnual ? "text-foreground" : "text-muted-foreground"}`}>
+   *     Bill Annually
+   *   </span>
+   * </div>
+   */
+
   return (
     <section
       id="pricing"
@@ -96,35 +121,17 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
               of using.
             </p>
           )}
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
-            <span className={`text-sm font-medium ${!billingAnnual ? "text-foreground" : "text-muted-foreground"}`}>
-              Bill Monthly
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={billingAnnual}
-              onClick={() => setBillingAnnual((v) => !v)}
-              className="relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-muted-foreground/20 px-1 transition-colors duration-300 sm:h-9 sm:w-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-background"
-            >
-              <span
-                className="block size-6 rounded-full bg-blue-600 shadow-sm transition-transform duration-300 ease-out sm:size-7"
-                style={{ transform: billingAnnual ? "translateX(calc(100% + 2px))" : "translateX(0)" }}
-              />
-            </button>
-            <span className={`text-sm font-medium ${billingAnnual ? "text-foreground" : "text-muted-foreground"}`}>
-              Bill Annually
-            </span>
-          </div>
         </header>
 
         <ul className={plansGridClass}>
           {displayPlans.map((plan, index) => {
-            const price = sanitizePlanPrice(
-              billingAnnual ? plan.priceAnnual : plan.priceMonthly
-            );
-            const periodLabel = billingAnnual ? "per year" : (plan.periodLabel || "per month");
+            /* When restoring toggle: use useState billingAnnual above and swap to:
+             * const price = sanitizePlanPrice(
+             *   billingAnnual ? plan.priceAnnual : plan.priceMonthly
+             * );
+             * const periodLabel = billingAnnual ? "per year" : (plan.periodLabel || "per month");
+             */
+            const price = sanitizePlanPrice(plan.priceMonthly);
             const ctaClass = `mt-6 w-full rounded-full py-3.5 text-center text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] sm:mt-8 ${
               plan.featured
                 ? "bg-blue-600 hover:bg-rose-400 focus:bg-rose-400 active:bg-rose-500"
@@ -147,11 +154,10 @@ export function PricingSection({ settings, plans }: PricingSectionProps) {
                 <h3 className="text-xl font-semibold text-foreground">
                   {plan.name}
                 </h3>
-                <p className="mt-4 flex items-baseline gap-1">
+                <p className="mt-4">
                   <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     ${formatPlanPriceForDisplay(price)}
                   </span>
-                  <span className="text-sm text-muted-foreground">/{periodLabel}</span>
                 </p>
                 {plan.subtext ? (
                   <p className="mt-1 text-xs text-muted-foreground">{plan.subtext}</p>

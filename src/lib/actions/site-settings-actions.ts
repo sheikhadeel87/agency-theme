@@ -117,6 +117,8 @@ export async function saveSiteSettings(
       revalidatePath("/admin/site-settings");
       revalidatePath("/blog");
       revalidatePath("/pricing");
+      revalidatePath("/services");
+      revalidatePath("/contact");
     } catch (e) {
       console.warn("revalidatePath after saveSiteSettings:", e);
     }
@@ -169,6 +171,7 @@ export async function saveContactSettings(
     try {
       revalidatePath("/");
       revalidatePath("/admin/contact");
+      revalidatePath("/contact");
     } catch (revalErr) {
       console.warn("revalidatePath after saveContactSettings:", revalErr);
     }
@@ -221,7 +224,10 @@ export async function setHomepageSectionLiveEnabled(
       revalidatePath("/");
       revalidatePath("/admin/site-settings");
       revalidatePath("/admin/page-visibility");
-      if (module === "services") revalidatePath("/admin/services");
+      if (module === "services") {
+        revalidatePath("/admin/services");
+        revalidatePath("/services");
+      }
       if (module === "portfolio") revalidatePath("/admin/portfolio");
       if (module === "blog") {
         revalidatePath("/admin/blog");

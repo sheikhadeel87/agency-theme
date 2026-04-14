@@ -37,6 +37,8 @@ export function navHrefToVisibilityKey(
 
   if (raw.startsWith("/pricing")) return "pricing";
 
+  if (raw.startsWith("/services")) return "services";
+  if (raw.startsWith("/contact")) return "contact";
   if (hash === "#contact") return "contact";
   if (hash === "#services") return "services";
   if (hash === "#why-choose-us") return "whyChooseUs";

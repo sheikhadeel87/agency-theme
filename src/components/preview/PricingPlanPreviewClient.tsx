@@ -65,7 +65,6 @@ export function PricingPlanPreviewClient({ siteSettings, dynamicPages }: Shell) 
   const settings = payload.settings ?? {};
   const plan = payload.plan;
   const price = sanitizePlanPrice(plan.priceMonthly ?? 0);
-  const periodLabel = plan.periodLabel || "per month";
   const ctaClass = `mt-6 w-full rounded-full py-3.5 text-center text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] sm:mt-8 ${
     plan.featured
       ? "bg-blue-600 hover:bg-rose-400 focus:bg-rose-400 active:bg-rose-500"
@@ -107,11 +106,10 @@ export function PricingPlanPreviewClient({ siteSettings, dynamicPages }: Shell) 
               }`}
             >
               <h3 className="text-xl font-semibold text-foreground">{plan.name || "Plan"}</h3>
-              <p className="mt-4 flex items-baseline gap-1">
+              <p className="mt-4">
                 <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                   ${formatPlanPriceForDisplay(price)}
                 </span>
-                <span className="text-sm text-muted-foreground">/{periodLabel}</span>
               </p>
               {plan.subtext ? <p className="mt-1 text-xs text-muted-foreground">{plan.subtext}</p> : null}
               {plan.ctaLink ? (

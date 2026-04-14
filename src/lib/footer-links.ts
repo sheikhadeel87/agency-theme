@@ -33,9 +33,9 @@ export function getDefaultFooterColumns(): FooterColumn[] {
       order: 2,
       links: [
         { label: "Web Development", href: "/#support", sectionKey: "featuresHighlights", order: 1 },
-        { label: "Graphics Design", href: "/#services", sectionKey: "services", order: 2 },
+        { label: "Graphics Design", href: "/services", sectionKey: "services", order: 2 },
         { label: "Our Blog", href: "/blog", sectionKey: "blog", order: 3 },
-        { label: "Ui/Ux Design", href: "/#services", sectionKey: "services", order: 4 },
+        { label: "Ui/Ux Design", href: "/services", sectionKey: "services", order: 4 },
       ],
     },
     {
@@ -43,7 +43,7 @@ export function getDefaultFooterColumns(): FooterColumn[] {
       order: 3,
       links: [
         { label: "Team", href: "/#team", sectionKey: "team", order: 1 },
-        { label: "Contact Us", href: "/#contact", sectionKey: "contact", order: 2 },
+        { label: "Contact Us", href: "/contact", sectionKey: "contact", order: 2 },
         { label: "Privacy Policy", href: "/privacy-policy", order: 3 },
         { label: "Terms & Conditions", href: "/terms-conditions", order: 4 },
       ],

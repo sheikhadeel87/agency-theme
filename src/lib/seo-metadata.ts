@@ -45,7 +45,7 @@ export function clampCommaSeparatedKeywords(
   raw: string,
   max: number = SEO_KEYWORDS_MAX_COUNT
 ): string {
-  let s = raw.slice(0, SEO_KEYWORDS_INPUT_MAX_LENGTH);
+  const s = raw.slice(0, SEO_KEYWORDS_INPUT_MAX_LENGTH);
   const parts = s.split(",").map((p) => p.trim()).filter(Boolean);
   if (parts.length <= max) return s;
   return parts.slice(0, max).join(", ");

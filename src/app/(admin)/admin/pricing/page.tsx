@@ -68,7 +68,10 @@ export default async function PricingAdminPage() {
                       </div>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      ${formatPlanPriceForDisplay(plan.priceMonthly)} / {plan.periodLabel}
+                      ${formatPlanPriceForDisplay(plan.priceMonthly)}
+                      {plan.periodLabel?.trim() ? (
+                        <span className="text-muted-foreground/80"> · {plan.periodLabel.trim()}</span>
+                      ) : null}
                       {plan.priceAnnual > 0 && (
                         <span className="ml-1">
                           {" "}

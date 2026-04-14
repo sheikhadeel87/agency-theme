@@ -24,7 +24,7 @@ const defaultPlan: Omit<PricingPlanItem, "_id"> = {
   name: "",
   priceMonthly: 0,
   priceAnnual: 0,
-  periodLabel: "per month",
+  periodLabel: "month",
   subtext: "No credit card required",
   ctaText: "Try for free",
   ctaLink: "",
@@ -148,18 +148,18 @@ export function PricingPlanForm({ initialData }: Props) {
                   />
                 </div>
               </div>
-              <div>
+              {/* <div>
                 <label htmlFor="periodLabel" className="mb-1.5 block text-sm font-medium text-foreground">
                   Period label
                 </label>
                 <Input
                   id="periodLabel"
                   name="periodLabel"
-                  placeholder="per month"
+                  placeholder="month"
                   defaultValue={data.periodLabel}
                   className="h-10"
                 />
-              </div>
+              </div> */}
               <div>
                 <label htmlFor="subtext" className="mb-1.5 block text-sm font-medium text-foreground">
                   Subtext below price

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveContactSettings } from "@/lib/actions/site-settings-actions";
@@ -50,10 +50,12 @@ export function ContactForm({ initialData }: Props) {
     navigation: getDefaultNavigation(),
   };
 
-  const [phoneInput, setPhoneInput] = useState(data.phone ?? "");
-  useEffect(() => {
+  const [phoneInput, setPhoneInput] = useState(() => data.phone ?? "");
+  const [prevPhone, setPrevPhone] = useState(data.phone);
+  if (data.phone !== prevPhone) {
+    setPrevPhone(data.phone);
     setPhoneInput(data.phone ?? "");
-  }, [data.phone]);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
