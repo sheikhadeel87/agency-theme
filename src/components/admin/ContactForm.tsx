@@ -8,11 +8,16 @@ import { saveContactSettings } from "@/lib/actions/site-settings-actions";
 import type { SiteSettingsData } from "@/lib/admin-data";
 import { getDefaultNavigation } from "@/lib/navigation";
 import {
+  CONTACT_SECTION_DESCRIPTION_MAX_LENGTH,
+  CONTACT_SECTION_TITLE_MAX_LENGTH,
+} from "@/lib/contact-section-field-limits";
+import {
   CONTACT_PHONE_INVALID_MESSAGE,
   isValidContactPhone,
   sanitizeContactPhoneInput,
 } from "@/lib/contact-phone";
 import { openAdminPreview } from "@/lib/admin-preview";
+import { cn } from "@/lib/utils";
 import { Eye, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,6 +62,34 @@ export function ContactForm({ initialData }: Props) {
     setPhoneInput(data.phone ?? "");
   }
 
+  const sliceTitle = (s: string) => s.slice(0, CONTACT_SECTION_TITLE_MAX_LENGTH);
+  const sliceDesc = (s: string) => s.slice(0, CONTACT_SECTION_DESCRIPTION_MAX_LENGTH);
+
+  const [sectionTitle, setSectionTitle] = useState(() =>
+    sliceTitle(data.contactSectionTitle ?? "")
+  );
+  const [sectionDescription, setSectionDescription] = useState(() =>
+    sliceDesc(data.contactSectionDescription ?? "")
+  );
+  const [prevContactSection, setPrevContactSection] = useState({
+    title: data.contactSectionTitle,
+    description: data.contactSectionDescription,
+  });
+  if (
+    data.contactSectionTitle !== prevContactSection.title ||
+    data.contactSectionDescription !== prevContactSection.description
+  ) {
+    setPrevContactSection({
+      title: data.contactSectionTitle,
+      description: data.contactSectionDescription,
+    });
+    setSectionTitle(sliceTitle(data.contactSectionTitle ?? ""));
+    setSectionDescription(sliceDesc(data.contactSectionDescription ?? ""));
+  }
+
+  const titleAtCap = sectionTitle.length >= CONTACT_SECTION_TITLE_MAX_LENGTH;
+  const descAtCap = sectionDescription.length >= CONTACT_SECTION_DESCRIPTION_MAX_LENGTH;
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -94,8 +127,8 @@ export function ContactForm({ initialData }: Props) {
       phone: previewPhone,
       address: String(fd.get("address") ?? ""),
       mapEmbedUrl: String(fd.get("mapEmbedUrl") ?? ""),
-      contactSectionTitle: String(fd.get("contactSectionTitle") ?? ""),
-      contactSectionDescription: String(fd.get("contactSectionDescription") ?? ""),
+      contactSectionTitle: sectionTitle,
+      contactSectionDescription: sectionDescription,
     });
   }
 
@@ -119,10 +152,22 @@ export function ContactForm({ initialData }: Props) {
               id="contactSectionTitle"
               name="contactSectionTitle"
               placeholder="Let's Stay Connected"
-              defaultValue={data.contactSectionTitle}
-              maxLength={120}
-              className="max-w-xl"
+              value={sectionTitle}
+              maxLength={CONTACT_SECTION_TITLE_MAX_LENGTH}
+              onChange={(e) =>
+                setSectionTitle(e.target.value.slice(0, CONTACT_SECTION_TITLE_MAX_LENGTH))
+              }
+              className={cn("max-w-xl", titleAtCap && "border-amber-500/60")}
             />
+            <p
+              className={cn(
+                "mt-1 text-[10px] tabular-nums text-muted-foreground",
+                titleAtCap && "font-medium text-amber-800 dark:text-amber-200"
+              )}
+            >
+              {sectionTitle.length} / {CONTACT_SECTION_TITLE_MAX_LENGTH} characters
+              {titleAtCap ? " — maximum length" : ""}
+            </p>
           </div>
           <div>
             <label
@@ -136,10 +181,27 @@ export function ContactForm({ initialData }: Props) {
               name="contactSectionDescription"
               rows={3}
               placeholder="Short intro under the heading"
-              defaultValue={data.contactSectionDescription}
-              maxLength={600}
-              className="w-full max-w-2xl rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              value={sectionDescription}
+              maxLength={CONTACT_SECTION_DESCRIPTION_MAX_LENGTH}
+              onChange={(e) =>
+                setSectionDescription(
+                  e.target.value.slice(0, CONTACT_SECTION_DESCRIPTION_MAX_LENGTH)
+                )
+              }
+              className={cn(
+                "w-full max-w-2xl resize-y rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                descAtCap && "border-amber-500/60"
+              )}
             />
+            <p
+              className={cn(
+                "mt-1 text-[10px] tabular-nums text-muted-foreground",
+                descAtCap && "font-medium text-amber-800 dark:text-amber-200"
+              )}
+            >
+              {sectionDescription.length} / {CONTACT_SECTION_DESCRIPTION_MAX_LENGTH} characters
+              {descAtCap ? " — maximum length" : ""}
+            </p>
           </div>
         </div>
       </section>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { SiteSettings } from "@/models/SiteSettings";
+import { validateContactSectionFields } from "@/lib/contact-section-field-limits";
 import {
   CONTACT_PHONE_INVALID_MESSAGE,
   isValidContactPhone,
@@ -84,6 +85,16 @@ export async function saveSiteSettings(
       return { error: CONTACT_PHONE_INVALID_MESSAGE };
     }
 
+    const contactSectionTitle = str(formData, "contactSectionTitle");
+    const contactSectionDescription = str(formData, "contactSectionDescription");
+    const contactSectionErr = validateContactSectionFields(
+      contactSectionTitle,
+      contactSectionDescription
+    );
+    if (contactSectionErr) {
+      return { error: contactSectionErr };
+    }
+
     const payload = {
       siteName: str(formData, "siteName"),
       logoText: str(formData, "logoText"),
@@ -93,8 +104,8 @@ export async function saveSiteSettings(
       phone,
       address: str(formData, "address"),
       mapEmbedUrl: str(formData, "mapEmbedUrl"),
-      contactSectionTitle: str(formData, "contactSectionTitle"),
-      contactSectionDescription: str(formData, "contactSectionDescription"),
+      contactSectionTitle,
+      contactSectionDescription,
       footerText: str(formData, "footerText"),
       privacyPolicyUrl: str(formData, "privacyPolicyUrl"),
       termsUrl: str(formData, "termsUrl"),
@@ -153,13 +164,23 @@ export async function saveContactSettings(
       return { error: CONTACT_PHONE_INVALID_MESSAGE };
     }
 
+    const contactSectionTitle = str(formData, "contactSectionTitle");
+    const contactSectionDescription = str(formData, "contactSectionDescription");
+    const contactSectionErr = validateContactSectionFields(
+      contactSectionTitle,
+      contactSectionDescription
+    );
+    if (contactSectionErr) {
+      return { error: contactSectionErr };
+    }
+
     const payload = {
       contactEmail: str(formData, "contactEmail"),
       phone,
       address: str(formData, "address"),
       mapEmbedUrl: str(formData, "mapEmbedUrl"),
-      contactSectionTitle: str(formData, "contactSectionTitle"),
-      contactSectionDescription: str(formData, "contactSectionDescription"),
+      contactSectionTitle,
+      contactSectionDescription,
     };
 
     await SiteSettings.findOneAndUpdate(
