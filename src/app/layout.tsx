@@ -4,6 +4,7 @@ import { buildPublicMetadata } from "@/lib/seo-metadata";
 import { getSiteSettings } from "@/lib/admin-data";
 import { Geist_Mono, Montserrat } from "next/font/google";
 import { AppTopLoader } from "@/components/layout/AppTopLoader";
+import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { ThemeProvider } from "@/components/theme";
 import { TrackPageVisit } from "@/components/analytics/TrackPageVisit";
 import "./globals.css";
@@ -63,6 +64,7 @@ export default function RootLayout({
             <TrackPageVisit />
           </Suspense>
           {children}
+          <BackToTopButton />
         </ThemeProvider>
       </body>
     </html>

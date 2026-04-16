@@ -1,7 +1,6 @@
-export const PRICING_MAX_AMOUNT = 1_000_000;
+export { SECTION_TITLE_DESCRIPTION_MAX_LENGTH as PRICING_SECTION_FIELD_MAX_LENGTH } from "@/lib/section-title-description-limits";
 
-/** Admin pricing section heading + intro (matches form counters). */
-export const PRICING_SECTION_FIELD_MAX_LENGTH = 100;
+export const PRICING_MAX_AMOUNT = 1_000_000;
 
 export function sanitizePlanPrice(value: unknown): number {
   if (value == null) return 0;

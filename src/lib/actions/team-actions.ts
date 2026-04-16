@@ -5,6 +5,7 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { TeamSettings } from "@/models/TeamSettings";
 import { TeamMember } from "@/models/TeamMember";
+import { validateSectionTitleAndDescription } from "@/lib/section-title-description-limits";
 import {
   finalizeMetaKeywordsStorage,
   tidyOneLine,
@@ -70,6 +71,8 @@ export async function saveTeamSettings(
     await dbConnect();
     const sectionTitle = str(formData, "sectionTitle");
     const sectionDescription = str(formData, "sectionDescription");
+    const sectionCopyErr = validateSectionTitleAndDescription(sectionTitle, sectionDescription);
+    if (sectionCopyErr) return { error: sectionCopyErr };
     const metaTitle = str(formData, "metaTitle");
     const metaDescription = str(formData, "metaDescription");
     const displayTitle = sectionTitle || "Meet With Our Creative Dedicated Team";

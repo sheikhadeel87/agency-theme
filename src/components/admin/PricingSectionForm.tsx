@@ -3,13 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
 import { savePricingSettings } from "@/lib/actions/pricing-actions";
 import type { PricingSettingsData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
 import { PRICING_SECTION_FIELD_MAX_LENGTH } from "@/lib/pricing-display";
-import { cn } from "@/lib/utils";
+import {
+  SectionTitleDescriptionFields,
+  useSyncedSectionTitleDescription,
+} from "@/components/admin/SectionTitleDescriptionFields";
 import { Eye, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Toggle } from "@/components/ui/toggle";
@@ -23,34 +25,12 @@ export function PricingSectionForm({ initialData }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [sectionEnabled, setSectionEnabled] = useState(initialData.isEnabled !== false);
-  const [sectionTitle, setSectionTitle] = useState(
-    initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
-  );
-  const [sectionDescription, setSectionDescription] = useState(
-    initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
-  );
   const formRef = useRef<HTMLFormElement>(null);
-
-  const [prevSectionCopy, setPrevSectionCopy] = useState({
-    title: initialData.sectionTitle,
-    description: initialData.sectionDescription,
-  });
-  if (
-    initialData.sectionTitle !== prevSectionCopy.title ||
-    initialData.sectionDescription !== prevSectionCopy.description
-  ) {
-    setPrevSectionCopy({
-      title: initialData.sectionTitle,
-      description: initialData.sectionDescription,
-    });
-    setSectionTitle(initialData.sectionTitle.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH));
-    setSectionDescription(
-      initialData.sectionDescription.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH)
-    );
-  }
-
-  const titleAtCap = sectionTitle.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
-  const descAtCap = sectionDescription.length >= PRICING_SECTION_FIELD_MAX_LENGTH;
+  const sectionCopy = useSyncedSectionTitleDescription(
+    initialData.sectionTitle,
+    initialData.sectionDescription
+  );
+  const { title: sectionTitle, description: sectionDescription, maxLength } = sectionCopy;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -108,68 +88,17 @@ export function PricingSectionForm({ initialData }: Props) {
           <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Pricing section
           </h3>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="sectionTitle"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Section title
-              </label>
-              <Input
-                id="sectionTitle"
-                name="sectionTitle"
-                value={sectionTitle}
-                maxLength={PRICING_SECTION_FIELD_MAX_LENGTH}
-                onChange={(e) =>
-                  setSectionTitle(e.target.value.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH))
-                }
-                placeholder="e.g. We Offer Great Affordable Premium Prices."
-                className={cn("h-11 text-base", titleAtCap && "border-amber-500/60")}
-              />
-              <p
-                className={cn(
-                  "mt-1 text-[10px] tabular-nums text-muted-foreground",
-                  titleAtCap && "font-medium text-amber-800 dark:text-amber-200"
-                )}
-              >
-                {sectionTitle.length} / {PRICING_SECTION_FIELD_MAX_LENGTH} characters
-                {titleAtCap ? " — maximum length" : ""}
-              </p>
-            </div>
-            <div>
-              <label
-                htmlFor="sectionDescription"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Section description
-              </label>
-              <textarea
-                id="sectionDescription"
-                name="sectionDescription"
-                value={sectionDescription}
-                maxLength={PRICING_SECTION_FIELD_MAX_LENGTH}
-                onChange={(e) =>
-                  setSectionDescription(e.target.value.slice(0, PRICING_SECTION_FIELD_MAX_LENGTH))
-                }
-                placeholder="Short intro for the pricing block"
-                rows={4}
-                className={cn(
-                  "w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50",
-                  descAtCap && "border-amber-500/60"
-                )}
-              />
-              <p
-                className={cn(
-                  "mt-1 text-[10px] tabular-nums text-muted-foreground",
-                  descAtCap && "font-medium text-amber-800 dark:text-amber-200"
-                )}
-              >
-                {sectionDescription.length} / {PRICING_SECTION_FIELD_MAX_LENGTH} characters
-                {descAtCap ? " — maximum length" : ""}
-              </p>
-            </div>
-          </div>
+          <SectionTitleDescriptionFields
+            title={sectionTitle}
+            description={sectionDescription}
+            onTitleChange={sectionCopy.setTitle}
+            onDescriptionChange={sectionCopy.setDescription}
+            titleAtCap={sectionCopy.titleAtCap}
+            descAtCap={sectionCopy.descAtCap}
+            maxLength={maxLength}
+            titlePlaceholder="e.g. We Offer Great Affordable Premium Prices."
+            descriptionPlaceholder="Short intro for the pricing block"
+          />
         </div>
 
         {/* 3. SEO */}

@@ -5,6 +5,7 @@ import { recordAdminAudit } from "@/lib/audit-log";
 import { dbConnect } from "@/lib/db";
 import { TestimonialsSettings } from "@/models/TestimonialsSettings";
 import { Testimonial } from "@/models/Testimonial";
+import { validateSectionTitleAndDescription } from "@/lib/section-title-description-limits";
 import {
   finalizeMetaKeywordsStorage,
   tidyOneLine,
@@ -35,6 +36,8 @@ export async function saveTestimonialsSettings(
     await dbConnect();
     const sectionTitle = str(formData, "sectionTitle");
     const sectionDescription = str(formData, "sectionDescription");
+    const sectionCopyErr = validateSectionTitleAndDescription(sectionTitle, sectionDescription);
+    if (sectionCopyErr) return { error: sectionCopyErr };
     const metaTitle = str(formData, "metaTitle");
     const metaDescription = str(formData, "metaDescription");
     const displayTitle = sectionTitle || "Client's Testimonials";
