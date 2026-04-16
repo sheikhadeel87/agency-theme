@@ -3,8 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SeoMetaInputs } from "@/components/admin/SeoMetaInputs";
+import {
+  SectionTitleDescriptionFields,
+  useSyncedSectionTitleDescription,
+} from "@/components/admin/SectionTitleDescriptionFields";
 import { saveTestimonialsSettings } from "@/lib/actions/testimonials-actions";
 import type { TestimonialsSettingsData } from "@/lib/admin-data";
 import { openAdminPreview } from "@/lib/admin-preview";
@@ -22,6 +25,11 @@ export function TestimonialsSectionForm({ initialData }: Props) {
   const [saving, setSaving] = useState(false);
   const [sectionEnabled, setSectionEnabled] = useState(initialData.isEnabled !== false);
   const formRef = useRef<HTMLFormElement>(null);
+  const sectionCopy = useSyncedSectionTitleDescription(
+    initialData.sectionTitle,
+    initialData.sectionDescription
+  );
+  const { title: sectionTitle, description: sectionDescription, maxLength } = sectionCopy;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,8 +54,8 @@ export function TestimonialsSectionForm({ initialData }: Props) {
     if (!form) return;
     const fd = new FormData(form);
     openAdminPreview("testimonials-section", {
-      sectionTitle: String(fd.get("sectionTitle") ?? ""),
-      sectionDescription: String(fd.get("sectionDescription") ?? ""),
+      sectionTitle: sectionTitle.slice(0, maxLength),
+      sectionDescription: sectionDescription.slice(0, maxLength),
       metaTitle: String(fd.get("metaTitle") ?? ""),
       metaDescription: String(fd.get("metaDescription") ?? ""),
       metaKeywords: String(fd.get("metaKeywords") ?? ""),
@@ -79,39 +87,17 @@ export function TestimonialsSectionForm({ initialData }: Props) {
           <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Testimonials section
           </h3>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="sectionTitle"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Section title
-              </label>
-              <Input
-                id="sectionTitle"
-                name="sectionTitle"
-                placeholder="e.g. Client's Testimonials"
-                defaultValue={initialData.sectionTitle}
-                className="h-11 text-base"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="sectionDescription"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Section description
-              </label>
-              <textarea
-                id="sectionDescription"
-                name="sectionDescription"
-                placeholder="Short intro for the testimonials block"
-                defaultValue={initialData.sectionDescription}
-                rows={4}
-                className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring/50"
-              />
-            </div>
-          </div>
+          <SectionTitleDescriptionFields
+            title={sectionTitle}
+            description={sectionDescription}
+            onTitleChange={sectionCopy.setTitle}
+            onDescriptionChange={sectionCopy.setDescription}
+            titleAtCap={sectionCopy.titleAtCap}
+            descAtCap={sectionCopy.descAtCap}
+            maxLength={maxLength}
+            titlePlaceholder="e.g. Client's Testimonials"
+            descriptionPlaceholder="Short intro for the testimonials block"
+          />
         </div>
 
         {/* 3. SEO */}
