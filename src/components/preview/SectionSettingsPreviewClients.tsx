@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import type {
+  FeaturesHighlightsSettingsData,
   PricingSettingsData,
   SiteSettingsData,
   TeamSettingsData,
   TestimonialsSettingsData,
 } from "@/lib/admin-data";
 import { adminPreviewStorageKey } from "@/lib/admin-preview";
+import { FeaturesHighlights } from "@/sections/home/FeaturesHighlights";
 import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
 import { TeamSection } from "@/sections/home/TeamSection";
 import { PreviewChrome } from "@/components/preview/PreviewChrome";
@@ -68,6 +70,36 @@ export function TestimonialsSectionPreviewClient({ siteSettings, dynamicPages }:
   return (
     <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
       <TestimonialsSection settings={data} testimonials={[]} />
+    </PreviewChrome>
+  );
+}
+
+export function FeaturesHighlightsPreviewClient({ siteSettings, dynamicPages }: Shell) {
+  const type = "features-highlights";
+  const { pending, empty, data } = usePreviewPayload<FeaturesHighlightsSettingsData>(type);
+
+  if (pending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-gray-600">
+        Loading preview…
+      </div>
+    );
+  }
+
+  if (empty || !data) {
+    return (
+      <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
+        <PreviewEmptyState
+          adminBackHref="/admin/features-highlights"
+          adminBackLabel="Back to Support"
+        />
+      </PreviewChrome>
+    );
+  }
+
+  return (
+    <PreviewChrome siteSettings={siteSettings} dynamicPages={dynamicPages}>
+      <FeaturesHighlights settings={data} />
     </PreviewChrome>
   );
 }

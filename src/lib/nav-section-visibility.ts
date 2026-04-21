@@ -37,7 +37,7 @@ export const SECTION_VISIBILITY_KEY_SET = new Set<string>(SECTION_VISIBILITY_KEY
 
 const SECTION_LABELS: Record<keyof NavSectionVisibility, string> = {
   hero: "Hero",
-  featuresHighlights: "Features highlights",
+  featuresHighlights: "Support",
   whyChooseUs: "Why choose us",
   team: "Team",
   services: "Services",

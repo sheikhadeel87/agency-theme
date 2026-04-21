@@ -456,7 +456,7 @@ export function SiteSettingsForm({ initialData }: Props) {
         </p>
         <div className="grid gap-3 sm:max-w-xl">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-border bg-card p-3">
-            <span className="min-w-0 text-sm font-medium text-foreground">Feature highlights (Support block)</span>
+            <span className="min-w-0 text-sm font-medium text-foreground">Support section (three cards)</span>
             <input
               type="hidden"
               name="featuresHighlightsSectionEnabled"

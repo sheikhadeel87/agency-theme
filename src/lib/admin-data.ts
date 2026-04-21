@@ -7,6 +7,8 @@ import { sanitizePlanPrice } from "@/lib/pricing-display";
 import type { FooterColumn } from "@/lib/footer-links";
 import { mapDocFooterColumns } from "@/lib/footer-links";
 import type { NavItem } from "@/lib/navigation";
+import type { FeatureHighlightCard } from "@/lib/features-highlights-defaults";
+import { normalizeFeatureHighlightCards } from "@/lib/features-highlights-defaults";
 import {
   buildNavSectionVisibility,
   type NavSectionVisibility,
@@ -119,6 +121,12 @@ export type TestimonialsSettingsData = {
   metaDescription: string;
   metaKeywords: string;
   isEnabled: boolean;
+};
+
+export type { FeatureHighlightCard } from "@/lib/features-highlights-defaults";
+
+export type FeaturesHighlightsSettingsData = {
+  items: FeatureHighlightCard[];
 };
 
 export type TestimonialItem = {
@@ -794,6 +802,19 @@ export async function getWhyChooseUsSettings(): Promise<WhyChooseUsSettingsData>
   };
 }
 
+/** Support section (three homepage cards at /#support), single settings doc */
+export async function getFeaturesHighlightsSettings(): Promise<FeaturesHighlightsSettingsData> {
+  const { dbConnect } = await import("@/lib/db");
+  const { FeaturesHighlightsSettings } = await import("@/models/FeaturesHighlightsSettings");
+  await dbConnect();
+  const doc = await FeaturesHighlightsSettings.findOne().lean();
+  if (!doc) {
+    return { items: normalizeFeatureHighlightCards(undefined) };
+  }
+  const d = doc as { items?: unknown };
+  return { items: normalizeFeatureHighlightCards(d.items) };
+}
+
 /** Testimonials section settings (single doc) */
 export async function getTestimonialsSettings(): Promise<TestimonialsSettingsData> {
   const { dbConnect } = await import("@/lib/db");
@@ -1281,6 +1302,7 @@ export async function getHomepageViewBundle() {
     teamSettings,
     teamMembers,
     whyChooseUsSettings,
+    featuresHighlightsSettings,
     testimonialsSettings,
     testimonials,
     pricingSettings,
@@ -1295,6 +1317,7 @@ export async function getHomepageViewBundle() {
     getTeamSettings(),
     getHomepageTeamMembers(),
     getWhyChooseUsSettings(),
+    getFeaturesHighlightsSettings(),
     getTestimonialsSettings(),
     getTestimonials(),
     getPricingSettings(),
@@ -1311,6 +1334,7 @@ export async function getHomepageViewBundle() {
     teamSettings,
     teamMembers,
     whyChooseUsSettings,
+    featuresHighlightsSettings,
     testimonialsSettings,
     testimonials,
     pricingSettings,
@@ -1381,9 +1405,9 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
       actionLabel: "Edit Hero",
     },
     {
-      title: "Features",
-      description: "Feature highlights and icons.",
-      actionHref: "/admin/site-settings",
+      title: "Support",
+      description: "Three icon cards on the homepage (/#support).",
+      actionHref: "/admin/features-highlights",
     },
     {
       title: "Why Choose Us",

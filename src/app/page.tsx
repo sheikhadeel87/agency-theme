@@ -34,6 +34,7 @@ export default async function Home() {
     teamSettings,
     teamMembers,
     whyChooseUsSettings,
+    featuresHighlightsSettings,
     testimonialsSettings,
     testimonials,
     pricingSettings,
@@ -58,7 +59,9 @@ export default async function Home() {
       <Header siteSettings={siteSettings} dynamicPages={dynamicPages} navVisibility={navVisibility} />
       <main>
         {show.hero === true ? <Hero heroData={hero} /> : null}
-        {show.featuresHighlights === true ? <FeaturesHighlights /> : null}
+        {show.featuresHighlights === true ? (
+          <FeaturesHighlights settings={featuresHighlightsSettings} />
+        ) : null}
         {show.whyChooseUs === true ? <WhyChooseUs settings={whyChooseUsSettings} /> : null}
         {show.team === true ? <TeamSection settings={teamSettings} members={teamMembers} /> : null}
         {show.services === true ? <ServicesSection services={services} /> : null}
