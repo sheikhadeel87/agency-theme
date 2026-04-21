@@ -154,6 +154,9 @@ export function buildAuditDescription(
     case "UPDATE_WHY_CHOOSE_US_SECTION":
       return cmsSection(a, "Why Choose Us section", meta);
 
+    case "UPDATE_FEATURES_HIGHLIGHTS_SECTION":
+      return cmsSection(a, "Support section (three cards)", meta);
+
     case "UPDATE_PRICING_SECTION":
       return cmsSection(a, "pricing section settings", meta);
     case "CREATE_PRICING_PLAN":
